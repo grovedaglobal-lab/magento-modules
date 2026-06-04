@@ -511,6 +511,7 @@ class DownloadTemplate extends Action
             'barcode', 'ean', 'upc', 'gtin'
         ]);
         $collection->addAttributeToFilter('vendor_id', (int) $vendor->getId());
+        $collection->addAttributeToFilter('sku', ['neq' => 'wallet-recharge']);
         $collection->setOrder('created_at', 'DESC');
 
         $rows = [];
@@ -535,6 +536,39 @@ class DownloadTemplate extends Action
                 $configurableType,
                 $parentCache
             );
+        }
+
+
+        if (empty($rows)) {
+            $defaultAttrSet = current($attributeSetLabels) ?: 'Default';
+            // 1. Simple Product Example
+            $rows[] = [
+                'simple', $defaultAttrSet, 'EXAMPLE-SIMPLE-SKU', 'Example Simple Product', 'Description here...', 'Short description',
+                '', '', '', 299.00, 150.00, 0.5,
+                '', 1, 4, 'https://example.com/image.jpg', '', '', '', '', '', '', '', '', '', '',
+                '', '', '', '', 100
+            ];
+            // 2. Configurable Parent Example
+            $rows[] = [
+                'configurable', $defaultAttrSet, 'EXAMPLE-CONF-SKU', 'Example Configurable Product', 'Description here...', 'Short desc',
+                '', '', '', 0, 0, '',
+                '', 1, 4, 'https://example.com/image.jpg', '', '', '', '', '', '', '', '', '', '',
+                '', '', '', '', 0
+            ];
+            // 3. Configurable Child 1 (15g)
+            $rows[] = [
+                'simple', $defaultAttrSet, 'EXAMPLE-CONF-SKU-15g', 'Example Configurable Product - 15g', 'Description here...', 'Short desc',
+                '', '', '', 199.00, 100.00, 0.015,
+                '', 1, 1, 'https://example.com/image-15g.jpg', '', '', '', '', '', '', '', '', '', '',
+                'EXAMPLE-CONF-SKU', 'Example Configurable Product', 'Variant Weight', '15g', 50
+            ];
+            // 4. Configurable Child 2 (40g)
+            $rows[] = [
+                'simple', $defaultAttrSet, 'EXAMPLE-CONF-SKU-40g', 'Example Configurable Product - 40g', 'Description here...', 'Short desc',
+                '', '', '', 399.00, 200.00, 0.040,
+                '', 1, 1, 'https://example.com/image-40g.jpg', '', '', '', '', '', '', '', '', '', '',
+                'EXAMPLE-CONF-SKU', 'Example Configurable Product', 'Variant Weight', '40g', 30
+            ];
         }
 
         return $rows;

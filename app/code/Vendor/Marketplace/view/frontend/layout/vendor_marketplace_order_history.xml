@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="marketplace_vendor_dashboard_layout"/>
+    <body>
+
+        <referenceBlock name="vendor.portal.wrapper">
+             <!-- Order History Content -->
+             <block class="Vendor\Marketplace\Block\Order\History" name="vendor.order.history" template="Vendor_Marketplace::order/history.phtml" as="main_content" cacheable="false"/>
+        </referenceBlock>
+    </body>
+</page>

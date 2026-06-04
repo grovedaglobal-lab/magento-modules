@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="marketplace_vendor_dashboard_layout"/>
+    <body>
+        <!-- Remove Standard Sidebar logic -->
+        <!-- We will implement our own Sidebar inside the Dashboard Template -->
+
+        <referenceBlock name="vendor.portal.wrapper">
+             <!-- Main Content (Stats) -->
+             <block class="Vendor\Marketplace\Block\Seller\Dashboard" name="vendor.marketplace.dashboard.home" template="Vendor_Marketplace::seller/dashboard/home.phtml" as="main_content"/>
+        </referenceBlock>
+    </body>
+</page>

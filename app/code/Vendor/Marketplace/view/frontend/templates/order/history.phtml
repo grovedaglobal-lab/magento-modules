@@ -1,0 +1,505 @@
+<?php
+/** @var \Vendor\Marketplace\Block\Order\History $block */
+$orders = $block->getOrders();
+$stats = $block->getOrderStats();
+?>
+<div class="vendor-order-history-container">
+    <!-- Summary Bar -->
+    <div class="order-summary-bar">
+        <div class="summary-item active">
+            <span class="count"><?= $stats['all'] ?? 0 ?></span>
+            <span class="label"><?= __('All Orders') ?></span>
+        </div>
+        <div class="summary-item">
+            <span class="count"><?= $stats['pending'] ?? 0 ?></span>
+            <span class="label"><?= __('Pending') ?></span>
+        </div>
+        <div class="summary-item">
+            <span class="count"><?= $stats['processing'] ?? 0 ?></span>
+            <span class="label"><?= __('Processing') ?></span>
+        </div>
+        <div class="summary-item">
+            <span class="count"><?= $stats['on_hold'] ?? 0 ?></span>
+            <span class="label"><?= __('On Hold') ?></span>
+        </div>
+        <div class="summary-item">
+            <span class="count"><?= $stats['complete'] ?? 0 ?></span>
+            <span class="label"><?= __('Complete') ?></span>
+        </div>
+        <div class="summary-item">
+            <span class="count"><?= $stats['closed'] ?? 0 ?></span>
+            <span class="label"><?= __('Closed') ?></span>
+        </div>
+        <div class="summary-item">
+            <span class="count"><?= $stats['canceled'] ?? 0 ?></span>
+            <span class="label"><?= __('Canceled') ?></span>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="order-toolbar">
+        <div class="toolbar-left">
+            <div class="actions-dropdown">
+                <button class="action-btn"><?= __('Actions') ?> <i class="fas fa-caret-down"></i></button>
+                <div class="dropdown-content">
+                    <a href="#"
+                        onclick="submitMassAction('<?= $block->getUrl('marketplace/order/massPrintInvoice') ?>')"><?= __('Print Invoice Slip') ?></a>
+                </div>
+            </div>
+            <span class="records-found"><?= __('%1 records found', $orders ? $orders->getSize() : 0) ?></span>
+        </div>
+        <div class="toolbar-right">
+            <!-- Existing filters functionality -->
+            <button class="tool-btn" onclick="toggleFilters()"><i class="fas fa-filter"></i>
+                <?= __('Filters') ?></button>
+            <div class="view-select">
+                <i class="fas fa-eye"></i> <?= __('Default View') ?> <i class="fas fa-caret-down"></i>
+            </div>
+            <button class="tool-btn"><i class="fas fa-cog"></i> <?= __('Columns') ?> <i
+                    class="fas fa-caret-down"></i></button>
+
+            <div class="pagination-controls">
+                <?php if ($block->getPagerHtml()): ?>
+                    <?= $block->getPagerHtml() ?>
+                <?php endif ?>
+            </div>
+        </div>
+    </div>
+
+    <form id="mass-action-form" method="post" action="">
+        <?= $block->getBlockHtml('formkey') ?>
+        <!-- Main Table -->
+        <div class="table-wrapper orders-history">
+            <table class="data-grid history" id="my-orders-table">
+                <thead>
+                    <tr>
+                        <th class="col-check"><input type="checkbox" id="select-all-orders"></th>
+                        <th class="col-id"><?= __('Order ID') ?></th>
+                        <th class="col-date"><?= __('Purchased On') ?></th>
+                        <th class="col-base-total"><?= __('Base Total') ?></th>
+                        <th class="col-products"><?= __('Products') ?></th>
+                        <th class="col-total"><?= __('Purchased Total') ?></th>
+                        <th class="col-customer"><?= __('Customer') ?></th>
+                        <th class="col-status"><?= __('Status') ?></th>
+                        <th class="col-action"><?= __('View') ?></th>
+                    </tr>
+                    <!-- Filter Row -->
+                    <tr class="filter-row" id="order-filter-row" style="display:none; background-color: #f8f9fa;">
+                        <th></th>
+                        <th><input type="text" name="increment_id" class="input-text admin__control-text"
+                                placeholder="ID" style="width:100%"
+                                value="<?= $block->escapeHtml($block->getRequest()->getParam('increment_id')) ?>"></th>
+                        <th>
+                            <input type="date" name="date_from" class="input-text admin__control-text"
+                                style="width: 100%; font-size: 10px; margin-bottom: 2px;"
+                                value="<?= $block->escapeHtml($block->getRequest()->getParam('date_from')) ?>">
+                            <input type="date" name="date_to" class="input-text admin__control-text"
+                                style="width: 100%; font-size: 10px;"
+                                value="<?= $block->escapeHtml($block->getRequest()->getParam('date_to')) ?>">
+                        </th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th><input type="text" name="customer" class="input-text admin__control-text"
+                                placeholder="Customer" style="width:100%"
+                                value="<?= $block->escapeHtml($block->getRequest()->getParam('customer')) ?>"></th>
+                        <th>
+                            <select name="status" class="admin__control-select" style="width:100%">
+                                <option value="">All</option>
+                                <option value="pending" <?= $block->getRequest()->getParam('status') == 'pending' ? 'selected' : '' ?>>Pending</option>
+                                <option value="processing" <?= $block->getRequest()->getParam('status') == 'processing' ? 'selected' : '' ?>>Processing</option>
+                                <option value="complete" <?= $block->getRequest()->getParam('status') == 'complete' ? 'selected' : '' ?>>Complete</option>
+                                <option value="closed" <?= $block->getRequest()->getParam('status') == 'closed' ? 'selected' : '' ?>>Closed</option>
+                                <option value="canceled" <?= $block->getRequest()->getParam('status') == 'canceled' ? 'selected' : '' ?>>Canceled</option>
+                            </select>
+                        </th>
+                        <th>
+                            <div class="filter-actions">
+                                <button type="button" class="filter-btn-go" onclick="applyFilters()">Go</button>
+                                <button type="button" class="filter-btn-clear" onclick="clearFilters()">X</button>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($orders && $orders->getSize()): ?>
+                        <?php foreach ($orders as $order): ?>
+                            <tr>
+                                <td class="col-check">
+                                    <input type="checkbox" name="order_ids[]" value="<?= $order->getId() ?>"
+                                        class="order-checkbox">
+                                </td>
+                                <td class="col-id"><?= $block->escapeHtml($order->getIncrementId()) ?></td>
+                                <td class="col-date">
+                                    <?= date('M d, Y g:i:s A', strtotime($order->getOrderCreatedAt())) ?>
+                                </td>
+                                <td class="col-base-total">
+                                    <?= $block->formatPrice($order->getBaseGrandTotal()) ?>
+                                </td>
+                                <td class="col-products">
+                                    <?php $products = $block->getProductInfo($order); ?>
+                                    <?php foreach ($products as $product): ?>
+                                        <div class="product-entry">
+                                            <a href="#" class="product-name"><?= $block->escapeHtml($product['name']) ?></a>
+                                            <div class="product-qtys">
+                                                <span><?= __('Ordered') ?>: <strong><?= $product['qty_ordered'] ?></strong></span>
+                                                <?php if ($product['qty_canceled']): ?>
+                                                    <span><?= __('Canceled') ?>: <strong><?= $product['qty_canceled'] ?></strong></span>
+                                                <?php endif; ?>
+                                                <?php if ($product['qty_shipped']): ?>
+                                                    <span><?= __('Shipped') ?>: <strong><?= $product['qty_shipped'] ?></strong></span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </td>
+                                <td class="col-total">
+                                    <?= $block->formatPrice($order->getSubtotal()) ?>
+                                </td>
+                                <td class="col-customer">
+                                    <?= $block->escapeHtml($order->getCustomerFirstname() . ' ' . $order->getCustomerLastname()) ?>
+                                </td>
+                                <td class="col-status">
+                                    <?php
+                                    $status = strtolower($order->getOrderStatus());
+                                    $dotClass = 'dot-' . $status;
+                                    ?>
+                                    <span class="status-indicator <?= $dotClass ?>"></span>
+                                    <?= $block->escapeHtml(ucfirst($order->getOrderStatus())) ?>
+                                </td>
+                                <td class="col-action">
+                                    <a href="<?= $block->getViewUrl($order) ?>" class="action-view"><?= __('Order') ?></a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="9" class="empty-message"><?= __('We couldn\'t find any records.') ?></td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </form>
+
+    <!-- Pagination Footer -->
+    <?php if ($block->getPagerHtml()): ?>
+        <div class="order-products-toolbar toolbar bottom"><?= $block->getPagerHtml() ?></div>
+    <?php endif ?>
+</div>
+
+<style>
+    /* Scope styles to ensure they override and use theme variables */
+    .vendor-order-history-container {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .actions-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .actions-dropdown::after {
+        content: '';
+        position: absolute;
+        height: 10px;
+        width: 100%;
+        bottom: -10px;
+        left: 0;
+    }
+
+    .actions-dropdown .dropdown-content {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 4px;
+        /* Slight gap */
+        min-width: 180px;
+        background-color: var(--bg-card, #ffffff);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border: 1px solid var(--border-light, #e3e6f0);
+        border-radius: 6px;
+        /* Softer corners */
+        z-index: 1000;
+        padding: 6px 0;
+        overflow: hidden;
+        /* Contains hover effects */
+    }
+
+    .actions-dropdown:hover .dropdown-content {
+        display: block !important;
+    }
+
+    .dropdown-content a {
+        display: block;
+        padding: 10px 16px;
+        color: var(--text-main, #4a5568);
+        text-decoration: none;
+        font-size: 13px;
+        transition: all 0.2s ease;
+        border-bottom: 1px solid var(--border-light, #f1f5f9);
+        font-weight: 500;
+    }
+
+    .dropdown-content a:last-child {
+        border-bottom: none;
+    }
+
+    .dropdown-content a:hover {
+        background-color: #f0fdf4;
+        /* Very light green background */
+        color: var(--brand-primary, #113321);
+        /* Theme Green */
+        padding-left: 20px;
+        border-left: 3px solid var(--brand-primary, #113321);
+    }
+
+    /* Filter Row Styling */
+    .filter-row th {
+        padding: 10px !important;
+        background-color: #f8fafc !important;
+        /* Lighter background */
+        vertical-align: top;
+        border-bottom: 1px solid var(--border-light, #e3e6f0);
+    }
+
+    .filter-row .input-text,
+    .filter-row select {
+        font-size: 13px;
+        padding: 8px 10px;
+        border: 1px solid var(--border-light, #d1d3e2);
+        border-radius: 4px;
+        width: 100%;
+        box-sizing: border-box;
+        color: var(--text-main, #1e293b);
+        background-color: #fff;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .filter-row .input-text:focus,
+    .filter-row select:focus {
+        border-color: var(--brand-primary, #113321);
+        box-shadow: 0 0 0 3px rgba(17, 51, 33, 0.1);
+        /* Green glow */
+        outline: none;
+    }
+
+
+
+    /* Override Blue Accents to Match Brand Green */
+    .summary-item.active {
+        border-color: var(--brand-primary, #113321) !important;
+        box-shadow: 0 0 10px rgba(17, 51, 33, 0.1) !important;
+    }
+
+    .summary-item .count {
+        color: var(--brand-primary, #113321) !important;
+    }
+
+    /* Target ONLY the main header row for dark background */
+    .data-grid.history thead>tr:first-child>th {
+        background-color: var(--brand-primary, #113321) !important;
+        color: #ffffff !important;
+        border-bottom: none !important;
+        padding: 12px 10px !important;
+        font-weight: 600;
+        vertical-align: middle;
+    }
+
+    /* Ensure Filter Row stays light */
+    .data-grid.history thead tr.filter-row th {
+        background-color: #f8fafc !important;
+        padding: 10px !important;
+        border-bottom: 2px solid #e3e6f0 !important;
+    }
+
+    /* Fix Filter Buttons */
+    .filter-actions {
+        display: flex;
+        gap: 4px;
+    }
+
+    .filter-btn-go {
+        background-color: var(--brand-primary, #113321) !important;
+        color: #fff !important;
+        border: 1px solid var(--brand-primary, #113321) !important;
+        padding: 6px 12px !important;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        width: auto !important;
+    }
+
+    .filter-btn-clear {
+        background-color: #fff !important;
+        color: #666 !important;
+        border: 1px solid #ccc !important;
+        padding: 6px 12px !important;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        width: auto !important;
+    }
+
+    .filter-btn-go:hover {
+        background-color: var(--brand-secondary, #1a4a2f) !important;
+    }
+
+    .filter-btn-clear:hover {
+        background-color: #f1f1f1 !important;
+        color: #333 !important;
+    }
+
+    .col-id,
+    .product-name,
+    .action-view {
+        color: var(--brand-primary, #113321) !important;
+        font-weight: 500;
+    }
+
+    .tool-btn:hover {
+        border-color: var(--brand-primary, #113321) !important;
+        color: var(--brand-primary, #113321) !important;
+    }
+
+    /* Pager/Link Hovers */
+    a:hover {
+        color: var(--brand-secondary, #1a4a2f) !important;
+    }
+</style>
+
+<script>
+    function submitMassAction(url) {
+        var form = document.getElementById('mass-action-form');
+        if (!form) {
+            console.error('Mass action form not found');
+            return;
+        }
+        var checkboxes = form.querySelectorAll('input[name="order_ids[]"]:checked');
+        if (checkboxes.length === 0) {
+            alert('<?= __('Please select at least one order.') ?>');
+            return;
+        }
+        form.action = url;
+        form.submit();
+    }
+
+    function toggleFilters() {
+        var row = document.getElementById('order-filter-row');
+        if (row.style.display === 'none') {
+            row.style.display = 'table-row';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+
+    function applyFilters() {
+        var url = '<?= $block->getUrl('marketplace/order/history') ?>';
+        var params = [];
+        var inputs = document.querySelectorAll('#order-filter-row input, #order-filter-row select');
+
+        inputs.forEach(function (input) {
+            if (input.value) {
+                params.push(input.name + '=' + encodeURIComponent(input.value));
+            }
+        });
+
+        if (params.length > 0) {
+            url += '?' + params.join('&');
+        } else {
+            url = '<?= $block->getUrl('marketplace/order/history') ?>';
+        }
+        window.location.href = url;
+    }
+
+    function clearFilters() {
+        window.location.href = '<?= $block->getUrl('marketplace/order/history') ?>';
+    }
+
+    require(['jquery'], function ($) {
+        $('#select-all-orders').change(function () {
+            $('.order-checkbox').prop('checked', $(this).prop('checked'));
+        });
+
+        // Handle Enter key in filter fields
+        $('#order-filter-row input').keypress(function (e) {
+            if (e.which == 13) {
+                applyFilters();
+            }
+        });
+    });
+</script>
+
+<style>
+    /* Responsive Table Wrapper */
+    .table-wrapper.orders-history {
+        width: 100% !important;
+        overflow-x: auto !important;
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        margin-bottom: 25px;
+        background: #fff;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Standard Scrollbar for Order Table */
+    .table-wrapper.orders-history::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .table-wrapper.orders-history::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .table-wrapper.orders-history::-webkit-scrollbar-thumb {
+        background: var(--brand-primary);
+        border-radius: 10px;
+    }
+
+    .data-grid.history {
+        min-width: 1000px;
+        /* Minimum width to prevent cramping, but not aggressive 1600px */
+    }
+
+    .col-id,
+    .product-name,
+    .action-view {
+        color: var(--brand-primary) !important;
+        font-weight: 800 !important;
+        text-decoration: none;
+    }
+
+    .col-id:hover,
+    .product-name:hover,
+    .action-view:hover {
+        color: var(--brand-secondary) !important;
+        /* Brighter green on hover */
+        text-decoration: underline;
+    }
+
+    .status-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+
+    .dot-complete {
+        background-color: #10b981;
+    }
+
+    .dot-processing {
+        background-color: #3b82f6;
+    }
+
+    .dot-pending {
+        background-color: #f59e0b;
+    }
+
+    .dot-canceled {
+        background-color: #ef4444;
+    }
+</style>

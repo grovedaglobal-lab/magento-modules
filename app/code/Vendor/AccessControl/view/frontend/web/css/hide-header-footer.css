@@ -1,0 +1,25 @@
+/* Hide only Magento storefront header and footer wrappers. */
+.page-header,
+.header.content,
+.header.panel,
+.nav-sections,
+.page-top,
+.page-footer,
+.footer.content,
+.footer-container,
+.copyright,
+.footer_block,
+.store.menu,
+.top.search,
+.catalog.topnav,
+.theme-header {
+    display: none !important;
+}
+
+/* Keep main area spacing stable once header/footer are hidden. */
+.page-main,
+.columns,
+.column.main {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}

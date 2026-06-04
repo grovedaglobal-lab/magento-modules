@@ -1,0 +1,14 @@
+<?php
+/** @var \Tax\IndianGST\Block\Adminhtml\Order\Items\Column\Gst $block */
+$amount = (float)$block->getGstAmount();
+$rate = (float)$block->getGstRate();
+?>
+<?php if ($amount > 0): ?>
+    <span class="price"><?= $block->getOrder()->formatPrice($amount) ?></span>
+    <br />
+    <span class="gst-percent"><?= $rate ?>%</span>
+<?php else: ?>
+    <span class="price"><?= $block->getOrder()->formatPrice(0) ?></span>
+    <br />
+    <span class="gst-percent">0.0000%</span>
+<?php endif; ?>

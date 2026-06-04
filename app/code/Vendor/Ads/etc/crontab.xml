@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="vendor_ads">
+        <job name="vendor_ads_precompute_rankings" instance="Vendor\Ads\Cron\PrecomputeRankings" method="execute">
+            <schedule>* * * * *</schedule>
+        </job>
+        <job name="vendor_ads_aggregate_report_daily" instance="Vendor\Ads\Cron\AggregateReportDaily" method="execute">
+            <config_path>vendor_ads/general/aggregate_report_daily_schedule</config_path>
+        </job>
+        <job name="vendor_ads_reconcile_recharges" instance="Vendor\Ads\Cron\ReconcileFailedRecharges" method="execute">
+            <schedule>0 * * * *</schedule>
+        </job>
+    </group>
+</config>

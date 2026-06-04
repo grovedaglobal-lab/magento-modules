@@ -1,0 +1,362 @@
+<?php
+/**
+ * Order totals and comments template
+ * @var $block \Vendor\Marketplace\Block\Order\View
+ */
+$vendorOrder = $block->getVendorOrder();
+$order = $block->getOrder();
+
+if (!$order || !$vendorOrder) {
+    return;
+}
+
+$vendorItems = $block->getVendorOrderItems();
+// Always compute subtotal excl-tax directly from item row totals
+// (vendorOrder->getSubtotal() stores the commission basis which may be incl. tax)
+$vendorSubtotal = 0.0;
+$vendorTax = 0.0;
+$vendorDiscount = 0.0;
+$vendorSubtotalInclTax = 0.0;
+
+foreach ($vendorItems as $item) {
+    $vendorSubtotal    += (float) $item->getRowTotal();        // always excl. tax
+    $vendorTax         += (float) $item->getTaxAmount();
+    $vendorDiscount    += (float) $item->getDiscountAmount();
+    $vendorSubtotalInclTax += (float) $item->getRowTotalInclTax();
+}
+
+// Shipping: prefer stored vendor shipping; fall back to proportional share of
+// the order's actual shipping amount (covers platform/flat-rate shipping cases)
+$vendorShipping = (float) $block->getVendorShippingAmount();
+if ($vendorShipping <= 0) {
+    $orderShipping = (float) $order->getShippingAmount();
+    if ($orderShipping > 0 && $vendorSubtotalInclTax > 0) {
+        // Proportional share based on this vendor's incl-tax subtotal
+        $orderSubtotalInclTax = (float) $order->getSubtotalInclTax();
+        $vendorShare = $orderSubtotalInclTax > 0
+            ? ($vendorSubtotalInclTax / $orderSubtotalInclTax)
+            : 1.0;
+        $vendorShipping = round($orderShipping * $vendorShare, 2);
+    }
+}
+?>
+<div class="order-total-section">
+    <h3 class="section-title"><?= $block->escapeHtml(__('Order Total')) ?></h3>
+
+    <div class="order-total-grid">
+        <!-- Notes for this Order -->
+        <div class="order-notes-box">
+            <h4 class="box-title"><?= $block->escapeHtml(__('Notes for this Order')) ?></h4>
+
+            <?php
+            $payment = $order->getPayment();
+            $methodCode = $payment ? (string) $payment->getMethod() : '';
+            $isCod = in_array($methodCode, ['cashondelivery', 'checkmo'], true);
+            if (strtolower($order->getStatus()) != 'pending' || $isCod):
+                ?>
+                <form
+                    action="<?= $block->escapeUrl($block->getUrl('marketplace/order/addComment', ['id' => $vendorOrder->getId()])) ?>"
+                    method="post" id="order-comment-form" class="order-comment-form">
+                    <?= $block->getBlockHtml('formkey') ?>
+
+                    <div class="form-group">
+                        <label for="status"><?= $block->escapeHtml(__('Status')) ?></label>
+                        <select name="status" id="status" class="form-control">
+                            <option value="complete" <?= $vendorOrder->getStatus() == 'complete' ? 'selected' : '' ?>>
+                                <?= $block->escapeHtml(__('Complete')) ?>
+                            </option>
+                            <option value="canceled" <?= $vendorOrder->getStatus() == 'canceled' ? 'selected' : '' ?>>
+                                <?= $block->escapeHtml(__('Canceled')) ?>
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="comment"><?= $block->escapeHtml(__('Comment')) ?></label>
+                        <textarea name="comment" id="comment" rows="5" class="form-control"
+                            placeholder="<?= $block->escapeHtmlAttr(__('Enter your comment here...')) ?>"></textarea>
+                    </div>
+
+                    <div class="form-note">
+                        <?= $block->escapeHtml(__('A status change or comment text is required to submit a comment.')) ?>
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" name="notify_customer" value="1" />
+                            <?= $block->escapeHtml(__('Notify Customer by Email')) ?>
+                        </label>
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" name="visible_on_storefront" value="1" />
+                            <?= $block->escapeHtml(__('Visible on Storefront')) ?>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <?= $block->escapeHtml(__('Submit Comment')) ?>
+                    </button>
+                </form>
+            <?php else: ?>
+                <div class="form-note" style="margin: 15px 0; color: #666; font-style: italic;">
+                    <?= $block->escapeHtml(__('Order status and comments cannot be updated while the order is in Pending status.')) ?>
+                </div>
+            <?php endif; ?>
+
+            <!-- Order Comments History -->
+            <?php if ($order->getStatusHistoryCollection()->getSize()): ?>
+                <div class="order-comments-history">
+                    <h5><?= $block->escapeHtml(__('Comments History')) ?></h5>
+                    <?php foreach ($order->getStatusHistoryCollection() as $comment): ?>
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <span
+                                    class="comment-date"><?= $block->escapeHtml($block->formatDate($comment->getCreatedAt(), \IntlDateFormatter::MEDIUM, true)) ?></span>
+                                <span
+                                    class="comment-status <?= $block->escapeHtmlAttr(strtolower($comment->getStatus())) ?>"><?= $block->escapeHtml($comment->getStatus()) ?></span>
+                            </div>
+                            <?php if ($comment->getComment()): ?>
+                                <div class="comment-text">
+                                    <?= $block->escapeHtml($comment->getComment()) ?>
+                                </div>
+                            <?php endif; ?>
+                            <?php if ($comment->getIsCustomerNotified()): ?>
+                                <div class="comment-notified">
+                                    <i class="fas fa-envelope"></i> <?= $block->escapeHtml(__('Customer Notified')) ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Order Totals -->
+        <div class="order-totals-box">
+            <h4 class="box-title"><?= $block->escapeHtml(__('Order Totals')) ?></h4>
+
+            <table class="totals-table">
+                <tbody>
+                    <?php
+                    $displaySubtotalInclTax = $block->displaySubtotalInclTax();
+                    $itemStoreId = $order->getStoreId();
+                    $basis = $block->getConfigValue(
+                        'vendor_marketplace/commission/calculation_basis',
+                        $itemStoreId
+                    );
+                    $basisLabel = ($basis === 'include_tax') ? __(' (Incl. Tax)') : __(' (Excl. Tax)');
+                    ?>
+                    <tr class="subtotal">
+                        <th><?= $block->escapeHtml(__('Subtotal (Excl. Tax)')) ?></th>
+                        <td><?= /* @noEscape */ $order->formatPrice($vendorSubtotal) ?></td>
+                    </tr>
+
+                    <?php if ($vendorShipping > 0): ?>
+                        <tr class="shipping">
+                            <th><?= $block->escapeHtml(__('Shipping & Handling')) ?></th>
+                            <td><?= /* @noEscape */ $order->formatPrice($vendorShipping) ?></td>
+                        </tr>
+                    <?php else: ?>
+                        <tr class="shipping">
+                            <th><?= $block->escapeHtml(__('Shipping & Handling')) ?></th>
+                            <td><?= /* @noEscape */ $order->formatPrice(0) ?></td>
+                        </tr>
+                    <?php endif; ?>
+
+                    <?php if ($vendorDiscount != 0): ?>
+                        <tr class="discount">
+                            <th><?= $block->escapeHtml(__('Discount')) ?></th>
+                            <td><?= /* @noEscape */ $order->formatPrice($vendorDiscount) ?></td>
+                        </tr>
+                    <?php endif; ?>
+
+                    <?php
+                    // Check if GST module is enabled
+                    $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+                    $moduleManager = $objectManager->get(\Magento\Framework\Module\Manager::class);
+                    $hasGstModule = $moduleManager->isEnabled('Tax_IndianGST');
+                    ?>
+
+                    <?php if ($hasGstModule && $order->getOrderCurrencyCode() == 'INR'): ?>
+                        <?php
+                        // Get tax details
+                        $taxAmount = $vendorTax;
+                        $billingRegion  = (int) $order->getBillingAddress()->getRegionId();
+                        $shippingAddr   = $order->getShippingAddress();
+                        $shippingRegion = $shippingAddr ? (int) $shippingAddr->getRegionId() : $billingRegion;
+
+                        // Intrastate only when BOTH regions are non-zero AND equal.
+                        // If either is 0/null the comparison is unreliable → treat as IGST.
+                        if ($billingRegion > 0 && $billingRegion === $shippingRegion) {
+                            // Intrastate - CGST + SGST
+                            $cgst = $taxAmount / 2;
+                            $sgst = $taxAmount / 2;
+                            $igst = 0;
+                        } else {
+                            // Interstate (or undetermined) - IGST
+                            $cgst = 0;
+                            $sgst = 0;
+                            $igst = $taxAmount;
+                        }
+                        ?>
+
+                        <?php if ($cgst > 0): ?>
+                            <tr class="cgst">
+                                <th><?= $block->escapeHtml(__('CGST')) ?></th>
+                                <td><?= /* @noEscape */ $order->formatPrice($cgst) ?></td>
+                            </tr>
+                        <?php endif; ?>
+
+                        <?php if ($sgst > 0): ?>
+                            <tr class="sgst">
+                                <th><?= $block->escapeHtml(__('SGST')) ?></th>
+                                <td><?= /* @noEscape */ $order->formatPrice($sgst) ?></td>
+                            </tr>
+                        <?php endif; ?>
+
+                        <?php if ($igst > 0): ?>
+                            <tr class="igst">
+                                <th><?= $block->escapeHtml(__('IGST')) ?></th>
+                                <td><?= /* @noEscape */ $order->formatPrice($igst) ?></td>
+                            </tr>
+                        <?php endif; ?>
+
+                        <tr class="total-tax">
+                            <th><?= $block->escapeHtml(__('Total Tax')) ?></th>
+                            <td><?= /* @noEscape */ $order->formatPrice($taxAmount) ?></td>
+                        </tr>
+                    <?php else: ?>
+                        <?php if ($vendorTax > 0): ?>
+                            <tr class="total-tax">
+                                <th><?= $block->escapeHtml(__('Total Tax')) ?></th>
+                                <td><?= /* @noEscape */ $order->formatPrice($vendorTax) ?></td>
+                            </tr>
+                        <?php endif; ?>
+                    <?php endif; ?>
+
+                    <?php
+                    // Total Ordered Amount = excl-tax subtotal + shipping + tax - discount
+                    // This equals the tax-inclusive subtotal + shipping - discount
+                    $totalOrderedAmount = $vendorSubtotal + $vendorShipping + $vendorTax - $vendorDiscount;
+
+                    // Pre-calculate total admin commission (base + GST on commission)
+                    // so Total Vendor Amount = Total Ordered Amount - Total Admin Commission
+                    // (vendor_earnings stored in DB omits shipping, so we derive it here)
+                    $preBaseCommission = (float) $vendorOrder->getCommissionAmount();
+                    $preCommissionTax  = (float) $vendorOrder->getData('commission_tax_amount');
+                    $preTotalAdminCommission = $preBaseCommission + $preCommissionTax;
+                    $totalVendorAmount = $totalOrderedAmount - $preTotalAdminCommission;
+                    ?>
+
+                    <tr class="total-ordered-amount">
+                        <?php
+                        $targetTotal = round($totalOrderedAmount);
+                        $roundOff = $targetTotal - $totalOrderedAmount;
+                        ?>
+                        <th><strong><?= $block->escapeHtml(__('Total Ordered Amount')) ?></strong></th>
+                        <td><strong><?= /* @noEscape */ $order->formatPrice($targetTotal) ?></strong></td>
+                    </tr>
+
+                    <?php if (abs($roundOff) >= 0.01): ?>
+                        <tr class="round-off">
+                            <th><?= $block->escapeHtml(__('Round Off')) ?></th>
+                            <td><?= /* @noEscape */ $order->formatPrice($roundOff) ?></td>
+                        </tr>
+                    <?php endif; ?>
+
+                    <tr>
+                        <td colspan="2">
+                            <span class="rounding-note">
+                                <?= $block->escapeHtml(__('* Rounding off is applicable as per Section 170 of CGST Act, 2017.')) ?>
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr class="total-vendor-amount">
+                        <th><strong><?= $block->escapeHtml(__('Total Vendor Amount')) ?></strong></th>
+                        <td><strong><?= /* @noEscape */ $order->formatPrice($totalVendorAmount) ?></strong>
+                        </td>
+                    </tr>
+
+                    <?php if ($vendorOrder->getCommissionAmount() > 0): ?>
+                        <?php
+                        $commissionPercent = 0;
+                        if ($vendorOrder->getSubtotal() > 0) {
+                            $commissionPercent = ($vendorOrder->getCommissionAmount() / $vendorOrder->getSubtotal()) * 100;
+                        }
+                        $baseCommission = $vendorOrder->getCommissionAmount();
+                        $commissionTax = (float) $vendorOrder->getData('commission_tax_amount');
+                        $totalAdminCommission = $baseCommission + $commissionTax;
+                        ?>
+
+                        <!-- 1. Subtotal Commission (Excl. Tax) -->
+                        <tr class="subtotal-admin-commission">
+                            <th><?= $block->escapeHtml(__('Admin Commission')) ?><?= $block->escapeHtml($basisLabel) ?>
+                                <small>(<?= number_format($commissionPercent, 2) ?>%)</small>
+                            </th>
+                            <td><?= /* @noEscape */ $order->formatPrice($baseCommission) ?></td>
+                        </tr>
+
+                        <!-- 2. Tax Breakdown -->
+                        <?php if ($vendorOrder->getData('commission_tax_amount') > 0): ?>
+                            <tr class="commission-gst-details">
+                                <td colspan="2" style="padding: 0;">
+                                    <table class="tax-breakdown-table">
+                                        <?php if ($vendorOrder->getData('commission_igst_amount') > 0): ?>
+                                            <tr>
+                                                <th>
+                                                    <?= $block->escapeHtml(__('Commission IGST')) ?>
+                                                    <small>(SAC:
+                                                        <?= $block->escapeHtml($vendorOrder->getData('commission_sac_code') ?: '9983') ?>)</small>
+                                                </th>
+                                                <td>
+                                                    <?= /* @noEscape */ $order->formatPrice($vendorOrder->getData('commission_igst_amount')) ?>
+                                                </td>
+                                            </tr>
+                                        <?php else: ?>
+                                            <?php if ($vendorOrder->getData('commission_cgst_amount') > 0): ?>
+                                                <tr>
+                                                    <th><?= $block->escapeHtml(__('Commission CGST')) ?></th>
+                                                    <td><?= /* @noEscape */ $order->formatPrice($vendorOrder->getData('commission_cgst_amount')) ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endif; ?>
+                                            <?php if ($vendorOrder->getData('commission_sgst_amount') > 0): ?>
+                                                <tr>
+                                                    <th><?= $block->escapeHtml(__('Commission SGST')) ?></th>
+                                                    <td><?= /* @noEscape */ $order->formatPrice($vendorOrder->getData('commission_sgst_amount')) ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endif; ?>
+                                            <tr>
+                                                <th>
+                                                    <?= $block->escapeHtml(__('Total GST on Commission')) ?>
+                                                    <small>(SAC:
+                                                        <?= $block->escapeHtml($vendorOrder->getData('commission_sac_code') ?: '9983') ?>)</small>
+                                                </th>
+                                                <td>
+                                                    <?= /* @noEscape */ $order->formatPrice($vendorOrder->getData('commission_tax_amount')) ?>
+                                                </td>
+                                            </tr>
+                                        <?php endif; ?>
+                                    </table>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+
+                        <!-- 3. Total Admin Commission (Inc. Tax) -->
+                        <tr class="total-admin-commission">
+                            <th><strong><?= $block->escapeHtml(__('Total Admin Commission')) ?></strong>
+                                <small><?= $block->escapeHtml(__('(Inc. Tax)')) ?></small>
+                            </th>
+                            <td><strong><?= /* @noEscape */ $order->formatPrice($totalAdminCommission) ?></strong>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,892 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">vendor_marketplace_vendor_form.vendor_form_data_source</item>
+        </item>
+        <item name="label" xsi:type="string" translate="true">Vendor Information</item>
+        <item name="template" xsi:type="string">templates/form/collapsible</item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="save" class="Vendor\Marketplace\Block\Adminhtml\Edit\SaveButton"/>
+            <button name="delete" class="Vendor\Marketplace\Block\Adminhtml\Edit\DeleteButton"/>
+            <button name="back" class="Magento\Customer\Block\Adminhtml\Edit\BackButton"/>
+        </buttons>
+        <namespace>vendor_marketplace_vendor_form</namespace>
+        <dataScope>data</dataScope>
+        <deps>
+            <dep>vendor_marketplace_vendor_form.vendor_form_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="vendor_form_data_source">
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
+            </item>
+        </argument>
+        <settings>
+            <submitUrl path="vendor_marketplace/index/save"/>
+        </settings>
+        <dataProvider class="Vendor\Marketplace\Model\Vendor\DataProvider\DataProvider" name="vendor_form_data_source">
+            <settings>
+                <requestFieldName>entity_id</requestFieldName>
+                <primaryFieldName>entity_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <fieldset name="vendor_details">
+        <argument name="data" xsi:type="array">
+            <item name="config" xsi:type="array">
+                <item name="collapsible" xsi:type="boolean">false</item>
+                <item name="label" xsi:type="string" translate="true">Vendor Details</item>
+                <item name="sortOrder" xsi:type="number">20</item>
+            </item>
+        </argument>
+        <field name="shop_name">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Shop Name</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">shop_name</item>
+                    <item name="validation" xsi:type="array">
+                        <item name="required-entry" xsi:type="boolean">true</item>
+                    </item>
+                </item>
+            </argument>
+        </field>
+        <field name="company_name">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Company Name</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">company_name</item>
+                </item>
+            </argument>
+        </field>
+        <field name="phone">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Phone Number</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">phone</item>
+                    <item name="validation" xsi:type="array">
+                        <item name="validate-phoneLax" xsi:type="boolean">true</item>
+                    </item>
+                </item>
+            </argument>
+        </field>
+        <field name="email">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Email Address</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">email</item>
+                    <item name="validation" xsi:type="array">
+                        <item name="required-entry" xsi:type="boolean">true</item>
+                        <item name="validate-email" xsi:type="boolean">true</item>
+                    </item>
+                </item>
+            </argument>
+        </field>
+        <field name="website">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Website URL</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">website</item>
+                    <item name="validation" xsi:type="array">
+                        <item name="validate-url" xsi:type="boolean">true</item>
+                    </item>
+                </item>
+            </argument>
+        </field>
+        <field name="customer_id" formElement="select">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">vendor</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Customer</label>
+                <dataScope>customer_id</dataScope>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Vendor\Marketplace\Model\Source\Customer"/>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+        <field name="shop_url">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Shop URL Key</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="disabled" xsi:type="boolean">true</item>
+                    <item name="dataScope" xsi:type="string">shop_url</item>
+                    <item name="validation" xsi:type="array">
+                        <item name="required-entry" xsi:type="boolean">true</item>
+                    </item>
+                </item>
+            </argument>
+        </field>
+        <field name="status">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">boolean</item>
+                    <item name="formElement" xsi:type="string">select</item>
+                    <item name="label" xsi:type="string" translate="true">Status</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">status</item>
+                    <item name="default" xsi:type="number">0</item>
+                </item>
+                <item name="options" xsi:type="array">
+                    <item name="0" xsi:type="array">
+                        <item name="value" xsi:type="number">0</item>
+                        <item name="label" xsi:type="string" translate="true">Pending</item>
+                    </item>
+                    <item name="1" xsi:type="array">
+                        <item name="value" xsi:type="number">1</item>
+                        <item name="label" xsi:type="string" translate="true">Approved</item>
+                    </item>
+                    <item name="2" xsi:type="array">
+                        <item name="value" xsi:type="number">2</item>
+                        <item name="label" xsi:type="string" translate="true">Rejected</item>
+                    </item>
+                </item>
+            </argument>
+        </field>
+        <field name="allowed_shipping_sources" formElement="select">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Allowed Shipping Sources</label>
+                <dataScope>allowed_shipping_sources</dataScope>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Vendor\Marketplace\Model\Config\Source\AllowedShippingSources"/>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+    </fieldset>
+    <fieldset name="address_information">
+        <argument name="data" xsi:type="array">
+            <item name="config" xsi:type="array">
+                <item name="collapsible" xsi:type="boolean">true</item>
+                <item name="label" xsi:type="string" translate="true">Address Information</item>
+                <item name="sortOrder" xsi:type="number">30</item>
+            </item>
+        </argument>
+        <field name="address">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Street Address</item>
+                    <item name="formElement" xsi:type="string">textarea</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">address</item>
+                </item>
+            </argument>
+        </field>
+        <field name="city">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">City</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">city</item>
+                </item>
+            </argument>
+        </field>
+        <field name="state">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">State/Province</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">state</item>
+                </item>
+            </argument>
+        </field>
+        <field name="zip_code">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">ZIP/Postal Code</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">zip_code</item>
+                </item>
+            </argument>
+        </field>
+        <field name="country">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Country</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">country</item>
+                </item>
+            </argument>
+        </field>
+    </fieldset>
+    <fieldset name="pickup_information">
+        <argument name="data" xsi:type="array">
+            <item name="config" xsi:type="array">
+                <item name="collapsible" xsi:type="boolean">true</item>
+                <item name="label" xsi:type="string" translate="true">Store Pickup Information</item>
+                <item name="sortOrder" xsi:type="number">35</item>
+            </item>
+        </argument>
+        <field name="pickup_address">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Pickup Street Address</item>
+                    <item name="formElement" xsi:type="string">textarea</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">pickup_address</item>
+                </item>
+            </argument>
+        </field>
+        <field name="pickup_city">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Pickup City</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">pickup_city</item>
+                </item>
+            </argument>
+        </field>
+        <field name="pickup_state">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Pickup State/Province</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">pickup_state</item>
+                </item>
+            </argument>
+        </field>
+        <field name="pickup_zip_code">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Pickup ZIP/Postal Code</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">pickup_zip_code</item>
+                </item>
+            </argument>
+        </field>
+        <field name="pickup_country">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Pickup Country</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">pickup_country</item>
+                </item>
+            </argument>
+        </field>
+        <field name="pickup_phone">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Pickup Phone</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">pickup_phone</item>
+                </item>
+            </argument>
+        </field>
+        <field name="pickup_email">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Pickup Email</item>
+                    <item name="formElement" xsi:type="string">email</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">pickup_email</item>
+                </item>
+            </argument>
+        </field>
+    </fieldset>
+    <fieldset name="business_information">
+        <argument name="data" xsi:type="array">
+            <item name="config" xsi:type="array">
+                <item name="collapsible" xsi:type="boolean">true</item>
+                <item name="label" xsi:type="string" translate="true">Business Information</item>
+                <item name="sortOrder" xsi:type="number">40</item>
+            </item>
+        </argument>
+        <field name="description">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Shop Description</item>
+                    <item name="formElement" xsi:type="string">textarea</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">description</item>
+                </item>
+            </argument>
+        </field>
+        <field name="business_license">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Business License Number</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">business_license</item>
+                </item>
+            </argument>
+        </field>
+        <field name="tax_id">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Tax ID / VAT Number</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">tax_id</item>
+                </item>
+            </argument>
+        </field>
+
+    </fieldset>
+    <fieldset name="fulfillment_information">
+        <argument name="data" xsi:type="array">
+            <item name="config" xsi:type="array">
+                <item name="collapsible" xsi:type="boolean">true</item>
+                <item name="label" xsi:type="string" translate="true">Fulfillment Information</item>
+                <item name="sortOrder" xsi:type="number">45</item>
+            </item>
+        </argument>
+        <field name="fulfillment_image" formElement="fileUploader">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="label" xsi:type="string" translate="true">Fulfillment Image</item>
+                    <item name="componentType" xsi:type="string">fileUploader</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/form/element/file-uploader</item>
+                    <item name="template" xsi:type="string">ui/form/element/uploader/uploader</item>
+                    <item name="allowedExtensions" xsi:type="string">jpg jpeg gif png</item>
+                    <item name="uploaderConfig" xsi:type="array">
+                        <item name="url" xsi:type="url" path="vendor_marketplace/index/imageUpload"/>
+                    </item>
+                    <item name="dataScope" xsi:type="string">fulfillment_image</item>
+                </item>
+            </argument>
+        </field>
+        <field name="fulfillment_label">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Fulfillment Label</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">fulfillment_label</item>
+                </item>
+            </argument>
+        </field>
+        <field name="fulfillment_text">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Fulfillment Text</item>
+                    <item name="formElement" xsi:type="string">textarea</item>
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="dataScope" xsi:type="string">fulfillment_text</item>
+                </item>
+            </argument>
+        </field>
+    </fieldset>
+    <fieldset name="signature_information">
+        <argument name="data" xsi:type="array">
+            <item name="config" xsi:type="array">
+                <item name="collapsible" xsi:type="boolean">true</item>
+                <item name="label" xsi:type="string" translate="true">Signature Information</item>
+                <item name="sortOrder" xsi:type="number">48</item>
+            </item>
+        </argument>
+        <field name="authorized_name" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">vendor</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Authorized Signatory Name</label>
+                <dataScope>authorized_name</dataScope>
+            </settings>
+        </field>
+        <field name="signature" formElement="fileUploader">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="label" xsi:type="string" translate="true">Signature Image</item>
+                    <item name="componentType" xsi:type="string">fileUploader</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/form/element/file-uploader</item>
+                    <item name="template" xsi:type="string">ui/form/element/uploader/uploader</item>
+                    <item name="allowedExtensions" xsi:type="string">jpg jpeg gif png</item>
+                    <item name="uploaderConfig" xsi:type="array">
+                        <item name="url" xsi:type="url" path="vendor_marketplace/index/signatureUpload"/>
+                    </item>
+                    <item name="dataScope" xsi:type="string">signature</item>
+                </item>
+            </argument>
+        </field>
+    </fieldset>
+    <fieldset name="vendor_documents">
+        <argument name="data" xsi:type="array">
+            <item name="config" xsi:type="array">
+                <item name="collapsible" xsi:type="boolean">true</item>
+                <item name="label" xsi:type="string" translate="true">Upload Documents</item>
+                <item name="sortOrder" xsi:type="number">50</item>
+            </item>
+        </argument>
+        <dynamicRows name="documents">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="componentType" xsi:type="string">dynamicRows</item>
+                    <item name="addButtonLabel" xsi:type="string" translate="true">Add Document</item>
+                    <item name="deleteProperty" xsi:type="string">delete</item>
+                    <item name="deleteValue" xsi:type="number">1</item>
+                    <item name="columnsHeader" xsi:type="boolean">true</item>
+                    <item name="dataScope" xsi:type="string">documents</item>
+                    <item name="sortOrder" xsi:type="number">20</item>
+                    <item name="additionalClasses" xsi:type="string">admin__field-wide</item>
+                </item>
+            </argument>
+            <container name="record" component="Magento_Ui/js/dynamic-rows/record">
+                 <argument name="data" xsi:type="array">
+                     <item name="config" xsi:type="array">
+                         <item name="isTemplate" xsi:type="boolean">true</item>
+                         <item name="is_collection" xsi:type="boolean">true</item>
+                         <item name="componentType" xsi:type="string">container</item>
+                         <item name="positionProvider" xsi:type="string">position</item>
+                     </item>
+                 </argument>
+                <field name="entity_id" formElement="hidden">
+                    <settings>
+                        <dataType>text</dataType>
+                        <dataScope>entity_id</dataScope>
+                    </settings>
+                </field>
+                 <field name="position" formElement="hidden">
+                     <settings>
+                         <dataType>text</dataType>
+                         <visible>false</visible>
+                         <dataScope>position</dataScope>
+                     </settings>
+                 </field>
+                 <field name="document_type" formElement="select">
+                     <argument name="data" xsi:type="array">
+                         <item name="config" xsi:type="array">
+                             <item name="dataType" xsi:type="string">text</item>
+                             <item name="label" xsi:type="string" translate="true">Document Type</item>
+                             <item name="formElement" xsi:type="string">select</item>
+                             <item name="dataScope" xsi:type="string">document_type</item>
+                             <item name="sortOrder" xsi:type="number">10</item>
+                             <item name="validation" xsi:type="array">
+                                 <item name="required-entry" xsi:type="boolean">true</item>
+                             </item>
+                         </item>
+                         <item name="options" xsi:type="array">
+                             <item name="0" xsi:type="array">
+                                 <item name="label" xsi:type="string" translate="true">-- Select --</item>
+                                 <item name="value" xsi:type="string"></item>
+                             </item>
+                             <item name="1" xsi:type="array">
+                                 <item name="label" xsi:type="string" translate="true">Business License</item>
+                                 <item name="value" xsi:type="string">business_license</item>
+                             </item>
+                             <item name="2" xsi:type="array">
+                                 <item name="label" xsi:type="string" translate="true">Tax Certificate</item>
+                                 <item name="value" xsi:type="string">tax_certificate</item>
+                             </item>
+                             <item name="3" xsi:type="array">
+                                 <item name="label" xsi:type="string" translate="true">ID Proof</item>
+                                 <item name="value" xsi:type="string">id_proof</item>
+                             </item>
+                             <item name="4" xsi:type="array">
+                                 <item name="label" xsi:type="string" translate="true">Bank Statement</item>
+                                 <item name="value" xsi:type="string">bank_statement</item>
+                             </item>
+                             <item name="5" xsi:type="array">
+                                 <item name="label" xsi:type="string" translate="true">Address Proof</item>
+                                 <item name="value" xsi:type="string">address_proof</item>
+                             </item>
+                              <item name="6" xsi:type="array">
+                                  <item name="label" xsi:type="string" translate="true">Other</item>
+                                  <item name="value" xsi:type="string">other</item>
+                              </item>
+                          </item>
+                      </argument>
+                  </field>
+                  <field name="label" formElement="input">
+                      <argument name="data" xsi:type="array">
+                          <item name="config" xsi:type="array">
+                              <item name="dataType" xsi:type="string">text</item>
+                              <item name="label" xsi:type="string" translate="true">Label/Description</item>
+                              <item name="formElement" xsi:type="string">input</item>
+                              <item name="dataScope" xsi:type="string">label</item>
+                              <item name="sortOrder" xsi:type="number">20</item>
+                              <item name="validation" xsi:type="array">
+                                  <item name="required-entry" xsi:type="boolean">true</item>
+                              </item>
+                          </item>
+                      </argument>
+                  </field>
+                  <field name="file_path" formElement="fileUploader">
+                     <argument name="data" xsi:type="array">
+                         <item name="config" xsi:type="array">
+                             <item name="label" xsi:type="string" translate="true">Upload File</item>
+                             <item name="formElement" xsi:type="string">fileUploader</item>
+                             <item name="componentType" xsi:type="string">fileUploader</item>
+                             <item name="component" xsi:type="string">Magento_Ui/js/form/element/file-uploader</item>
+                             <item name="template" xsi:type="string">Vendor_Marketplace/form/element/uploader/uploader</item>
+                             <item name="dataScope" xsi:type="string">file_path</item>
+                             <item name="fileInputName" xsi:type="string">file</item>
+                             <item name="sortOrder" xsi:type="number">30</item>
+                             <item name="validation" xsi:type="array">
+                                 <item name="required-entry" xsi:type="boolean">true</item>
+                             </item>
+                             <item name="uploaderConfig" xsi:type="array">
+                                 <item name="url" xsi:type="url" path="vendor_marketplace/file/upload"/>
+                             </item>
+                         </item>
+                     </argument>
+                 </field>
+                  <actionDelete name="actionDelete">
+                      <argument name="data" xsi:type="array">
+                          <item name="config" xsi:type="array">
+                              <item name="componentType" xsi:type="string">actionDelete</item>
+                              <item name="dataType" xsi:type="string">text</item>
+                              <item name="label" xsi:type="string" translate="true">Actions</item>
+                              <item name="fit" xsi:type="boolean">true</item>
+                              <item name="sortOrder" xsi:type="number">40</item>
+                          </item>
+                      </argument>
+                  </actionDelete>
+              </container>
+        </dynamicRows>
+    </fieldset>
+
+    <fieldset name="organic_certifications" sortOrder="110">
+        <settings>
+            <label translate="true">Organic Certifications</label>
+            <collapsible>true</collapsible>
+            <opened>false</opened>
+        </settings>
+        <dynamicRows name="organic_documents" component="Magento_Ui/js/dynamic-rows/dynamic-rows">
+            <settings>
+                <addButtonLabel translate="true">Add Certification</addButtonLabel>
+                <additionalClasses>
+                    <class name="admin__field-wide">true</class>
+                </additionalClasses>
+                <componentType>dynamicRows</componentType>
+                <dataScope>organic_documents</dataScope>
+                <deleteProperty>delete</deleteProperty>
+                <identificationProperty>entity_id</identificationProperty>
+            </settings>
+            <container name="record" component="Magento_Ui/js/dynamic-rows/record">
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="isTemplate" xsi:type="boolean">true</item>
+                        <item name="is_collection" xsi:type="boolean">true</item>
+                        <item name="componentType" xsi:type="string">container</item>
+                        <item name="positionProvider" xsi:type="string">position</item>
+                    </item>
+                </argument>
+                <field name="entity_id" formElement="hidden">
+                    <settings>
+                        <dataType>text</dataType>
+                        <visible>false</visible>
+                        <dataScope>entity_id</dataScope>
+                    </settings>
+                </field>
+                <field name="position" formElement="hidden">
+                    <settings>
+                        <dataType>text</dataType>
+                        <visible>false</visible>
+                        <dataScope>position</dataScope>
+                    </settings>
+                </field>
+                <field name="document_type" formElement="hidden">
+                    <argument name="data" xsi:type="array">
+                        <item name="config" xsi:type="array">
+                            <item name="default" xsi:type="string">organic_certification</item>
+                        </item>
+                    </argument>
+                    <settings>
+                        <dataType>text</dataType>
+                        <visible>false</visible>
+                        <dataScope>document_type</dataScope>
+                    </settings>
+                </field>
+                <field name="label" formElement="input">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Certification Name</label>
+                        <dataScope>label</dataScope>
+                        <validation>
+                            <rule name="required-entry" xsi:type="boolean">true</rule>
+                        </validation>
+                    </settings>
+                </field>
+                <field name="certificate_number" formElement="input">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Certificate Number</label>
+                        <dataScope>certificate_number</dataScope>
+                    </settings>
+                </field>
+                <field name="issuer" formElement="input">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Issuing Body</label>
+                        <dataScope>issuer</dataScope>
+                    </settings>
+                </field>
+                <field name="registration_date" formElement="date">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Reg. Date</label>
+                        <dataScope>registration_date</dataScope>
+                    </settings>
+                </field>
+                <field name="expiry_date" formElement="date">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Expiry Date</label>
+                        <dataScope>expiry_date</dataScope>
+                    </settings>
+                </field>
+                <field name="is_visible" formElement="select">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Visible in Frontend</label>
+                        <dataScope>is_visible</dataScope>
+                    </settings>
+                    <formElements>
+                        <select>
+                            <settings>
+                                <options>
+                                    <option name="1" xsi:type="array">
+                                        <item name="value" xsi:type="string">1</item>
+                                        <item name="label" xsi:type="string" translate="true">Yes</item>
+                                    </option>
+                                    <option name="0" xsi:type="array">
+                                        <item name="value" xsi:type="string">0</item>
+                                        <item name="label" xsi:type="string" translate="true">No</item>
+                                    </option>
+                                </options>
+                            </settings>
+                        </select>
+                    </formElements>
+                </field>
+                <field name="file_path" formElement="fileUploader">
+                    <argument name="data" xsi:type="array">
+                        <item name="config" xsi:type="array">
+                            <item name="label" xsi:type="string" translate="true">Upload PDF</item>
+                            <item name="formElement" xsi:type="string">fileUploader</item>
+                            <item name="componentType" xsi:type="string">fileUploader</item>
+                            <item name="component" xsi:type="string">Magento_Ui/js/form/element/file-uploader</item>
+                            <item name="template" xsi:type="string">Vendor_Marketplace/form/element/uploader/uploader</item>
+                            <item name="dataScope" xsi:type="string">file_path</item>
+                            <item name="fileInputName" xsi:type="string">file</item>
+                            <item name="validation" xsi:type="array">
+                                <item name="required-entry" xsi:type="boolean">true</item>
+                            </item>
+                            <item name="uploaderConfig" xsi:type="array">
+                                <item name="url" xsi:type="url" path="vendor_marketplace/file/upload"/>
+                            </item>
+                        </item>
+                    </argument>
+                </field>
+                <actionDelete name="actionDelete">
+                    <argument name="data" xsi:type="array">
+                        <item name="config" xsi:type="array">
+                            <item name="componentType" xsi:type="string">actionDelete</item>
+                            <item name="dataType" xsi:type="string">text</item>
+                            <item name="label" xsi:type="string" translate="true">Actions</item>
+                            <item name="fit" xsi:type="boolean">true</item>
+                        </item>
+                    </argument>
+                </actionDelete>
+            </container>
+        </dynamicRows>
+    </fieldset>
+    <fieldset name="coa_reports" sortOrder="115">
+        <settings>
+            <label translate="true">COA Reports</label>
+            <collapsible>true</collapsible>
+            <opened>false</opened>
+        </settings>
+        <dynamicRows name="coa_documents" component="Magento_Ui/js/dynamic-rows/dynamic-rows">
+            <settings>
+                <addButtonLabel translate="true">Add COA Report</addButtonLabel>
+                <additionalClasses>
+                    <class name="admin__field-wide">true</class>
+                </additionalClasses>
+                <componentType>dynamicRows</componentType>
+                <dataScope>coa_documents</dataScope>
+                <deleteProperty>delete</deleteProperty>
+                <identificationProperty>entity_id</identificationProperty>
+            </settings>
+            <container name="record" component="Magento_Ui/js/dynamic-rows/record">
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="isTemplate" xsi:type="boolean">true</item>
+                        <item name="is_collection" xsi:type="boolean">true</item>
+                        <item name="componentType" xsi:type="string">container</item>
+                        <item name="positionProvider" xsi:type="string">position</item>
+                    </item>
+                </argument>
+                <field name="entity_id" formElement="input">
+                    <settings>
+                        <dataType>text</dataType>
+                        <visible>false</visible>
+                        <dataScope>entity_id</dataScope>
+                    </settings>
+                </field>
+                <field name="position" formElement="hidden">
+                    <settings>
+                        <dataType>text</dataType>
+                        <visible>false</visible>
+                        <dataScope>position</dataScope>
+                    </settings>
+                </field>
+                <field name="document_type" formElement="hidden">
+                    <argument name="data" xsi:type="array">
+                        <item name="config" xsi:type="array">
+                            <item name="default" xsi:type="string">coa_report</item>
+                        </item>
+                    </argument>
+                    <settings>
+                        <dataType>text</dataType>
+                        <dataScope>document_type</dataScope>
+                    </settings>
+                </field>
+                <field name="label" formElement="input">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Report Name</label>
+                        <dataScope>label</dataScope>
+                        <validation>
+                            <rule name="required-entry" xsi:type="boolean">true</rule>
+                        </validation>
+                    </settings>
+                </field>
+                <field name="certificate_number" formElement="input">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Report Number</label>
+                        <dataScope>certificate_number</dataScope>
+                    </settings>
+                </field>
+                <field name="issuer" formElement="input">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Issuing Body</label>
+                        <dataScope>issuer</dataScope>
+                    </settings>
+                </field>
+                <field name="registration_date" formElement="date">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Reg. Date</label>
+                        <dataScope>registration_date</dataScope>
+                    </settings>
+                </field>
+                <field name="expiry_date" formElement="date">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Expiry Date</label>
+                        <dataScope>expiry_date</dataScope>
+                    </settings>
+                </field>
+                <field name="is_visible" formElement="select">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Visible in Frontend</label>
+                        <dataScope>is_visible</dataScope>
+                    </settings>
+                    <formElements>
+                        <select>
+                            <settings>
+                                <options>
+                                    <option name="1" xsi:type="array">
+                                        <item name="value" xsi:type="string">1</item>
+                                        <item name="label" xsi:type="string" translate="true">Yes</item>
+                                    </option>
+                                    <option name="0" xsi:type="array">
+                                        <item name="value" xsi:type="string">0</item>
+                                        <item name="label" xsi:type="string" translate="true">No</item>
+                                    </option>
+                                </options>
+                            </settings>
+                        </select>
+                    </formElements>
+                </field>
+                <field name="file_path" formElement="fileUploader">
+                    <argument name="data" xsi:type="array">
+                        <item name="config" xsi:type="array">
+                            <item name="label" xsi:type="string" translate="true">Upload PDF</item>
+                            <item name="formElement" xsi:type="string">fileUploader</item>
+                            <item name="componentType" xsi:type="string">fileUploader</item>
+                            <item name="component" xsi:type="string">Magento_Ui/js/form/element/file-uploader</item>
+                            <item name="template" xsi:type="string">Vendor_Marketplace/form/element/uploader/uploader</item>
+                            <item name="dataScope" xsi:type="string">file_path</item>
+                            <item name="fileInputName" xsi:type="string">file</item>
+                            <item name="validation" xsi:type="array">
+                                <item name="required-entry" xsi:type="boolean">true</item>
+                            </item>
+                            <item name="uploaderConfig" xsi:type="array">
+                                <item name="url" xsi:type="url" path="vendor_marketplace/file/upload"/>
+                            </item>
+                        </item>
+                    </argument>
+                </field>
+                <actionDelete name="actionDelete">
+                    <argument name="data" xsi:type="array">
+                        <item name="config" xsi:type="array">
+                            <item name="componentType" xsi:type="string">actionDelete</item>
+                            <item name="dataType" xsi:type="string">text</item>
+                            <item name="label" xsi:type="string" translate="true">Actions</item>
+                            <item name="fit" xsi:type="boolean">true</item>
+                        </item>
+                    </argument>
+                </actionDelete>
+            </container>
+        </dynamicRows>
+    </fieldset>
+</form>

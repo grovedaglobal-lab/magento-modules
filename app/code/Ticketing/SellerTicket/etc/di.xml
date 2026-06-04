@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="sellerticket_ticket_listing_data_source" xsi:type="string">Ticketing\SellerTicket\Model\ResourceModel\Ticket\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Ticketing\SellerTicket\Model\ResourceModel\Ticket\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">seller_ticket</argument>
+            <argument name="eventPrefix" xsi:type="string">sellerticket_ticket_grid_collection</argument>
+            <argument name="eventObject" xsi:type="string">ticket_grid_collection</argument>
+            <argument name="resourceModel" xsi:type="string">Ticketing\SellerTicket\Model\ResourceModel\Ticket</argument>
+        </arguments>
+    </type>
+</config>

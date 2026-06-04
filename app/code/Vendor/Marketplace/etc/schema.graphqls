@@ -1,0 +1,71 @@
+type Query {
+    myVendorProfile: Vendor @resolver(class: "Vendor\\Marketplace\\Model\\Resolver\\MyVendorProfile") @doc(description: "Get vendor profile of authenticated customer") @cache(cacheable: false)
+    vendors(
+        pageSize: Int = 20
+        currentPage: Int = 1
+    ): VendorsOutput @resolver(class: "Vendor\\Marketplace\\Model\\Resolver\\Vendors") @doc(description: "Get list of vendors")
+    
+    vendor(
+        id: Int!
+    ): Vendor @resolver(class: "Vendor\\Marketplace\\Model\\Resolver\\Vendor") @doc(description: "Get vendor by ID")
+
+    vendorByUrl(
+        shop_url: String!
+    ): Vendor @resolver(class: "Vendor\\Marketplace\\Model\\Resolver\\VendorByUrl") @doc(description: "Get vendor by shop URL or shop name")
+}
+
+type VendorsOutput @doc(description: "Vendors output") {
+    items: [Vendor] @doc(description: "List of vendors")
+    total_count: Int @doc(description: "Total number of vendors")
+}
+
+type Vendor @doc(description: "Vendor information") {
+    entity_id: Int @doc(description: "Vendor ID")
+    shop_name: String @doc(description: "Shop name")
+    shop_url: String @doc(description: "Shop URL")
+    logo: String @doc(description: "Logo path")
+    logo_url: String @doc(description: "Full logo URL")
+    banner: String @doc(description: "Banner path")
+    banner_url: String @doc(description: "Full banner URL")
+    description: String @doc(description: "Vendor description")
+    email: String @doc(description: "Email address")
+    phone: String @doc(description: "Phone number")
+    address: String @doc(description: "Street address")
+    city: String @doc(description: "City")
+    state: String @doc(description: "State")
+    zip_code: String @doc(description: "Zip code")
+    country: String @doc(description: "Country")
+    status: Int @doc(description: "Vendor status")
+    company_name: String @doc(description: "Company Name")
+    gst_number: String @doc(description: "GST Number")
+    pan_number: String @doc(description: "PAN Number")
+    signature: String @doc(description: "Signature Path")
+    signature_url: String @doc(description: "Signature URL")
+    authorized_name: String @doc(description: "Authorized Name")
+    average_rating: Float @doc(description: "Average vendor rating")
+    review_count: Int @doc(description: "Total number of reviews")
+    documents: [VendorDocument] @doc(description: "Vendor documents and certificates") @resolver(class: "Vendor\\Marketplace\\Model\\Resolver\\VendorDocuments")
+}
+
+type VendorDocument @doc(description: "Vendor document details") {
+    document_id: Int @doc(description: "Document ID")
+    document_type: String @doc(description: "Document Type")
+    label: String @doc(description: "Document Label")
+    file_path: String @doc(description: "Document URL")
+    status: Int @doc(description: "Document Status")
+    registration_date: String @doc(description: "Registration Date")
+    expiry_date: String @doc(description: "Expiry Date")
+    certificate_number: String @doc(description: "Certificate Number")
+    issuer: String @doc(description: "Issuer")
+    product_name: String @doc(description: "Product Name")
+    product_desc: String @doc(description: "Product Description")
+}
+
+interface ProductInterface {
+    vendor_id: Int @doc(description: "Vendor ID") @resolver(class: "Vendor\\Marketplace\\Model\\Resolver\\Product\\VendorId")
+    vendor_name: String @doc(description: "Vendor Shop Name") @resolver(class: "Vendor\\Marketplace\\Model\\Resolver\\Product\\VendorName")
+    vendor_return_policy: String @doc(description: "Vendor Return Policy") @resolver(class: "Vendor\\Marketplace\\Model\\Resolver\\Product\\VendorReturnPolicy")
+    vendor_shipping_policy: String @doc(description: "Vendor Shipping Policy") @resolver(class: "Vendor\\Marketplace\\Model\\Resolver\\Product\\VendorShippingPolicy")
+    vendor_average_rating: Float @doc(description: "Vendor Average Rating") @resolver(class: "Vendor\\Marketplace\\Model\\Resolver\\Product\\VendorAverageRating")
+    vendor_review_count: Int @doc(description: "Vendor Review Count") @resolver(class: "Vendor\\Marketplace\\Model\\Resolver\\Product\\VendorReviewCount")
+}

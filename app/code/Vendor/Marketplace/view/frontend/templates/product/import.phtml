@@ -1,0 +1,71 @@
+<?php
+/** @var \Magento\Framework\View\Element\Template $block */
+?>
+<div class="marketplace-product-list marketplace-product-import">
+    <div class="page-header-actions">
+        <h1 class="page-title"><?= __('Import Products') ?></h1>
+        <a href="<?= $block->getUrl('marketplace/product/index') ?>" class="action secondary">
+            <span><?= __('Back to Products') ?></span>
+        </a>
+    </div>
+
+    <div class="message info" style="margin-bottom:20px;">
+        <span><?= __('Upload one Excel or CSV file to create simple and configurable vendor products.') ?></span>
+    </div>
+
+    <div class="message notice" style="margin-bottom:20px;">
+        <strong><?= __('Category dropdown') ?>:</strong>
+        <div style="margin-top:8px;">
+            <label class="label" for="category-reference"><span><?= __('Category names from vendor form') ?></span></label>
+            <div class="control" style="margin-top:8px; max-width: 520px;">
+                <select id="category-reference" class="select" multiple size="6" style="width:100%;">
+                    <?php foreach ($block->getCategories() as $category): ?>
+                        <option value="<?= $block->escapeHtmlAttr($category['value']) ?>">
+                            <?= $block->escapeHtml($category['display_label']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div style="margin-top:8px; font-size:13px; color:#666;">
+                <?= __('Use the category IDs from this list in the CSV category_ids column. The dropdown shows breadcrumb names like Category > Subcategory so you can match the hierarchy in Excel.') ?>
+            </div>
+        </div>
+    </div>
+
+    <div class="message notice" style="margin-bottom:20px;">
+        <strong><?= __('How it works') ?>:</strong>
+        <ol style="margin:8px 0 0; padding-left:18px; line-height:1.7;">
+            <li><?= __('Download the template and fill rows for simple or configurable products.') ?></li>
+            <li><?= __('Use public image URLs for product images.') ?></li>
+            <li><?= __('Parent configurable rows should share a parent SKU with child simple rows.') ?></li>
+            <li><?= __('Valid rows will import even if some rows fail validation.') ?></li>
+        </ol>
+    </div>
+
+    <div class="message info" style="margin-bottom:20px;">
+        <strong><?= __('Template columns') ?>:</strong>
+        <div><?= __('The template uses the same core fields as the vendor add-product form, with category_ids and category_names shown together, and configurable-only fields grouped at the end. Required fields are marked in the downloadable template.') ?></div>
+    </div>
+
+    <div class="grid-controls" style="margin-bottom:20px;">
+        <form action="<?= $block->getUrl('marketplace/product/upload') ?>" method="post" enctype="multipart/form-data" class="marketplace-import-form" style="width:100%;">
+            <?= $block->getBlockHtml('formkey') ?>
+
+            <div class="grid-actions" style="display:flex; gap:16px; flex-wrap:wrap; align-items:end; background:#fff; border:1px solid #e3e6ea; border-radius:8px; padding:16px;">
+                <div class="field required marketplace-import-field" style="margin:0; min-width:280px; flex:1 1 320px;">
+                    <label class="label" for="import_file"><span><?= __('Select File') ?></span></label>
+                    <div class="control">
+                        <input type="file" name="import_file" id="import_file" accept=".csv,.xlsx,.xls" class="input-text required-entry" />
+                    </div>
+                </div>
+
+                <button type="submit" class="action primary">
+                    <span><?= __('Upload & Import') ?></span>
+                </button>
+                <a href="<?= $block->getUrl('marketplace/product/downloadtemplate') ?>" class="action secondary">
+                    <span><?= __('Download Template') ?></span>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

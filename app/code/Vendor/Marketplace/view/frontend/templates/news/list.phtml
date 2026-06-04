@@ -1,0 +1,233 @@
+<?php
+/** @var $block \Vendor\Marketplace\Block\News\NewsList */
+$newsCollection = $block->getNewsCollection();
+?>
+<div class="news-list-container">
+    <div class="news-header">
+        <h2><i class="fas fa-newspaper"></i>
+            <?= $block->escapeHtml(__('Admin News & Announcements')) ?>
+        </h2>
+        <p class="subtitle">
+            <?= $block->escapeHtml(__('Stay updated with the latest news from administration.')) ?>
+        </p>
+    </div>
+
+    <?php if ($newsCollection && $newsCollection->getSize()): ?>
+        <div class="news-items">
+            <?php foreach ($newsCollection as $news): ?>
+                <div class="news-item-card">
+                    <div class="news-item-header">
+                        <div class="news-title-area">
+                            <h3>
+                                <?= $block->escapeHtml($news->getTitle()) ?>
+                            </h3>
+                            <span class="news-date">
+                                <i class="far fa-calendar-alt"></i>
+                                <?= $block->escapeHtml(date('M d, Y', strtotime($news->getCreatedAt()))) ?>
+                            </span>
+                        </div>
+                        <div class="news-badge <?= $news->getTargetType() ?>">
+                            <?= $block->escapeHtml(ucfirst($news->getTargetType())) ?>
+                        </div>
+                    </div>
+                    <div class="news-item-content">
+                        <?= /* @noEscape */ $news->getContent() ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <?php if ($block->getPagerHtml()): ?>
+            <div class="order-products-toolbar toolbar bottom">
+                <?= $block->getPagerHtml() ?>
+            </div>
+        <?php endif; ?>
+    <?php else: ?>
+        <div class="no-news-message">
+            <div class="empty-icon">
+                <i class="fas fa-inbox"></i>
+            </div>
+            <h3>
+                <?= $block->escapeHtml(__('No news available')) ?>
+            </h3>
+            <p>
+                <?= $block->escapeHtml(__('There are no news or announcements for you at the moment.')) ?>
+            </p>
+        </div>
+    <?php endif; ?>
+</div>
+
+<style>
+    .news-list-container {
+        padding: 20px;
+    }
+
+    .news-header {
+        margin-bottom: 30px;
+    }
+
+    .news-header h2 {
+        font-size: 26px;
+        color: #1e293b;
+        /* Darker color for better visibility on light bg */
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 700;
+    }
+
+    .news-header h2 i {
+        color: #3b82f6;
+    }
+
+    .news-header .subtitle {
+        color: #64748b;
+        font-size: 15px;
+        font-weight: 500;
+    }
+
+    .news-items {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .news-item-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 28px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    .news-item-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #3b82f6;
+    }
+
+    .news-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .news-title-area h3 {
+        color: #1e293b;
+        margin: 0 0 6px 0;
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .news-date {
+        font-size: 13px;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 500;
+    }
+
+    .news-badge {
+        font-size: 11px;
+        padding: 6px 14px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+    }
+
+    .news-badge.all {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .news-badge.specific {
+        background: #f3e8ff;
+        color: #7e22ce;
+    }
+
+    .news-item-content {
+        color: #475569;
+        line-height: 1.7;
+        font-size: 15px;
+    }
+
+    .news-item-content p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Pager Styling Refinement */
+    .toolbar.bottom {
+        margin-top: 40px;
+        background: #f8fafc;
+        padding: 15px 25px;
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid #e2e8f0;
+    }
+
+    .toolbar.bottom .pager {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .toolbar.bottom .limiter {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .toolbar.bottom .limiter select {
+        padding: 6px 30px 6px 12px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        background-color: #fff;
+        color: #1e293b;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .toolbar.bottom .amount {
+        color: #64748b;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .no-news-message {
+        text-align: center;
+        padding: 80px 40px;
+        background: #f8fafc;
+        border-radius: 20px;
+        border: 2px dashed #e2e8f0;
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        color: #cbd5e1;
+        margin-bottom: 24px;
+    }
+
+    .no-news-message h3 {
+        color: #1e293b;
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .no-news-message p {
+        color: #64748b;
+        font-size: 16px;
+    }
+</style>

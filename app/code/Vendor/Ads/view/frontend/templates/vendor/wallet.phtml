@@ -1,0 +1,364 @@
+<?php
+/** @var $block \Vendor\Ads\Block\Vendor\Wallet */
+$wallet = $block->getWallet();
+$rechargeHistory = $block->getRechargeHistory();
+$estimate = $block->getRechargeEstimate(100);
+?>
+<div class="vendor-ads-wallet">
+    <div class="page-title-wrapper">
+        <h1 class="page-title"><?= $block->escapeHtml(__('Ad Wallet Balance')) ?></h1>
+    </div>
+
+    <div class="wallet-info-summary" style="margin-top: 20px; padding: 20px; border: 1px solid #ddd; background: #fff; border-radius: 8px; display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+        <div class="wallet-balance-section" style="flex: 1;">
+            <div class="wallet-balance" style="font-size: 24px;">
+                <strong><?= $block->escapeHtml(__('Current Balance:')) ?></strong>
+                <div class="wallet-balance-amount">
+                    <span class="currency-symbol"><?= $block->escapeHtml($wallet ? $wallet->getCurrency() : 'INR') ?></span>
+                    <span class="amount-value" style="color: #2e7d32; font-weight: bold;"><?= $block->escapeHtml(number_format((float)($wallet ? $wallet->getBalance() : 0.00), 2)) ?></span>
+                </div>
+            </div>
+            <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">
+                <?= $block->escapeHtml(__('This balance is used for sponsored keywords and product advertisements.')) ?>
+            </p>
+        </div>
+
+        <?php 
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $resource = $objectManager->get(\Magento\Framework\App\ResourceConnection::class);
+        $connection = $resource->getConnection();
+        
+        // Fix for "getCustomerSession() on null" error
+        $customerSession = $objectManager->get(\Magento\Customer\Model\Session::class);
+        $customerId = $customerSession->isLoggedIn() ? $customerSession->getCustomerId() : null;
+        $vendorProfile = null;
+        
+        if ($customerId) {
+            $entityTable = $resource->getTableName('vendor_entity');
+            $profileTable = $resource->getTableName('vendor_profile');
+            $gstTable = $resource->getTableName('tax_indiangst_vendor_profile');
+            
+            $select = $connection->select()
+                ->from(['ve' => $entityTable], [])
+                ->joinInner(
+                    ['vp' => $profileTable],
+                    've.entity_id = vp.vendor_id',
+                    ['*']
+                )
+                ->joinLeft(
+                    ['gst' => $gstTable],
+                    'vp.vendor_id = gst.vendor_code',
+                    ['gstin', 'business_name', 'pan_number']
+                )
+                ->where('ve.customer_id = ?', (int)$customerId);
+            $vendorProfile = $connection->fetchRow($select);
+        }
+        ?>
+
+        <div class="vendor-tax-details" style="flex: 1; padding-left: 20px; border-left: 1px solid #eee; font-size: 0.9rem;">
+            <div style="margin-bottom: 5px;"><strong><?= $block->escapeHtml(__('Business Details:')) ?></strong></div>
+            <?php if ($vendorProfile): ?>
+                <div style="color: #444;"><?= $block->escapeHtml($vendorProfile['business_name'] ?: ($vendorProfile['shop_name'] ?: __('N/A'))) ?></div>
+                <?php if (!empty($vendorProfile['gstin'])): ?>
+                    <div style="margin-top:4px;"><strong><?= $block->escapeHtml(__('GSTIN:')) ?></strong> <span style="color: #0369a1; font-weight: 600;"><?= $block->escapeHtml($vendorProfile['gstin']) ?></span></div>
+                <?php else: ?>
+                    <div style="margin-top:4px; color: #ef4444; font-size: 0.8rem;"><i class="fas fa-exclamation-triangle"></i> <?= $block->escapeHtml(__('GSTIN Missing')) ?></div>
+                <?php endif; ?>
+                <?php if (!empty($vendorProfile['pan_number'])): ?>
+                    <div style="margin-top:2px;"><strong><?= $block->escapeHtml(__('PAN:')) ?></strong> <?= $block->escapeHtml($vendorProfile['pan_number']) ?></div>
+                <?php endif; ?>
+            <?php else: ?>
+                <div style="color: #999; font-style: italic;"><?= $block->escapeHtml(__('Profile not found.')) ?></div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="wallet-recharge" style="margin-top:20px; padding:20px; border:1px solid #ddd; border-radius:8px;">
+        <h2><?= $block->escapeHtml(__('Recharge Wallet')) ?></h2>
+
+        <?php if (!$block->isRazorpayActive()): ?>
+            <div class="message message-warning" style="margin-top: 10px;">
+                <span><?= $block->escapeHtml(__('Wallet recharge via Razorpay is currently unavailable. Please contact administrator.')) ?></span>
+            </div>
+        <?php else: ?>
+            <div style="margin-top:12px; max-width:380px;">
+                <label for="wallet_recharge_amount"><strong><?= $block->escapeHtml(__('Amount (INR)')) ?></strong></label>
+                <input type="number" id="wallet_recharge_amount" value="100" min="1" step="0.01" style="width:100%; margin-top:6px; padding:8px;"/>
+            </div>
+
+            <div style="margin-top:12px; color:#555;">
+                <div><?= $block->escapeHtml(__('Tax Mode: %1', ucfirst($estimate['tax_mode']))) ?></div>
+                <div><?= $block->escapeHtml(__('Base Amount:')) ?> <span id="wallet_base_amount"><?= $block->escapeHtml(number_format((float)$estimate['base_amount'], 2)) ?></span></div>
+                <div><?= $block->escapeHtml(__('GST (18%):')) ?> <span id="wallet_gst_amount"><?= $block->escapeHtml(number_format((float)$estimate['gst_amount'], 2)) ?></span></div>
+                <div><strong><?= $block->escapeHtml(__('Total Payable:')) ?> <span id="wallet_total_amount"><?= $block->escapeHtml(number_format((float)$estimate['total_amount'], 2)) ?></span></strong></div>
+            </div>
+
+            <div style="margin-top:14px;">
+                <button type="button" id="wallet_recharge_pay" 
+                    class="action primary <?= $block->hasPendingPayment() ? 'disabled' : '' ?>" 
+                    <?= $block->hasPendingPayment() ? 'disabled="disabled"' : '' ?>>
+                    <span><?= $block->escapeHtml(__('Pay with Razorpay')) ?></span>
+                </button>
+            </div>
+
+            <div id="wallet_recharge_message" style="margin-top:10px;">
+                <?php if ($block->hasPendingPayment()): ?>
+                    <span style="color: #f57c00;">
+                        <?= $block->escapeHtml(__('You have a payment in progress. Please wait a few minutes for your balance to update or check your history.')) ?>
+                    </span>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <div class="wallet-recharge-history" style="margin-top: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="margin: 0;"><?= $block->escapeHtml(__('Recent Recharges')) ?></h2>
+            <a href="<?= $block->getUrl('vendor_ads/vendor/wallethistory') ?>" class="action secondary" style="font-size: 0.9rem; font-weight: 600;">
+                <i class="fas fa-history"></i> <?= $block->escapeHtml(__('View Full History')) ?>
+            </a>
+        </div>
+
+        <?php if (empty($rechargeHistory)): ?>
+            <div class="message message-notice"><span><?= $block->escapeHtml(__('No recharge history found yet.')) ?></span></div>
+        <?php else: ?>
+            <div class="table-wrapper">
+                <table class="data table" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 12px; border-bottom: 2px solid #eee; text-align: left;"><?= $block->escapeHtml(__('Date')) ?></th>
+                            <th style="padding: 12px; border-bottom: 2px solid #eee; text-align: left;"><?= $block->escapeHtml(__('Amount')) ?></th>
+                            <th style="padding: 12px; border-bottom: 2px solid #eee; text-align: left;"><?= $block->escapeHtml(__('Status')) ?></th>
+                            <th style="padding: 12px; border-bottom: 2px solid #eee; text-align: left;"><?= $block->escapeHtml(__('Method')) ?></th>
+                            <th style="padding: 12px; border-bottom: 2px solid #eee; text-align: left;"><?= $block->escapeHtml(__('Balance After')) ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $recent = array_slice($rechargeHistory, 0, 5);
+                        foreach ($recent as $entry): 
+                        ?>
+                            <tr style="border-bottom: 1px solid #f8f9fa;">
+                                <td style="padding: 12px; font-size: 0.9rem;"><?= $block->escapeHtml(date('M d, Y H:i', strtotime($entry['created_at']))) ?></td>
+                                <td style="padding: 12px; font-weight: 700; color: var(--brand-primary);"><?= $block->escapeHtml(number_format((float)$entry['amount'], 2)) ?></td>
+                                <td style="padding: 12px;">
+                                    <span class="status-badge" style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">
+                                        <?= $block->escapeHtml(__('Success')) ?>
+                                    </span>
+                                </td>
+                                <td style="padding: 12px; font-size: 0.85rem; font-weight: 600; color: #64748b;">
+                                    <?= $block->escapeHtml($entry['razorpay_payment_id'] ? __('Razorpay') : __('Admin')) ?>
+                                </td>
+                                <td style="padding: 12px; font-weight: 600; color: #22c55e;">
+                                    <?= $block->escapeHtml(number_format((float)$entry['balance_after'], 2)) ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<?php if ($block->isRazorpayActive()): ?>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<?php endif; ?>
+<script>
+require(['jquery'], function ($) {
+    var formKey = <?= json_encode($block->getFormKeyValue()) ?>;
+    var createOrderUrl = <?= json_encode($block->getCreateOrderUrl()) ?>;
+    var verifyUrl = <?= json_encode($block->getVerifyUrl()) ?>;
+    var cancelPaymentUrl = <?= json_encode($block->getCancelPaymentUrl()) ?>;
+    var taxMode = <?= json_encode($estimate['tax_mode']) ?>;
+
+    function toFixed2(value) {
+        return (Math.round(value * 100) / 100).toFixed(2);
+    }
+
+    function setMessage(message, isError) {
+        var color = isError ? '#c62828' : '#2e7d32';
+        $('#wallet_recharge_message').html('<span style="color:' + color + ';">' + message + '</span>');
+    }
+
+    function extractAjaxErrorMessage(xhr, fallbackMessage) {
+        if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
+            return xhr.responseJSON.message;
+        }
+
+        if (xhr && xhr.responseText) {
+            try {
+                var parsed = JSON.parse(xhr.responseText);
+                if (parsed && parsed.message) {
+                    return parsed.message;
+                }
+            } catch (e) {
+                if (xhr.status) {
+                    return fallbackMessage + ' (HTTP ' + xhr.status + ')';
+                }
+            }
+        }
+
+        return fallbackMessage;
+    }
+
+    function parseResponsePayload(payload) {
+        if (payload && typeof payload === 'object') {
+            return payload;
+        }
+
+        if (typeof payload !== 'string') {
+            return null;
+        }
+
+        try {
+            return JSON.parse(payload);
+        } catch (e) {
+            var start = payload.indexOf('{');
+            var end = payload.lastIndexOf('}');
+            if (start !== -1 && end !== -1 && end > start) {
+                var maybeJson = payload.substring(start, end + 1);
+                try {
+                    return JSON.parse(maybeJson);
+                } catch (ignore) {
+                }
+            }
+        }
+
+        return null;
+    }
+
+    function updatePreview() {
+        var amount = parseFloat($('#wallet_recharge_amount').val() || '0');
+        if (isNaN(amount) || amount < 0) {
+            amount = 0;
+        }
+
+        var base;
+        var gst;
+        var total;
+
+        if (taxMode === 'inclusive') {
+            total = amount;
+            base = total / 1.18;
+            gst = total - base;
+        } else {
+            base = amount;
+            gst = base * 0.18;
+            total = base + gst;
+        }
+
+        $('#wallet_base_amount').text(toFixed2(base));
+        $('#wallet_gst_amount').text(toFixed2(gst));
+        $('#wallet_total_amount').text(toFixed2(total));
+    }
+
+    $('#wallet_recharge_amount').on('input', updatePreview);
+    updatePreview();
+
+    $('#wallet_recharge_pay').on('click', function () {
+        var $btn = $(this);
+        var originalBtnText = $btn.find('span').text();
+        
+        var amount = parseFloat($('#wallet_recharge_amount').val() || '0');
+        if (isNaN(amount) || amount <= 0) {
+            setMessage('<?= $block->escapeJs(__('Please enter a valid amount.')) ?>', true);
+            return;
+        }
+
+        // Disable button and show processing
+        $btn.prop('disabled', true).addClass('disabled').css('opacity', '0.6');
+        $btn.find('span').text('<?= $block->escapeJs(__('Processing...')) ?>');
+        setMessage('<?= $block->escapeJs(__('Creating payment order...')) ?>', false);
+
+        function enableButton() {
+            $btn.prop('disabled', false).removeClass('disabled').css('opacity', '1');
+            $btn.find('span').text(originalBtnText);
+        }
+
+        function cancelPendingPayment(orderId) {
+            if (!orderId) {
+                return;
+            }
+
+            $.ajax({
+                url: cancelPaymentUrl,
+                type: 'POST',
+                dataType: 'text',
+                data: {
+                    form_key: formKey,
+                    razorpay_order_id: orderId
+                }
+            });
+        }
+
+        $.ajax({
+            url: createOrderUrl,
+            type: 'POST',
+            dataType: 'text',
+            data: {
+                form_key: formKey,
+                amount: amount
+            }
+        }).done(function (rawResponse) {
+            var response = parseResponsePayload(rawResponse);
+            if (!response || !response.success) {
+                setMessage((response && response.message) ? response.message : '<?= $block->escapeJs(__('Unable to create order.')) ?>', true);
+                enableButton();
+                return;
+            }
+
+            var options = {
+                key: response.key_id,
+                amount: response.amount_paise,
+                currency: response.currency || 'INR',
+                name: response.merchant_name || '<?= $block->escapeJs(__('Vendor Ads Wallet Recharge')) ?>',
+                description: '<?= $block->escapeJs(__('Wallet Recharge Payment')) ?>',
+                order_id: response.razorpay_order_id,
+                handler: function (rzpResponse) {
+                    setMessage('<?= $block->escapeJs(__('Verifying payment...')) ?>', false);
+                    $.ajax({
+                        url: verifyUrl,
+                        type: 'POST',
+                        dataType: 'text',
+                        data: {
+                            form_key: formKey,
+                            razorpay_order_id: rzpResponse.razorpay_order_id,
+                            razorpay_payment_id: rzpResponse.razorpay_payment_id,
+                            razorpay_signature: rzpResponse.razorpay_signature
+                        }
+                    }).done(function (verifyRawResponse) {
+                        var verifyResponse = parseResponsePayload(verifyRawResponse);
+                        if (verifyResponse && verifyResponse.success) {
+                            setMessage('<?= $block->escapeJs(__('Payment successful. Wallet updated.')) ?>', false);
+                            window.location.reload();
+                        } else {
+                            setMessage((verifyResponse && verifyResponse.message) ? verifyResponse.message : '<?= $block->escapeJs(__('Payment verification failed.')) ?>', true);
+                            enableButton();
+                        }
+                    }).fail(function (xhr) {
+                        setMessage(extractAjaxErrorMessage(xhr, '<?= $block->escapeJs(__('Payment verification request failed.')) ?>'), true);
+                        enableButton();
+                    });
+                },
+                "modal": {
+                    "ondismiss": function() {
+                        cancelPendingPayment(response.razorpay_order_id);
+                        enableButton();
+                        setMessage('<?= $block->escapeJs(__('Payment cancelled.')) ?>', true);
+                    }
+                },
+                theme: {
+                    color: '#2e7d32'
+                }
+            };
+
+            var rzp = new Razorpay(options);
+            rzp.open();
+        }).fail(function (xhr) {
+            setMessage(extractAjaxErrorMessage(xhr, '<?= $block->escapeJs(__('Could not create Razorpay order.')) ?>'), true);
+            enableButton();
+        });
+    });
+});
+</script>

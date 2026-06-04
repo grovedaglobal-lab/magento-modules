@@ -1,0 +1,178 @@
+<?php
+/** @var \Vendor\Marketplace\Block\Notification\NotificationList $block */
+$notifications = $block->getNotifications();
+?>
+<div class="vendor-notification-history-container">
+    <div class="dashboard-controls">
+        <div class="tabs">
+            <h2 class="dashboard-page-title">
+                <?= __('My Notifications') ?>
+            </h2>
+        </div>
+        <div class="controls-right">
+            <button type="button" class="action-btn" id="mark-all-read-page">
+                <?= __('Mark All as Read') ?>
+            </button>
+        </div>
+    </div>
+
+    <div class="card stat-card full-height">
+        <?php if ($notifications && $notifications->getSize() > 0): ?>
+            <div class="notification-full-list">
+                <?php foreach ($notifications as $notification): ?>
+                    <div class="notification-row <?= $notification->getIsRead() ? 'is-read' : 'is-unread' ?>">
+                        <div class="notif-content">
+                            <div class="notif-header-row">
+                                <span class="notif-type-tag type-<?= $notification->getType() ?>">
+                                    <?= ucfirst(str_replace('_', ' ', $notification->getType())) ?>
+                                </span>
+                                <span class="notif-date">
+                                    <?= $notification->getCreatedAt() ?>
+                                </span>
+                            </div>
+                            <h3 class="notif-title-text">
+                                <?= $block->escapeHtml($notification->getTitle()) ?>
+                            </h3>
+                            <p class="notif-msg-text">
+                                <?= $block->escapeHtml($notification->getMessage()) ?>
+                            </p>
+                            <?php if ($notification->getLink()): ?>
+                                <a href="<?= $block->getUrl($notification->getLink()) ?>" class="notif-link-btn">
+                                    <?= __('View Details') ?>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <?php if ($block->getPagerHtml()): ?>
+                <div class="order-history-toolbar bottom">
+                    <div class="toolbar-right">
+                        <?= $block->getPagerHtml() ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+        <?php else: ?>
+            <div class="empty-state">
+                <p>
+                    <?= __('You have no notifications yet.') ?>
+                </p>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<style>
+    .notification-full-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-top: 10px;
+    }
+
+    .notification-row {
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid var(--border-light);
+        transition: all 0.3s ease;
+        position: relative;
+        background: #fff;
+    }
+
+    .notification-row.is-unread {
+        border-left: 5px solid var(--brand-accent);
+        background: #f0f4ff;
+    }
+
+    .notification-row:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateX(5px);
+    }
+
+    .notif-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .notif-type-tag {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    .notif-type-tag.type-new_order {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .notif-type-tag.type-new_review {
+        background: #fef9c3;
+        color: #854d0e;
+    }
+
+    .notif-date {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .notif-title-text {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        color: var(--text-main);
+    }
+
+    .notif-msg-text {
+        font-size: 0.95rem;
+        color: #4b5563;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+
+    .notif-link-btn {
+        display: inline-block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--brand-accent);
+        text-decoration: none;
+        border: 1px solid var(--brand-accent);
+        padding: 6px 15px;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+
+    .notif-link-btn:hover {
+        background: var(--brand-accent);
+        color: #fff;
+    }
+
+    .order-history-toolbar.bottom {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-light);
+    }
+</style>
+
+<script>
+    require(['jquery'], function ($) {
+        $('#mark-all-read-page').on('click', function () {
+            const markReadUrl = '<?= $block->getUrl('vendor_marketplace/notification/markRead') ?>';
+            $.ajax({
+                url: markReadUrl,
+                type: 'POST',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        location.reload();
+                    }
+                }
+            });
+        });
+    });
+</script>

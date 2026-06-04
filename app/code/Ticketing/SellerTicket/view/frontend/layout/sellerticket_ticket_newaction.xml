@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="marketplace_vendor_dashboard_layout"/>
+    <body>
+        <referenceBlock name="vendor.portal.wrapper">
+            <block class="Magento\Framework\View\Element\Template" name="vendor.seller.ticket.new" template="Ticketing_SellerTicket::ticket/new.phtml" as="main_content" cacheable="false"/>
+        </referenceBlock>
+    </body>
+</page>

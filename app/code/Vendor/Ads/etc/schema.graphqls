@@ -1,0 +1,48 @@
+type Query {
+    sponsoredProducts(
+        keyword: String!
+        limit: Int = 4
+    ): SponsoredProductsOutput @resolver(class: "Vendor\\Ads\\Model\\Resolver\\SponsoredProducts") @doc(description: "Get sponsored/ad products for a search keyword") @cache(cacheable: false)
+
+    trendingProductIds(
+        limit: Int = 8
+        minViews: Int = 0
+        sortBy: String = "views"
+        categoryId: Int
+        period: String = "monthly"
+    ): TrendingProductIdsOutput @resolver(class: "Vendor\\Ads\\Model\\Resolver\\TrendingProductIds") @doc(description: "Get trending product IDs from Magento native most-viewed reports") @cache(cacheable: false)
+}
+
+type TrendingProductIdsOutput @doc(description: "Ordered list of trending product IDs") {
+    product_ids: [Int] @doc(description: "Product IDs ordered by view count descending")
+    skus: [String] @doc(description: "Product SKUs ordered by view count descending")
+}
+
+type Mutation {
+    recordAdClick(
+        bid_id: Int!
+        product_id: Int!
+    ): Boolean @resolver(class: "Vendor\\Ads\\Model\\Resolver\\RecordAdClick") @doc(description: "Record a click on a sponsored product ad") @cache(cacheable: false)
+
+    recordProductView(
+        product_id: Int!
+    ): Boolean @resolver(class: "Vendor\\Ads\\Model\\Resolver\\RecordProductView") @doc(description: "Record a product view from the headless frontend into Magento native reports") @cache(cacheable: false)
+}
+
+type SponsoredProductsOutput @doc(description: "Sponsored products result set") {
+    items: [SponsoredProduct] @doc(description: "List of sponsored products")
+}
+
+type SponsoredProduct @doc(description: "A sponsored/advertised product") {
+    product_id: Int @doc(description: "Magento product ID")
+    bid_id: Int @doc(description: "The winning bid ID for click tracking")
+    url_key: String @doc(description: "Product URL key")
+    name: String @doc(description: "Product name")
+    sku: String @doc(description: "Product SKU")
+    image_url: String @doc(description: "Product image URL")
+    price: Float @doc(description: "Product price")
+    currency: String @doc(description: "Currency code")
+    vendor_id: Int @doc(description: "Vendor ID")
+    vendor_name: String @doc(description: "Vendor shop name")
+    score: Float @doc(description: "Ranking score for the ad")
+}

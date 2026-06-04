@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Sales:etc/pdf_file.xsd">
+    <renderers>
+        <page type="invoice">
+            <renderer product_type="default">Tax\IndianGST\Model\Order\Pdf\Items\Invoice\DefaultInvoice</renderer>
+        </page>
+        <page type="creditmemo">
+            <renderer product_type="default">Tax\IndianGST\Model\Order\Pdf\Items\Creditmemo\DefaultCreditmemo</renderer>
+        </page>
+    </renderers>
+    <totals>
+        <!-- Add GST Totals to PDF -->
+        <total name="indiangst_cgst">
+            <title translate="true">CGST</title>
+            <source_field>indiangst_cgst</source_field>
+            <font_size>7</font_size>
+            <display_zero>false</display_zero>
+            <sort_order>450</sort_order>
+        </total>
+        <total name="indiangst_sgst">
+            <title translate="true">SGST</title>
+            <source_field>indiangst_sgst</source_field>
+            <font_size>7</font_size>
+            <display_zero>false</display_zero>
+            <sort_order>460</sort_order>
+        </total>
+         <total name="indiangst_igst">
+            <title translate="true">IGST</title>
+            <source_field>indiangst_igst</source_field>
+            <font_size>7</font_size>
+            <display_zero>false</display_zero>
+            <sort_order>470</sort_order>
+        </total>
+    </totals>
+</config>

@@ -1,0 +1,42 @@
+/* Modern, Premium Sponsored Product Styling */
+.sponsored-tag-container {
+    margin-bottom: 8px;
+    z-index: 10;
+}
+
+.sponsored-label {
+    display: inline-flex;
+    align-items: center;
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%); /* Sophisticated Slate */
+    color: #ffffff;
+    padding: 3px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.sponsored-label::before {
+    content: "★";
+    margin-right: 4px;
+    color: #fbbf24; /* Subtle gold star */
+    font-size: 12px;
+}
+
+/* Subtle background for sponsored item container */
+.product-item-info.sponsored-item-highlight,
+.product-item-info[data-sponsored="true"] {
+    position: relative;
+    background-color: rgba(248, 250, 252, 0.8) !important;
+    border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-item-info.sponsored-item-highlight:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}

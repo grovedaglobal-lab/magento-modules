@@ -1,0 +1,99 @@
+<?php
+/**
+ * @var $block \Ticketing\SellerTicket\Block\Adminhtml\Ticket\View
+ */
+$ticket = $block->getTicket();
+$messages = $block->getMessages();
+?>
+
+<div class="ticket-view-container" style="background:#fff; padding:20px; border:1px solid #ddd;">
+    <div class="ticket-header" style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+        <h2>
+            <?= $block->escapeHtml($ticket->getSubject()) ?>
+        </h2>
+        <p>
+            <strong>Status:</strong>
+            <?= $block->escapeHtml($ticket->getStatus()) ?> |
+            <strong>Priority:</strong>
+            <?= $block->escapeHtml($ticket->getPriority()) ?> |
+            <strong>Category:</strong>
+            <?= $block->escapeHtml($ticket->getCategory()) ?> |
+            <strong>Vendor ID:</strong>
+            <?= $block->escapeHtml($ticket->getVendorId()) ?>
+        </p>
+    </div>
+
+    <div class="ticket-messages"
+        style="margin-bottom: 30px; max-height: 500px; overflow-y: auto; background: #f9f9f9; padding: 15px; border-radius: 4px;">
+        <?php foreach ($messages as $message): ?>
+            <div class="message-item"
+                style="margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background: <?= $message->getSenderType() == 'Admin' ? '#e6f2ff' : '#fff' ?>;">
+                <div class="message-meta"
+                    style="font-size: 11px; color: #666; margin-bottom: 5px; display: flex; justify-content: space-between;">
+                    <strong>
+                        <?= $block->escapeHtml($message->getSenderName()) ?> (
+                        <?= $block->escapeHtml($message->getSenderType()) ?>)
+                    </strong>
+                    <span>
+                        <?= $block->escapeHtml($message->getCreatedAt()) ?>
+                    </span>
+                </div>
+                <div class="message-content">
+                    <?= nl2br($block->escapeHtml($message->getMessage())) ?>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+
+    <div class="ticket-reply-form">
+        <h3>
+            <?= __('Reply to Ticket') ?>
+        </h3>
+        <form action="<?= $block->escapeUrl($block->getSaveReplyUrl()) ?>" method="post">
+            <input name="form_key" type="hidden" value="<?= $block->getFormKey() ?>" />
+
+            <div class="admin__field field field-status" style="margin-bottom: 15px;">
+                <label class="label admin__field-label" for="ticket_status"><span>
+                        <?= __('Update Status') ?>
+                    </span></label>
+                <div class="admin__field-control control">
+                    <select id="ticket_status" name="status" class="admin__control-select">
+                        <option value="Open" <?= $ticket->getStatus() == 'Open' ? 'selected="selected"' : '' ?>>
+                            <?= __('Open') ?>
+                        </option>
+                        <option value="In Progress" <?= $ticket->getStatus() == 'In Progress' ? 'selected="selected"' : '' ?>>
+                            <?= __('In Progress') ?>
+                        </option>
+                        <option value="Pending Seller" <?= $ticket->getStatus() == 'Pending Seller' ? 'selected="selected"' : '' ?>>
+                            <?= __('Pending Seller') ?>
+                        </option>
+                        <option value="Resolved" <?= $ticket->getStatus() == 'Resolved' ? 'selected="selected"' : '' ?>>
+                            <?= __('Resolved') ?>
+                        </option>
+                        <option value="Closed" <?= $ticket->getStatus() == 'Closed' ? 'selected="selected"' : '' ?>>
+                            <?= __('Closed') ?>
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="admin__field field field-message" style="margin-bottom: 15px;">
+                <label class="label admin__field-label" for="ticket_message"><span>
+                        <?= __('Message') ?>
+                    </span></label>
+                <div class="admin__field-control control">
+                    <textarea id="ticket_message" name="message" class="admin__control-textarea" rows="5"
+                        required="required"></textarea>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="action-default primary" title="<?= __('Submit Reply') ?>">
+                    <span>
+                        <?= __('Submit Reply') ?>
+                    </span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

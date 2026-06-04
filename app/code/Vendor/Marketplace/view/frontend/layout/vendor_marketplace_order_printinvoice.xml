@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="empty" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Vendor_Marketplace::css/dashboard.css"/>
+    </head>
+    <update handle="print"/>
+    <body>
+        <!-- Remove theme header and logo for print invoice pages -->
+        <referenceContainer name="header.container" remove="true"/>
+        <referenceBlock name="logo" remove="true"/>
+        <referenceContainer name="content">
+            <block class="Vendor\Marketplace\Block\Order\View" name="vendor.order.print.invoice" template="Vendor_Marketplace::order/print/invoice.phtml" cacheable="false">
+                <block class="Magento\Framework\View\Element\RendererList" name="vendor.order.print.invoice.renderer.list" as="renderer.list">
+                    <block class="Magento\Sales\Block\Order\Item\Renderer\DefaultRenderer" name="vendor.order.print.invoice.renderer.default" as="default">
+                        <action method="setTemplate">
+                            <argument name="template" xsi:type="string">Vendor_Marketplace::order/print/items/renderer/default.phtml</argument>
+                        </action>
+                    </block>
+                    <block class="Magento\Sales\Block\Order\Item\Renderer\DefaultRenderer" name="vendor.order.print.invoice.renderer.simple" as="simple">
+                        <action method="setTemplate">
+                            <argument name="template" xsi:type="string">Vendor_Marketplace::order/print/items/renderer/default.phtml</argument>
+                        </action>
+                    </block>
+                    <block class="Magento\Sales\Block\Order\Item\Renderer\DefaultRenderer" name="vendor.order.print.invoice.renderer.configurable" as="configurable">
+                        <action method="setTemplate">
+                            <argument name="template" xsi:type="string">Vendor_Marketplace::order/print/items/renderer/default.phtml</argument>
+                        </action>
+                    </block>
+                </block>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

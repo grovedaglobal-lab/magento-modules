@@ -1,0 +1,17 @@
+{
+  "name": "vendor/module-access-control",
+  "description": "Advanced frontend access control for Magento 2",
+  "type": "magento2-module",
+  "version": "1.0.0",
+  "license": [
+    "proprietary"
+  ],
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "Vendor\\AccessControl\\": ""
+    }
+  }
+}

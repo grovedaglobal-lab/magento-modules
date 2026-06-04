@@ -1,0 +1,71 @@
+<!--@subject {{trans "Wallet Recharge Confirmation #%order_id" order_id=$order.increment_id}} @-->
+<!--@vars
+{"var order":"Order Object", "var vendor":"Vendor Object", "var amount":"Recharge Amount"}
+@-->
+{{template config_path="design/email/header_template"}}
+
+<table class="main" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+        <td class="content">
+            <h2>{{trans "Payment Confirmation"}}</h2>
+            <p>{{trans "Hello %name," name=$order.customer_name}}</p>
+            <p>{{trans "Your wallet recharge payment has been successfully processed. The funds have been credited to your advertising wallet."}}</p>
+            
+            <table class="order-details" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px; border-top:1px solid #eee;">
+                <tr>
+                    <td style="padding:10px 0;"><strong>{{trans "Order #"}}</strong></td>
+                    <td align="right" style="padding:10px 0;">{{var order.increment_id}}</td>
+                </tr>
+                <tr>
+                    <td style="padding:10px 0;"><strong>{{trans "Date"}}</strong></td>
+                    <td align="right" style="padding:10px 0;">{{var order.created_at}}</td>
+                </tr>
+                <tr>
+                    <td style="padding:10px 0;"><strong>{{trans "Status"}}</strong></td>
+                    <td align="right" style="padding:10px 0;">{{var status_label}}</td>
+                </tr>
+            </table>
+
+            <table class="amount-details" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px; border:1px solid #eee; padding:15px; background-color:#f9f9f9;">
+                <tr>
+                    <td style="padding:5px 0;">{{trans "Base Amount"}}</td>
+                    <td align="right" style="padding:5px 0;">{{var formatted_base_amount}}</td>
+                </tr>
+                {{if has_cgst}}
+                <tr>
+                    <td style="padding:5px 0;">{{trans "CGST (9%)"}}</td>
+                    <td align="right" style="padding:5px 0;">{{var formatted_cgst}}</td>
+                </tr>
+                {{/if}}
+                {{if has_sgst}}
+                <tr>
+                    <td style="padding:5px 0;">{{trans "SGST (9%)"}}</td>
+                    <td align="right" style="padding:5px 0;">{{var formatted_sgst}}</td>
+                </tr>
+                {{/if}}
+                {{if has_igst}}
+                <tr>
+                    <td style="padding:5px 0;">{{trans "IGST (18%)"}}</td>
+                    <td align="right" style="padding:5px 0;">{{var formatted_igst}}</td>
+                </tr>
+                {{/if}}
+                <tr style="font-size:18px; font-weight:bold;">
+                    <td style="padding:10px 0; border-top:1px solid #ddd;">{{trans "Total Paid"}}</td>
+                    <td align="right" style="padding:10px 0; border-top:1px solid #ddd;">{{var formatted_grand_total}}</td>
+                </tr>
+            </table>
+
+            <p style="margin-top:20px;">
+                {{trans "You can download your official tax invoice by logging into your vendor dashboard."}}
+            </p>
+            
+            <div style="margin-top:30px; text-align:center;">
+                <a href="{{var wallet_url}}" style="background-color:#2e7d32; color:#ffffff; padding:15px 25px; text-decoration:none; border-radius:5px; font-weight:bold;">
+                    {{trans "Go to Ad Wallet"}}
+                </a>
+            </div>
+        </td>
+    </tr>
+</table>
+
+{{template config_path="design/email/footer_template"}}

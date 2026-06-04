@@ -1,0 +1,397 @@
+<?php
+/**
+ * Order items template for vendor
+ * @var $block \Vendor\Marketplace\Block\Order\Items
+ */
+$_order = $block->getOrder();
+$_items = $block->getItems();
+?>
+<?php if ($_items && count($_items)): ?>
+    <div class="table-wrapper order-items">
+        <table class="data table table-order-items" id="my-orders-table">
+            <caption class="table-caption">
+                <?= $block->escapeHtml(__('Items Ordered')) ?>
+            </caption>
+            <thead>
+                <tr>
+                    <th scope="col" class="col name">
+                        <?= $block->escapeHtml(__('Product')) ?>
+                    </th>
+                    <th scope="col" class="col status">
+                        <?= $block->escapeHtml(__('Item Status')) ?>
+                    </th>
+                    <th scope="col" class="col price">
+                        <?= $block->escapeHtml(__('Original Price')) ?>
+                    </th>
+                    <?php
+                    $displayPriceInclTax = $block->displayPriceInclTax();
+                    $displaySubtotalInclTax = $block->displaySubtotalInclTax();
+                    $itemStoreId = $_order->getStoreId();
+                    $basis = $block->getConfigValue(
+                        'vendor_marketplace/commission/calculation_basis',
+                        $itemStoreId
+                    );
+                    $basisLabel = ($basis === 'include_tax') ? __(' (Incl. Tax)') : __(' (Excl. Tax)');
+                    ?>
+                    <th scope="col" class="col price">
+                        <?= $block->escapeHtml(__('Price (Excl. Tax)')) ?>
+                    </th>
+                    <th scope="col" class="col qty">
+                        <?= $block->escapeHtml(__('Qty')) ?>
+                    </th>
+                    <th scope="col" class="col subtotal">
+                        <?= $block->escapeHtml(__('Subtotal (Excl. Tax)')) ?>
+                    </th>
+                    <th scope="col" class="col tax">
+                        <?= $block->escapeHtml(__('Tax Amount')) ?>
+                    </th>
+                    <th scope="col" class="col tax-percent">
+                        <?= $block->escapeHtml(__('Tax Percent')) ?>
+                    </th>
+                    <th scope="col" class="col discount">
+                        <?= $block->escapeHtml(__('Discount Amount')) ?>
+                    </th>
+                    <th scope="col" class="col rowtotal">
+                        <?= $block->escapeHtml(__('Gross Total')) ?>
+                    </th>
+                    <?php
+                    // Check if Indian GST module is installed
+                    $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+                    $moduleManager = $objectManager->get(\Magento\Framework\Module\Manager::class);
+                    $hasGstModule = $moduleManager->isEnabled('Tax_IndianGST');
+                    ?>
+                    <?php if ($hasGstModule && $_order->getOrderCurrencyCode() == 'INR'): ?>
+                        <th scope="col" class="col cgst">
+                            <?= $block->escapeHtml(__('CGST')) ?>
+                        </th>
+                        <th scope="col" class="col sgst">
+                            <?= $block->escapeHtml(__('SGST')) ?>
+                        </th>
+                        <th scope="col" class="col igst">
+                            <?= $block->escapeHtml(__('IGST')) ?>
+                        </th>
+                    <?php endif; ?>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($_items as $_item): ?>
+                    <?php if ($_item->getParentItem())
+                        continue; ?>
+                    <tr id="order-item-row-<?= (int) $_item->getId() ?>">
+                        <td class="col name" data-th="<?= $block->escapeHtmlAttr(__('Product')) ?>">
+                            <strong class="product name product-item-name">
+                                <?= $block->escapeHtml($_item->getName()) ?>
+                            </strong>
+                            <?php if ($_options = $block->getItemOptions($_item)): ?>
+                                <dl class="item-options">
+                                    <?php foreach ($_options as $_option): ?>
+                                        <dt>
+                                            <?= $block->escapeHtml($_option['label']) ?>
+                                        </dt>
+                                        <dd>
+                                            <?php if (isset($_option['custom_view']) && $_option['custom_view']): ?>
+                                                <?= /* @noEscape */ $_option['value'] ?>
+                                            <?php else: ?>
+                                                <?= $block->escapeHtml($_option['value']) ?>
+                                            <?php endif; ?>
+                                        </dd>
+                                    <?php endforeach; ?>
+                                </dl>
+                            <?php endif; ?>
+                            <div class="item-sku">
+                                <strong>
+                                    <?= $block->escapeHtml(__('SKU')) ?>:
+                                </strong>
+                                <?= $block->escapeHtml($_item->getSku()) ?>
+                            </div>
+                        </td>
+                        <td class="col status" data-th="<?= $block->escapeHtmlAttr(__('Item Status')) ?>">
+                            <?php if ((float) $_item->getQtyInvoiced() > 0): ?>
+                                <span class="item-status invoiced">
+                                    <?= $block->escapeHtml(__('Invoiced')) ?>
+                                </span><br>
+                            <?php endif; ?>
+                            <?php if ((float) $_item->getQtyShipped() > 0): ?>
+                                <span class="item-status shipped">
+                                    <?= $block->escapeHtml(__('Shipped')) ?>
+                                </span><br>
+                            <?php endif; ?>
+                            <?php if ((float) $_item->getQtyCanceled() > 0): ?>
+                                <span class="item-status canceled">
+                                    <?= $block->escapeHtml(__('Canceled')) ?>
+                                </span><br>
+                            <?php endif; ?>
+                            <?php if ((float) $_item->getQtyRefunded() > 0): ?>
+                                <span class="item-status refunded">
+                                    <?= $block->escapeHtml(__('Refunded')) ?>
+                                </span><br>
+                            <?php endif; ?>
+                            <?php if ((float) $_item->getQtyInvoiced() <= 0 && (float) $_item->getQtyShipped() <= 0 && (float) $_item->getQtyCanceled() <= 0): ?>
+                                <span class="item-status ordered">
+                                    <?= $block->escapeHtml(__('Ordered')) ?>
+                                </span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="col price" data-th="<?= $block->escapeHtmlAttr(__('Original Price')) ?>">
+                            <?= /* @noEscape */ $_order->formatPrice($_item->getOriginalPrice()) ?>
+                        </td>
+                        <td class="col price" data-th="<?= $block->escapeHtmlAttr(__('Price (Excl. Tax)')) ?>">
+                            <?= /* @noEscape */ $_order->formatPrice($_item->getPrice()) ?>
+                        </td>
+                        <td class="col qty" data-th="<?= $block->escapeHtmlAttr(__('Qty')) ?>">
+                            <ul class="items-qty">
+                                <li class="item">
+                                    <span class="title">
+                                        <?= $block->escapeHtml(__('Ordered')) ?>
+                                    </span>
+                                    <span class="content">
+                                        <?= (int) $_item->getQtyOrdered() ?>
+                                    </span>
+                                </li>
+                                <?php if ((int) $_item->getQtyInvoiced()): ?>
+                                    <li class="item">
+                                        <span class="title">
+                                            <?= $block->escapeHtml(__('Invoiced')) ?>
+                                        </span>
+                                        <span class="content">
+                                            <?= (int) $_item->getQtyInvoiced() ?>
+                                        </span>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if ((int) $_item->getQtyShipped()): ?>
+                                    <li class="item">
+                                        <span class="title">
+                                            <?= $block->escapeHtml(__('Shipped')) ?>
+                                        </span>
+                                        <span class="content">
+                                            <?= (int) $_item->getQtyShipped() ?>
+                                        </span>
+                                    </li>
+                                <?php endif; ?>
+                            </ul>
+                        </td>
+                        <td class="col subtotal" data-th="<?= $block->escapeHtmlAttr(__('Subtotal (Excl. Tax)')) ?>">
+                            <?= /* @noEscape */ $_item->getRowTotal() ? $_order->formatPrice($_item->getRowTotal()) : $_order->formatPrice(0) ?>
+                        </td>
+                        <td class="col tax" data-th="<?= $block->escapeHtmlAttr(__('Tax Amount')) ?>">
+                            <?= /* @noEscape */ $_order->formatPrice($_item->getTaxAmount()) ?>
+                        </td>
+                        <td class="col tax-percent" data-th="<?= $block->escapeHtmlAttr(__('Tax Percent')) ?>">
+                            <?= $block->escapeHtml(number_format($_item->getTaxPercent(), 2)) ?>%
+                        </td>
+                        <td class="col discount" data-th="<?= $block->escapeHtmlAttr(__('Discount Amount')) ?>"
+                            style="<?= $_item->getDiscountAmount() > 0 ? 'color: #28a745; font-weight: bold;' : '' ?>">
+                            <?php if ($_item->getDiscountAmount() > 0): ?>
+                                -<?= /* @noEscape */ $_order->formatPrice($_item->getDiscountAmount()) ?>
+                            <?php else: ?>
+                                <?= /* @noEscape */ $_order->formatPrice($_item->getDiscountAmount()) ?>
+                            <?php endif; ?>
+                        </td>
+                        <td class="col rowtotal" data-th="<?= $block->escapeHtmlAttr(__('Row Total')) ?>">
+                            <?= /* @noEscape */ $_order->formatPrice($_item->getRowTotalInclTax()) ?>
+                        </td>
+                        <?php if ($hasGstModule && $_order->getOrderCurrencyCode() == 'INR'): ?>
+                            <?php
+                            // Calculate CGST, SGST, IGST based on tax amount
+                            $taxAmount = $_item->getTaxAmount();
+                            $taxPercent = $_item->getTaxPercent();
+
+                            // Check if it's interstate or intrastate
+                            $billingRegion = $_order->getBillingAddress()->getRegionId();
+                            $shippingRegion = $_order->getShippingAddress() ? $_order->getShippingAddress()->getRegionId() : $billingRegion;
+
+                            if ($billingRegion == $shippingRegion) {
+                                // Intrastate - CGST + SGST
+                                $cgst = $taxAmount / 2;
+                                $sgst = $taxAmount / 2;
+                                $igst = 0;
+                                $cgstPercent = $taxPercent / 2;
+                                $sgstPercent = $taxPercent / 2;
+                            } else {
+                                // Interstate - IGST
+                                $cgst = 0;
+                                $sgst = 0;
+                                $igst = $taxAmount;
+                                $cgstPercent = 0;
+                                $sgstPercent = 0;
+                            }
+                            ?>
+                            <td class="col cgst" data-th="<?= $block->escapeHtmlAttr(__('CGST')) ?>">
+                                <?= /* @noEscape */ $_order->formatPrice($cgst) ?>
+                                <?php if ($cgstPercent > 0): ?>
+                                    <br><small>
+                                        <?= $block->escapeHtml(number_format($cgstPercent, 2)) ?>%
+                                    </small>
+                                <?php endif; ?>
+                            </td>
+                            <td class="col sgst" data-th="<?= $block->escapeHtmlAttr(__('SGST')) ?>">
+                                <?= /* @noEscape */ $_order->formatPrice($sgst) ?>
+                                <?php if ($sgstPercent > 0): ?>
+                                    <br><small>
+                                        <?= $block->escapeHtml(number_format($sgstPercent, 2)) ?>%
+                                    </small>
+                                <?php endif; ?>
+                            </td>
+                            <td class="col igst" data-th="<?= $block->escapeHtmlAttr(__('IGST')) ?>">
+                                <?= /* @noEscape */ $_order->formatPrice($igst) ?>
+                                <?php if ($igst > 0): ?>
+                                    <br><small>
+                                        <?= $block->escapeHtml(number_format($taxPercent, 4)) ?>%
+                                    </small>
+                                <?php endif; ?>
+                            </td>
+                        <?php endif; ?>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <style>
+        .table-wrapper.order-items {
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }
+
+        .table-order-items {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .table-order-items thead th {
+            background: #f8f9fc;
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 2px solid #e3e6f0;
+            color: #5a5c69;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .table-order-items tbody td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #e3e6f0;
+            vertical-align: top;
+        }
+
+        .table-order-items .col.name {
+            min-width: 200px;
+        }
+
+        .table-order-items .product-item-name {
+            color: #4e73df;
+            font-weight: 600;
+        }
+
+        .table-order-items .item-options {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #858796;
+        }
+
+        .table-order-items .item-options dt {
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .table-order-items .item-options dd {
+            margin-left: 0;
+            margin-bottom: 4px;
+        }
+
+        .table-order-items .item-sku {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #858796;
+        }
+
+        .table-order-items .items-qty {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .table-order-items .items-qty .item {
+            margin-bottom: 4px;
+        }
+
+        .table-order-items .items-qty .title {
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        .table-order-items .item-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .table-order-items .item-status.invoiced {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .table-order-items .item-status.shipped {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .table-order-items .item-status.canceled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .table-order-items .item-status.ordered {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .table-order-items .col.price,
+        .table-order-items .col.subtotal,
+        .table-order-items .col.tax,
+        .table-order-items .col.discount,
+        .table-order-items .col.rowtotal,
+        .table-order-items .col.cgst,
+        .table-order-items .col.sgst,
+        .table-order-items .col.igst {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .table-caption {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .table-order-items thead {
+                display: none;
+            }
+
+            .table-order-items tbody td {
+                display: block;
+                text-align: right;
+                padding: 8px;
+            }
+
+            .table-order-items tbody td:before {
+                content: attr(data-th) ": ";
+                float: left;
+                font-weight: 600;
+            }
+
+            .table-order-items tbody tr {
+                border-bottom: 2px solid #e3e6f0;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+<?php else: ?>
+    <div class="message info empty">
+        <span>
+            <?= $block->escapeHtml(__('No items found for this vendor in this order.')) ?>
+        </span>
+    </div>
+<?php endif; ?>

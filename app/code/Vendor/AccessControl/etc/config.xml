@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <vendor_access_control>
+            <general>
+                <enabled>0</enabled>
+                <allowed_urls></allowed_urls>
+                <blocked_urls></blocked_urls>
+                <hide_header_footer_urls></hide_header_footer_urls>
+                <apply_domain_only>0</apply_domain_only>
+                <domain></domain>
+            </general>
+        </vendor_access_control>
+    </default>
+</config>

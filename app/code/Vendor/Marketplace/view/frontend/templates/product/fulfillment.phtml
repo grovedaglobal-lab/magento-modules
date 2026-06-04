@@ -1,0 +1,53 @@
+<?php
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Vendor\Marketplace\Helper\Data $helper */
+$helper = $this->helper(\Vendor\Marketplace\Helper\Data::class);
+$product = $block->getProduct();
+if (!$product) {
+    $product = $block->getLayout()->getBlock('product.info')->getProduct();
+}
+
+if ($product):
+    $vendorId = $product->getData('vendor_id');
+    if ($vendorId):
+        $profile = \Magento\Framework\App\ObjectManager::getInstance()
+            ->get(\Vendor\Marketplace\Model\VendorProfileFactory::class)
+            ->create()
+            ->load($vendorId, 'vendor_id');
+
+        if ($profile->getId() && ($profile->getData('fulfillment_image') || $profile->getData('fulfillment_label') || $profile->getData('fulfillment_text'))):
+            $storeManager = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Store\Model\StoreManagerInterface::class);
+            $mediaUrl = $storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
+            ?>
+            <div class="vendor-fulfillment-info"
+                style="margin: 15px 0; padding: 15px; border: 1px dashed #4e73df; border-radius: 4px; background: #f8f9fc;">
+                <?php if ($profile->getData('fulfillment_image')): ?>
+                    <div class="fulfillment-image" style="margin-bottom: 10px;">
+                        <img src="<?= $block->escapeUrl($mediaUrl . 'vendor/fulfillment/' . $profile->getData('fulfillment_image')) ?>"
+                            alt="<?= $block->escapeHtmlAttr($profile->getData('fulfillment_label') ?: __('Fulfillment')) ?>"
+                            style="max-width: 100px; display: block;">
+                    </div>
+                <?php endif; ?>
+
+                <?php
+                $fulfillmentLabel = $product->getData('fulfillment_label') ?: $profile->getData('fulfillment_label');
+                ?>
+
+                <?php if ($fulfillmentLabel): ?>
+                    <div class="fulfillment-label"
+                        style="font-weight: 700; color: #4e73df; margin-bottom: 5px; font-size: 14px; text-transform: uppercase;">
+                        <?= $block->escapeHtml($fulfillmentLabel) ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($profile->getData('fulfillment_text')): ?>
+                    <div class="fulfillment-text" style="font-size: 13px; color: #5a5c69; line-height: 1.4;">
+                        <?= $block->escapeHtml($profile->getData('fulfillment_text')) ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <?php
+        endif;
+    endif;
+endif;
+?>

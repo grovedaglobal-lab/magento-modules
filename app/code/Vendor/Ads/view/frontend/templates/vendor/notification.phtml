@@ -1,0 +1,29 @@
+<?php
+/** @var $block \Vendor\Ads\Block\Vendor\Notification */
+$info = $block->getWalletInfo();
+?>
+<?php if ($info): ?>
+    <div class="message message-<?= $block->escapeHtmlAttr($info['type']) ?> ads-notification active" style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; padding: 15px; border-radius: 4px; border: 1px solid;">
+        <div class="message-content" style="font-weight: 500;">
+            <?= $block->escapeHtml($info['message']) ?>
+        </div>
+        <div class="message-action">
+            <a href="<?= $block->escapeUrl($info['action_url']) ?>" class="action primary" style="text-decoration: none; padding: 5px 15px; background: #fff; color: #333; border: 1px solid #ccc; font-size: 13px; font-weight: 600;">
+                <span><?= $block->escapeHtml($info['action_label']) ?></span>
+            </a>
+        </div>
+    </div>
+    
+    <style>
+        .ads-notification.message-error {
+            background-color: #fef2f2;
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+        .ads-notification.message-warning {
+            background-color: #fffbeb;
+            border-color: #fef3c7;
+            color: #92400e;
+        }
+    </style>
+<?php endif; ?>

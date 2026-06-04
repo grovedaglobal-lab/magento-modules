@@ -1,0 +1,88 @@
+<?php
+/** @var $block \Vendor\Marketplace\Block\Report\Coupon */
+$reports = $block->getCouponUsage();
+?>
+<div class="row">
+    <div class="col-md-12">
+        <div class="page-title-wrapper">
+            <h1 class="page-title">
+                <span class="base">
+                    <?= __('Coupon Usage Report') ?>
+                </span>
+            </h1>
+        </div>
+
+        <?php if ($reports && count($reports)): ?>
+            <div class="table-wrapper orders-history">
+                <table class="data table table-order-items history" id="my-coupons-report-table">
+                    <caption class="table-caption">
+                        <?= __('Coupon Usage') ?>
+                    </caption>
+                    <thead>
+                        <tr>
+                            <th scope="col" class="col id">
+                                <?= __('Order #') ?>
+                            </th>
+                            <th scope="col" class="col date">
+                                <?= __('Date') ?>
+                            </th>
+                            <th scope="col" class="col shipping">
+                                <?= __('Coupon Code') ?>
+                            </th>
+                            <th scope="col" class="col status">
+                                <?= __('Rule Name') ?>
+                            </th>
+                            <th scope="col" class="col total">
+                                <?= __('Order Total') ?>
+                            </th>
+                            <th scope="col" class="col discount">
+                                <?= __('Discount Amount') ?>
+                            </th>
+                            <th scope="col" class="col customer">
+                                <?= __('Customer') ?>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($reports as $order): ?>
+                            <tr>
+                                <td data-th="<?= __('Order #') ?>" class="col id">
+                                    <a href="<?= $block->getUrl('marketplace/order/view', ['id' => $order->getId()]) ?>">
+                                        <?= $order->getIncrementId() ?>
+                                    </a>
+                                </td>
+                                <td data-th="<?= __('Date') ?>" class="col date">
+                                    <?= $block->formatDate($order->getCreatedAt(), \IntlDateFormatter::MEDIUM, true) ?>
+                                </td>
+                                <td data-th="<?= __('Coupon Code') ?>" class="col shipping">
+                                    <span class="label label-info">
+                                        <?= $block->escapeHtml($order->getCouponCode()) ?>
+                                    </span>
+                                </td>
+                                <td data-th="<?= __('Rule Name') ?>" class="col status">
+                                    <?= $block->escapeHtml($order->getData('rule_name')) ?>
+                                </td>
+                                <td data-th="<?= __('Order Total') ?>" class="col total">
+                                    <?= $order->formatPrice($order->getGrandTotal()) ?>
+                                </td>
+                                <td data-th="<?= __('Discount Amount') ?>" class="col discount">
+                                    <?= $order->formatPrice($order->getDiscountAmount()) ?>
+                                </td>
+                                <td data-th="<?= __('Customer') ?>" class="col customer">
+                                    <?= $block->escapeHtml($order->getCustomerFirstname() . ' ' . $order->getCustomerLastname()) ?>
+                                    <br /><small>
+                                        <?= $block->escapeHtml($order->getCustomerEmail()) ?>
+                                    </small>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <div class="message info empty"><span>
+                    <?= __('No coupons have been used yet.') ?>
+                </span></div>
+        <?php endif; ?>
+    </div>
+</div>

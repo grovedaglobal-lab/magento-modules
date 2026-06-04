@@ -1,0 +1,78 @@
+<?php
+/** @var $block \Vendor\Ads\Block\Vendor\Wallet */
+$rechargeHistory = $block->getRechargeHistory();
+?>
+<div class="vendor-ads-wallet history-page">
+    <div class="page-title-wrapper">
+        <h1 class="page-title"><?= $block->escapeHtml(__('Wallet Recharge History')) ?></h1>
+    </div>
+
+    <div class="wallet-recharge-history" style="margin-top: 24px;">
+        <?php if (empty($rechargeHistory)): ?>
+            <div class="message message-notice"><span><?= $block->escapeHtml(__('No recharge history found yet.')) ?></span></div>
+        <?php else: ?>
+            <div class="table-container shadow-sm border-rounded" style="overflow-x:auto;">
+                <table class="data table" style="width:100%; border-collapse: collapse;">
+                    <thead style="background-color: var(--brand-primary); color: #fff;">
+                        <tr>
+                            <th style="padding: 12px; text-align: left; border: none; font-weight: 700;"><?= $block->escapeHtml(__('DATE')) ?></th>
+                            <th style="padding: 12px; text-align: left; border: none; font-weight: 700;"><?= $block->escapeHtml(__('AMOUNT')) ?></th>
+                            <th style="padding: 12px; text-align: left; border: none; font-weight: 700;"><?= $block->escapeHtml(__('STATUS')) ?></th>
+                            <th style="padding: 12px; text-align: left; border: none; font-weight: 700;"><?= $block->escapeHtml(__('METHOD')) ?></th>
+                            <th style="padding: 12px; text-align: left; border: none; font-weight: 700;"><?= $block->escapeHtml(__('TAX MODE')) ?></th>
+                            <th style="padding: 12px; text-align: left; border: none; font-weight: 700;"><?= $block->escapeHtml(__('TRANSACTION ID')) ?></th>
+                            <th style="padding: 12px; text-align: left; border: none; font-weight: 700;"><?= $block->escapeHtml(__('ORDER ID')) ?></th>
+                            <th style="padding: 12px; text-align: left; border: none; font-weight: 700;"><?= $block->escapeHtml(__('INVOICE')) ?></th>
+                            <th style="padding: 15px; text-align: left; border: none; font-weight: 700;"><?= $block->escapeHtml(__('BALANCE (BEFORE/AFTER)')) ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($rechargeHistory as $entry): ?>
+                            <tr style="border-bottom: 2px solid #f1f5f9; transition: all 0.2s hover;">
+                                <td style="padding: 12px; font-size: 0.95rem; color: #475569;"><?= $block->escapeHtml(date('Y-m-d H:i:s', strtotime($entry['created_at']))) ?></td>
+                                <td style="padding: 12px; font-size: 1.1rem; font-weight: 800; color: var(--brand-primary);">
+                                    <?= $block->escapeHtml(number_format((float)$entry['amount'], 2)) ?>
+                                </td>
+                                <td style="padding: 12px;">
+                                    <span class="status-badge" style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">
+                                        <?= $block->escapeHtml(__('Success')) ?>
+                                    </span>
+                                </td>
+                                <td style="padding: 12px; font-size: 0.9rem; font-weight: 600; color: #64748b;">
+                                    <?= $block->escapeHtml($entry['razorpay_payment_id'] ? __('Razorpay') : __('Admin')) ?>
+                                </td>
+                                <td style="padding: 12px; font-size: 0.85rem; font-weight: 700; color: #0f172a;">
+                                    <?= $block->escapeHtml(strtoupper($entry['tax_mode'] ?? __('Included'))) ?>
+                                </td>
+                                <td style="padding: 15px; font-family: monospace; font-size: 0.85rem; color: #0d8abc; font-weight: 500;"><?= $block->escapeHtml($entry['razorpay_payment_id'] ?: '-') ?></td>
+                                <td style="padding: 15px;">
+                                    <?php if (!empty($entry['magento_order_id'])): ?>
+                                        <a href="<?= $block->getUrl('marketplace/order/view', ['id' => $entry['marketplace_order_id'] ?? $entry['magento_order_id']]) ?>" 
+                                           style="color: var(--brand-primary); font-weight: 700; text-decoration: none;" target="_blank">
+                                            #<?= $block->escapeHtml($entry['magento_increment_id'] ?? $entry['magento_order_id']) ?>
+                                        </a>
+                                    <?php else: ?>
+                                        <span style="color: #cbd5e1;">-</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="padding: 15px;">
+                                    <?php if (!empty($entry['magento_order_id'])): ?>
+                                        <a href="<?= $block->getUrl('marketplace/order/printInvoice', ['id' => $entry['marketplace_order_id'] ?? $entry['magento_order_id']]) ?>" 
+                                           style="display: inline-flex; align-items: center; gap: 6px; color: #0369a1; text-decoration: none; font-weight: 600; font-size: 0.9rem;" target="_blank">
+                                            <i class="fas fa-print"></i> <?= $block->escapeHtml(__('Print Invoice')) ?>
+                                        </a>
+                                    <?php else: ?>
+                                        <span style="color: #cbd5e1;">-</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="padding: 15px; color: #475569; font-size: 0.95rem; font-weight: 600;">
+                                    <?= $block->escapeHtml(number_format((float)$entry['balance_before'], 2)) ?> &rarr; <span style="color: #22c55e;"><?= $block->escapeHtml(number_format((float)$entry['balance_after'], 2)) ?></span>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>

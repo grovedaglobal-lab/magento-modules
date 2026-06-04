@@ -1,0 +1,29 @@
+<?php
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Vendor\Marketplace\Helper\Data $helper */
+$helper = $this->helper(\Vendor\Marketplace\Helper\Data::class);
+$product = $block->getProduct();
+
+if (!$product) {
+    $product = $block->getLayout()->getBlock('product.info')->getProduct();
+}
+
+if ($product) {
+    $vendorName = $helper->getVendorNameByProduct($product);
+    $vendorUrl = $helper->getVendorUrlByProduct($product);
+
+    if ($vendorName): ?>
+        <div class="product-attribute sold-by-vendor" style="margin-bottom: 15px;">
+            <span class="label" style="font-weight: bold;">
+                <?= $block->escapeHtml(__('Sold By:')) ?>
+            </span>
+            <span class="value">
+                <a href="<?= $block->escapeUrl($vendorUrl) ?>" class="vendor-link"
+                    style="color: #006bb4; text-decoration: none;">
+                    <?= $block->escapeHtml($vendorName) ?>
+                </a>
+            </span>
+        </div>
+    <?php endif;
+}
+?>

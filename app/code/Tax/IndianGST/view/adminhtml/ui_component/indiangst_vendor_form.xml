@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">indiangst_vendor_form.indiangst_vendor_form_data_source</item>
+        </item>
+        <item name="label" xsi:type="string" translate="true">Vendor Information</item>
+        <item name="template" xsi:type="string">templates/form/collapsible</item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="save" class="Tax\IndianGST\Block\Adminhtml\Vendor\Edit\SaveButton"/>
+            <button name="delete" class="Tax\IndianGST\Block\Adminhtml\Vendor\Edit\DeleteButton"/>
+            <button name="back" class="Tax\IndianGST\Block\Adminhtml\Vendor\Edit\BackButton"/>
+        </buttons>
+        <namespace>indiangst_vendor_form</namespace>
+        <dataScope>data</dataScope>
+        <deps>
+            <dep>indiangst_vendor_form.indiangst_vendor_form_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="indiangst_vendor_form_data_source">
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
+            </item>
+        </argument>
+        <settings>
+            <submitUrl path="indiangst/vendor/save"/>
+        </settings>
+        <dataProvider class="Tax\IndianGST\Model\VendorDataProvider" name="indiangst_vendor_form_data_source">
+            <settings>
+                <requestFieldName>entity_id</requestFieldName>
+                <primaryFieldName>entity_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <fieldset name="general">
+        <settings>
+            <label translate="true">General Information</label>
+        </settings>
+        <field name="entity_id" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">vendor</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <visible>false</visible>
+                <dataScope>entity_id</dataScope>
+            </settings>
+        </field>
+        <field name="vendor_code" formElement="select">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">vendor</item>
+                    <item name="component" xsi:type="string">Tax_IndianGST/js/form/element/vendor-select</item>
+                    <item name="serviceUrl" xsi:type="url" path="indiangst/vendor/getVendorData"/>
+                </item>
+                <item name="options" xsi:type="object">Tax\IndianGST\Model\Source\VendorList</item>
+            </argument>
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>text</dataType>
+                <label translate="true">Vendor</label>
+                <dataScope>vendor_code</dataScope>
+            </settings>
+        </field>
+        <field name="business_name" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">vendor</item>
+                </item>
+            </argument>
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>text</dataType>
+                <label translate="true">Business Name</label>
+                <dataScope>business_name</dataScope>
+            </settings>
+        </field>
+        <field name="gstin" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">vendor</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">GSTIN</label>
+                <dataScope>gstin</dataScope>
+            </settings>
+        </field>
+        <field name="pan_number" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">vendor</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">PAN Number</label>
+                <dataScope>pan_number</dataScope>
+            </settings>
+        </field>
+        <field name="postcode" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">vendor</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Postcode</label>
+                <dataScope>postcode</dataScope>
+            </settings>
+        </field>
+        <field name="is_registered" formElement="select">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">vendor</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>boolean</dataType>
+                <label translate="true">Is Registered</label>
+                <dataScope>is_registered</dataScope>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options>
+                            <option name="0" xsi:type="array">
+                                <item name="value" xsi:type="string">0</item>
+                                <item name="label" xsi:type="string">No</item>
+                            </option>
+                            <option name="1" xsi:type="array">
+                                <item name="value" xsi:type="string">1</item>
+                                <item name="label" xsi:type="string">Yes</item>
+                            </option>
+                        </options>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+    </fieldset>
+</form>

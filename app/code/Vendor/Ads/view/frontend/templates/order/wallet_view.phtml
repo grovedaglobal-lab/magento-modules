@@ -1,0 +1,175 @@
+<?php
+/** @var \Vendor\Marketplace\Block\Order\View $block */
+/** @var \Magento\Framework\Escaper $escaper */
+try {
+    $vendorOrder = $block->getVendorOrder();
+    $order = $block->getOrder();
+} catch (\Exception $e) {
+    return;
+}
+
+if (!$vendorOrder || !$order) {
+    echo '<div class="message error">Order not found or you do not have permission to view this order.</div>';
+    return;
+}
+
+// Use block properties/methods where available
+$priceHelper = $this->helper(\Magento\Framework\Pricing\Helper\Data::class);
+$scopeConfig = $block->getData('scopeConfig') ?: \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Framework\App\Config\ScopeConfigInterface::class);
+
+// Admin / Seller Details
+$adminName = $scopeConfig->getValue('general/store_information/name', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+$adminStreet = $scopeConfig->getValue('general/store_information/street_line1', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+$adminCity = $scopeConfig->getValue('general/store_information/city', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+$adminZip = $scopeConfig->getValue('general/store_information/postcode', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+
+// Match Admin GST extraction logic from invoice.phtml
+$adminGst = $scopeConfig->getValue('tax_indiangst/general/gstin', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+if (!$adminGst || strlen(trim($adminGst)) < 15) {
+    $adminGst = $scopeConfig->getValue('general/store_information/merchant_vat_number', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+}
+
+// Vendor / Buyer Details
+$vendorId = (int)$vendorOrder->getVendorId();
+$resource = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Framework\App\ResourceConnection::class);
+$connection = $resource->getConnection();
+$profileTable = $resource->getTableName('vendor_profile');
+$gstTable = $resource->getTableName('tax_indiangst_vendor_profile');
+
+$select = $connection->select()
+    ->from(['vp' => $profileTable], ['shop_name', 'company_name', 'address', 'city', 'state', 'zip_code', 'country', 'email', 'phone'])
+    ->joinLeft(['gst' => $gstTable], 'vp.vendor_id = gst.vendor_code', ['gstin', 'pan_number', 'vendor_business_name' => 'business_name'])
+    ->where('vp.vendor_id = ?', $vendorId);
+$vendorInfo = $connection->fetchRow($select);
+
+// Payment Method Mapping
+$payment = $order->getPayment();
+$methodTitle = $payment->getMethodInstance()->getTitle();
+if ($payment->getMethod() == 'vendor_ads_wallet_recharge') {
+    $methodTitle = __('Razorpay (Digital Payment)');
+}
+
+// Razorpay Transaction ID Fallback
+$razorpayPaymentId = ($order->getPayment()) ? $order->getPayment()->getData('last_trans_id') : null;
+if (!$razorpayPaymentId) {
+    $payTable = $resource->getTableName('vendor_ads_payment');
+    $razorpayPaymentId = $connection->fetchOne(
+        $connection->select()->from($payTable, 'razorpay_payment_id')->where('magento_order_id = ?', $order->getId())
+    );
+}
+?>
+
+<div class="vendor-order-view wallet-recharge-view">
+    <div class="block-title" style="margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px;">
+        <h2 style="color: #113321; margin: 0;"><?= $escaper->escapeHtml(__('Wallet Recharge Details')) ?></h2>
+        <span style="color: #666; font-size: 14px;">Order #<?= $escaper->escapeHtml($order->getIncrementId()) ?></span>
+    </div>
+
+    <div class="dashboard-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;">
+        <!-- Sold By (Admin) -->
+        <div class="dashboard-card" style="background: #fff; border: 1px solid #e3e6f0; border-radius: 8px; padding: 20px; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);">
+            <h4 style="color: #113321; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0;"><i class="fa fa-university"></i> <?= $escaper->escapeHtml(__('Sold By')) ?></h4>
+            <div style="font-size: 14px; line-height: 1.6;">
+                <strong><?= $escaper->escapeHtml($adminName ?: __('Marketplace Admin')) ?></strong><br>
+                <?= $escaper->escapeHtml($adminStreet) ?><br>
+                <?= $escaper->escapeHtml($adminCity) ?>, <?= $escaper->escapeHtml($adminZip) ?><br>
+                <?php if ($adminGst): ?>
+                    <strong><?= $escaper->escapeHtml(__('GSTIN:')) ?></strong> <?= $escaper->escapeHtml($adminGst) ?>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Bill To (Vendor) -->
+        <div class="dashboard-card" style="background: #fff; border: 1px solid #e3e6f0; border-radius: 8px; padding: 20px; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);">
+            <h4 style="color: #113321; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0;"><i class="fa fa-user"></i> <?= $escaper->escapeHtml(__('Bill To (Vendor)')) ?></h4>
+            <div style="font-size: 14px; line-height: 1.6;">
+                <?php 
+                $billingAddress = $order->getBillingAddress();
+                if ($billingAddress): 
+                ?>
+                    <strong><?= $escaper->escapeHtml($vendorInfo['vendor_business_name'] ?: ($vendorInfo['company_name'] ?: $billingAddress->getName())) ?></strong><br>
+                    <?= $escaper->escapeHtml(str_replace("\n", ", ", $billingAddress->getStreetLine(1) . ' ' . $billingAddress->getStreetLine(2))) ?><br>
+                    <?= $escaper->escapeHtml($billingAddress->getCity()) ?>, <?= $escaper->escapeHtml($billingAddress->getRegion()) ?> <?= $escaper->escapeHtml($billingAddress->getPostcode()) ?><br>
+                    <strong><?= $escaper->escapeHtml(__('Phone:')) ?></strong> <?= $escaper->escapeHtml($billingAddress->getTelephone()) ?><br>
+                    <strong><?= $escaper->escapeHtml(__('Email:')) ?></strong> <?= $escaper->escapeHtml($order->getCustomerEmail()) ?><br>
+                    <?php if (!empty($vendorInfo['gstin'])): ?>
+                        <strong><?= $escaper->escapeHtml(__('GSTIN:')) ?></strong> <?= $escaper->escapeHtml($vendorInfo['gstin']) ?>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <?= $escaper->escapeHtml(__('No billing address available.')) ?>
+                <?php endif; ?>
+            </div>
+        </div>
+
+
+        <!-- Status Card -->
+        <div class="dashboard-card" style="background: #fff; border: 1px solid #e3e6f0; border-radius: 8px; padding: 20px; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);">
+            <h4 style="color: #113321; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0;"><i class="fa fa-info-circle"></i> <?= $escaper->escapeHtml(__('Recharge Information')) ?></h4>
+            <div style="margin-bottom: 10px;">
+                <strong><?= $escaper->escapeHtml(__('Status')) ?>:</strong>
+                <span style="padding: 4px 12px; border-radius: 20px; background: #f0fdf4; color: #113321; font-weight: bold; font-size: 12px; text-transform: uppercase;">
+                    <?= $escaper->escapeHtml($order->getStatusLabel()) ?>
+                </span>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <strong><?= $escaper->escapeHtml(__('Payment Method')) ?>:</strong>
+                <span class="payment-label" style="color: #1a4a2f; font-weight: 600;">
+                    <?= $escaper->escapeHtml($methodTitle) ?>
+                </span>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <strong><?= $escaper->escapeHtml(__('Date')) ?>:</strong>
+                <?= $block->formatDate($order->getCreatedAt(), \IntlDateFormatter::MEDIUM, true) ?>
+            </div>
+            <?php if ($razorpayPaymentId): ?>
+            <div>
+                <strong><?= $escaper->escapeHtml(__('Transaction ID')) ?>:</strong>
+                <code style="background: #f0fdf4; color: #113321; padding: 2px 8px; border-radius: 4px; font-size: 13px; font-weight: 600; border: 1px solid #dcfce7;"><?= $escaper->escapeHtml($razorpayPaymentId) ?></code>
+            </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Summary Card -->
+        <div class="dashboard-card" style="background: #fff; border: 1px solid #e3e6f0; border-radius: 8px; padding: 20px; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);">
+            <h4 style="color: #113321; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0;"><i class="fa fa-calculator"></i> <?= $escaper->escapeHtml(__('Amount Summary')) ?></h4>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; color: #666;"><?= $escaper->escapeHtml(__('Base Recharge')) ?></td>
+                    <td style="padding: 8px 0; text-align: right; font-weight: 600;"><?= $priceHelper->currency($order->getBaseSubtotal(), true, false) ?></td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #666;"><?= $escaper->escapeHtml(__('Tax (GST 18%)')) ?></td>
+                    <td style="padding: 8px 0; text-align: right; font-weight: 600;"><?= $priceHelper->currency($order->getBaseTaxAmount(), true, false) ?></td>
+                </tr>
+                <tr style="border-top: 2px solid #eee;">
+                    <td style="padding: 12px 0; font-weight: bold; color: #113321; font-size: 16px;"><?= $escaper->escapeHtml(__('Total Charged')) ?></td>
+                    <td style="padding: 12px 0; text-align: right; font-weight: bold; color: #113321; font-size: 18px;"><?= $priceHelper->currency($order->getBaseGrandTotal(), true, false) ?></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Actions Section -->
+    <div style="background: #f8f9fc; border-radius: 8px; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <a href="<?= $block->getUrl('vendor_ads/vendor/wallet') ?>" class="action back" style="color: #666; text-decoration: none; font-weight: 600;">
+                <i class="fa fa-arrow-left"></i> <?= $escaper->escapeHtml(__('Back to Ad Wallet')) ?>
+            </a>
+        </div>
+        <div>
+            <a href="<?= $block->getPrintInvoiceUrl() ?>" target="_blank" class="action print" style="background: #113321; color: #fff; padding: 10px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <i class="fa fa-print"></i> <?= $escaper->escapeHtml(__('Download GST Invoice')) ?>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .wallet-recharge-view {
+        animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>

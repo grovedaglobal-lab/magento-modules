@@ -1,0 +1,284 @@
+/* Vendor Account Shared Styling - Login, Register, Forgot Password */
+
+/* Page Title Centering */
+body.vendor-marketplace-account-login .page-title,
+body.vendor-marketplace-account-forgotpassword .page-title,
+body.vendor_marketplace-account-create .page-title {
+    text-align: center;
+}
+.page-title-wrapper {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* Container Shared Styles for Login, Register, Forgot Password */
+.vendor-login-container,
+.vendor-register-container {
+    max-width: 500px;
+    margin: 50px auto;
+    background: #fff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e1e1e1;
+}
+
+/* Header Styles */
+.vendor-login-header,
+.vendor-register-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.vendor-login-header h2,
+.vendor-register-header h2 {
+    font-size: 24px;
+    color: #333;
+    margin: 0 0 10px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.vendor-login-header p,
+.vendor-register-header p {
+    color: #777;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Form Elements */
+.vendor-login-container .fieldset,
+.vendor-register-container .fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.vendor-login-container .legend,
+.vendor-register-container .legend {
+    display: block;
+    margin-bottom: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.vendor-login-container .legend span,
+.vendor-register-container .legend span {
+    display: inline;
+}
+
+.vendor-login-container .field,
+.vendor-register-container .field {
+    margin-bottom: 16px;
+}
+
+.vendor-login-container .field.note,
+.vendor-register-container .field.note {
+    color: #555;
+    margin-bottom: 14px;
+    line-height: 1.5;
+}
+
+.vendor-login-container .label,
+.vendor-register-container .label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.vendor-login-container .label span,
+.vendor-register-container .label span {
+    display: inline;
+}
+
+.vendor-login-container .control,
+.vendor-register-container .control {
+    width: 100%;
+}
+
+/* Input Fields - All Types */
+.vendor-login-container input[type="text"],
+.vendor-login-container input[type="email"],
+.vendor-login-container input[type="password"],
+.vendor-login-container input[type="hidden"],
+.vendor-login-container .input-text,
+.vendor-login-container select,
+.vendor-login-container textarea,
+.vendor-register-container input[type="text"],
+.vendor-register-container input[type="email"],
+.vendor-register-container input[type="password"],
+.vendor-register-container input[type="hidden"],
+.vendor-register-container .input-text,
+.vendor-register-container select,
+.vendor-register-container textarea {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 10px 12px;
+    box-sizing: border-box;
+    background: #fff;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+/* Input Focus States */
+.vendor-login-container input[type="text"]:focus,
+.vendor-login-container input[type="email"]:focus,
+.vendor-login-container input[type="password"]:focus,
+.vendor-login-container input[type="hidden"]:focus,
+.vendor-login-container .input-text:focus,
+.vendor-login-container select:focus,
+.vendor-login-container textarea:focus,
+.vendor-register-container input[type="text"]:focus,
+.vendor-register-container input[type="email"]:focus,
+.vendor-register-container input[type="password"]:focus,
+.vendor-register-container input[type="hidden"]:focus,
+.vendor-register-container .input-text:focus,
+.vendor-register-container select:focus,
+.vendor-register-container textarea:focus {
+    outline: none;
+    border-color: #007bdb;
+    box-shadow: 0 0 0 2px rgba(0, 123, 219, 0.12);
+}
+
+/* Note/Help Text */
+.vendor-login-container .note,
+.vendor-register-container .note {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #6f7782;
+}
+
+/* Keep required markers aligned with labels */
+.vendor-login-container .field.required > .label span::after,
+.vendor-register-container .field.required > .label span::after {
+    content: " *";
+    color: #d80000;
+    font-weight: 600;
+}
+
+.vendor-login-container .field.required > .control::before,
+.vendor-register-container .field.required > .control::before {
+    content: none;
+}
+
+/* Action Toolbar */
+.vendor-login-container .actions-toolbar,
+.vendor-register-container .actions-toolbar,
+.actions-toolbar {
+    margin-top: 25px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Action Toolbar - Primary */
+.vendor-login-container .actions-toolbar .primary,
+.vendor-register-container .actions-toolbar .primary,
+.actions-toolbar .primary {
+    flex: 0 1 auto;
+}
+
+.vendor-login-container .actions-toolbar .primary .action,
+.vendor-register-container .actions-toolbar .primary .action,
+.actions-toolbar .primary .action {
+    background-color: #007bdb;
+    border: 1px solid #007bdb;
+    color: #fff;
+    padding: 10px 22px;
+    font-size: 16px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.vendor-login-container .actions-toolbar .primary .action.login,
+.vendor-login-container .actions-toolbar .primary .action.submit,
+.vendor-register-container .actions-toolbar .primary .action.submit,
+.actions-toolbar .primary .action.login,
+.actions-toolbar .primary .action.submit {
+    background-color: #007bdb;
+    border: 1px solid #007bdb;
+    color: #fff;
+    padding: 10px 22px;
+    font-size: 16px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.vendor-login-container .actions-toolbar .primary .action:hover,
+.vendor-register-container .actions-toolbar .primary .action:hover,
+.actions-toolbar .primary .action:hover {
+    background-color: #0056b3;
+}
+
+/* Action Toolbar - Secondary */
+.vendor-login-container .actions-toolbar .secondary,
+.vendor-register-container .actions-toolbar .secondary,
+.actions-toolbar .secondary {
+    flex: 0 1 auto;
+}
+
+.vendor-login-container .actions-toolbar .secondary .action,
+.vendor-register-container .actions-toolbar .secondary .action,
+.actions-toolbar .secondary .action {
+    color: #007bdb;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.vendor-login-container .actions-toolbar .secondary .action:hover,
+.vendor-register-container .actions-toolbar .secondary .action:hover,
+.actions-toolbar .secondary .action:hover {
+    text-decoration: underline;
+}
+
+/* Links */
+.vendor-register-link {
+    margin-top: 30px;
+    text-align: center;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+    font-size: 14px;
+}
+
+.vendor-register-link a {
+    font-weight: 600;
+    color: #007bdb;
+}
+
+/* Password Strength Meter */
+.vendor-register-container #password-strength-meter-container {
+    margin-top: 8px;
+    padding: 8px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+    font-size: 12px;
+    color: #555;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .vendor-login-container,
+    .vendor-register-container {
+        margin: 20px 12px;
+        padding: 24px 20px;
+    }
+
+    .vendor-login-container .actions-toolbar,
+    .vendor-register-container .actions-toolbar,
+    .actions-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

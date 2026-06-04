@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <multiv_frontend>
+            <general>
+                <frontend_url>http://multi.local</frontend_url>
+                <vendor_frontend_url>http://commerce.multi.local</vendor_frontend_url>
+            </general>
+        </multiv_frontend>
+    </default>
+</config>

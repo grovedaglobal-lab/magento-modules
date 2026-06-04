@@ -1,0 +1,148 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+/**
+ * @var \Magento\Sales\Block\Order\Item\Renderer\DefaultRenderer $block
+ * @var \Magento\Framework\Locale\LocaleFormatter $localeFormatter
+ */
+if (!isset($localeFormatter)) {
+    $localeFormatter = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Framework\Locale\LocaleFormatter::class);
+}
+$_item = $block->getItem();
+if (!$_item) {
+    return;
+}
+
+// VENDOR MARKETPLACE ADDITION
+$marketplaceHelper = $this->helper(Vendor\Marketplace\Helper\Data::class);
+$vendorName = '';
+$vendorUrl = '';
+if ($_item->getProduct()) {
+    $vendorName = $marketplaceHelper->getVendorNameByProduct($_item->getProduct());
+    $vendorUrl = $marketplaceHelper->getVendorUrlByProduct($_item->getProduct());
+}
+?>
+<tr id="order-item-row-<?= (int) $_item->getId() ?>">
+    <td class="col name" data-th="<?= $block->escapeHtml(__('Product Name')) ?>">
+        <strong class="product name product-item-name"><?= $block->escapeHtml($_item->getName()) ?></strong>
+
+        <!-- START: SOLD BY VENDOR -->
+        <?php if ($vendorName): ?>
+            <div class="product-item-vendor">
+                <span class="label"><?= __('Sold By') ?> </span>
+                <a href="<?= $vendorUrl ?>" class="vendor-link"><?= $block->escapeHtml($vendorName) ?></a>
+            </div>
+        <?php endif; ?>
+        <!-- START: CUSTOM DISCOUNT DISPLAY -->
+        <?php if ($_item->getDiscountAmount() > 0): ?>
+            <div class="item-discount" style="margin-top: 5px;">
+                <span class="label" style="font-weight:bold;"><?= $block->escapeHtml(__('Discount')) ?>:</span>
+                <span class="value" style="color: #28a745; font-weight: bold;">
+                    <?= '-' . $_item->getOrder()->formatPrice($_item->getDiscountAmount()) ?>
+                </span>
+            </div>
+        <?php endif; ?>
+        <!-- END: CUSTOM DISCOUNT DISPLAY -->
+
+        <?php if ($_options = $block->getItemOptions()): ?>
+            <dl class="item-options">
+                <?php foreach ($_options as $_option): ?>
+                    <dt><?= $block->escapeHtml($_option['label']) ?></dt>
+                    <?php
+                    $printStatus = method_exists($block, 'getPrintStatus') ? $block->getPrintStatus() : false;
+                    ?>
+                    <?php if (!$printStatus): ?>
+                        <?php
+                        if (method_exists($block, 'getFormatedOptionValue')) {
+                            $_formatedOptionValue = $block->getFormatedOptionValue($_option);
+                        } else {
+                            $_formatedOptionValue = ['value' => isset($_option['print_value']) ? $_option['print_value'] : $_option['value']];
+                        }
+                        ?>
+                        <dd<?= (isset($_formatedOptionValue['full_view']) ? ' class="tooltip wrapper"' : '') ?>>
+                            <?= $block->escapeHtml($_formatedOptionValue['value'], ['a']) ?>
+                            <?php if (isset($_formatedOptionValue['full_view'])): ?>
+                                <div class="tooltip content">
+                                    <dl class="item options">
+                                        <dt><?= $block->escapeHtml($_option['label']) ?></dt>
+                                        <dd><?= $block->escapeHtml($_formatedOptionValue['full_view']) ?></dd>
+                                    </dl>
+                                </div>
+                            <?php endif; ?>
+                            </dd>
+                        <?php else: ?>
+                            <?php $optionValue = isset($_option['print_value']) ? $_option['print_value'] : $_option['value'] ?>
+                            <dd><?= $block->escapeHtml($optionValue) ?></dd>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+            </dl>
+        <?php endif; ?>
+        <?php if (method_exists($block, 'getProductAdditionalInformationBlock')): ?>
+            <?php $addtInfoBlock = $block->getProductAdditionalInformationBlock(); ?>
+            <?php if ($addtInfoBlock): ?>
+                <?= $addtInfoBlock->setItem($_item)->toHtml() ?>
+            <?php endif; ?>
+        <?php endif; ?>
+        <?= $block->escapeHtml($_item->getDescription()) ?>
+    </td>
+    <td class="col sku" data-th="<?= $block->escapeHtml(__('SKU')) ?>">
+        <?= $block->escapeHtml($_item->getSku()) ?>
+    </td>
+    <td class="col price" data-th="<?= $block->escapeHtml(__('Price')) ?>">
+        <?php if (method_exists($block, 'getItemPriceHtml')): ?>
+            <?= $block->getItemPriceHtml() ?>
+        <?php else: ?>
+            <?= $_item->getOrder()->formatPrice($_item->getPrice()) ?>
+        <?php endif; ?>
+    </td>
+    <td class="col qty" data-th="<?= $block->escapeHtml(__('Qty')) ?>">
+        <ul class="items-qty">
+            <?php if ($block->getItem()->getQtyOrdered() > 0): ?>
+                <li class="item">
+                    <span class="title"><?= $block->escapeHtml(__('Ordered')) ?></span>
+                    <span class="content">
+                        <?= $block->escapeHtml($localeFormatter->formatNumber((float) $block->getItem()->getQtyOrdered())) ?>
+                    </span>
+                </li>
+            <?php endif; ?>
+            <?php if ($block->getItem()->getQtyShipped() > 0): ?>
+                <li class="item">
+                    <span class="title"><?= $block->escapeHtml(__('Shipped')) ?></span>
+                    <span class="content">
+                        <?= $block->escapeHtml($localeFormatter->formatNumber((float) $block->getItem()->getQtyShipped())) ?>
+                    </span>
+                </li>
+            <?php endif; ?>
+            <?php if ($block->getItem()->getQtyCanceled() > 0): ?>
+                <li class="item">
+                    <span class="title"><?= $block->escapeHtml(__('Canceled')) ?></span>
+                    <span class="content">
+                        <?= $block->escapeHtml(
+                            $localeFormatter->formatNumber((float) $block->getItem()->getQtyCanceled())
+                        ) ?>
+                    </span>
+                </li>
+            <?php endif; ?>
+            <?php if ($block->getItem()->getQtyRefunded() > 0): ?>
+                <li class="item">
+                    <span class="title"><?= $block->escapeHtml(__('Refunded')) ?></span>
+                    <span class="content">
+                        <?= $block->escapeHtml(
+                            $localeFormatter->formatNumber((float) $block->getItem()->getQtyRefunded())
+                        ) ?>
+                    </span>
+                </li>
+            <?php endif; ?>
+        </ul>
+    </td>
+    <td class="col subtotal" data-th="<?= $block->escapeHtml(__('Subtotal')) ?>">
+        <?php if (method_exists($block, 'getItemRowTotalHtml')): ?>
+            <?= $block->getItemRowTotalHtml() ?>
+        <?php else: ?>
+            <?= $_item->getOrder()->formatPrice($_item->getRowTotal()) ?>
+        <?php endif; ?>
+    </td>
+</tr>

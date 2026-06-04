@@ -1,0 +1,291 @@
+<?php
+/** @var $block \Vendor\Marketplace\Block\Seller\Dashboard */
+$stats = $block->getStatistics();
+$chartData = json_encode($stats['chart_data']);
+?>
+<!-- Dashboard Control Bar -->
+<div class="dashboard-controls">
+    <div class="tabs">
+        <a href="#" class="tab active" data-target="reports"><?= __('Reports') ?></a>
+        <a href="#" class="tab" data-target="activities"><?= __('Activities') ?></a>
+    </div>
+    <div class="controls-right">
+        <?php $currentPeriod = $block->getRequest()->getParam('period', '30'); ?>
+        <select class="period-select" id="dashboard-period-select">
+            <option value="30" <?= $currentPeriod === '30' ? 'selected' : '' ?>><?= __('Last 30 Days') ?></option>
+            <option value="7" <?= $currentPeriod === '7' ? 'selected' : '' ?>><?= __('Last 7 Days') ?></option>
+            <option value="year" <?= $currentPeriod === 'year' ? 'selected' : '' ?>><?= __('This Year') ?></option>
+        </select>
+    </div>
+</div>
+
+<div id="dashboard-reports-content">
+    <!-- Main Stats Row -->
+    <div class="dashboard-row">
+        <!-- Sales Column -->
+        <div class="dashboard-col">
+            <div class="card stat-card full-height">
+                <div class="card-top-row">
+                    <div class="main-metric">
+                        <?= $block->formatPrice($stats['sales']) ?>
+                    </div>
+                    <?php
+                    $salesTrend = $stats['trends']['sales'];
+                    $salesTrendClass = $salesTrend >= 0 ? 'positive' : 'negative';
+                    $salesTrendArrow = $salesTrend >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+                    ?>
+                    <div class="trend <?= $salesTrendClass ?>">
+                        <?= number_format(abs($salesTrend), 2) ?>% <i class="fas <?= $salesTrendArrow ?>"></i>
+                        <span class="trend-label"><?= __('Total Sale') ?></span>
+                    </div>
+                    <a href="<?= $block->getUrl('marketplace/transaction/history') ?>"
+                        class="link-action"><?= __('Transactions') ?></a>
+                </div>
+
+                <div class="sub-metrics">
+                    <div class="metric-item">
+                        <span class="value"><?= $block->formatPrice($stats['payouts']) ?></span>
+                        <span class="label"><?= __('Total Payouts') ?></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="value"><?= $block->formatPrice($stats['remaining']) ?></span>
+                        <span class="label"><?= __('Remaining Payout') ?></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="value"><?= $block->formatPrice($stats['commission']) ?></span>
+                        <span class="label"><?= __('Commission Paid') ?></span>
+                    </div>
+                </div>
+
+                <div class="chart-section" style="height: 180px;">
+                    <span class="chart-title"><?= __('Total Sales over time') ?></span>
+                    <div class="chart-canvas-wrapper" style="height: 140px; position: relative;">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Column -->
+        <div class="dashboard-col">
+            <div class="card stat-card full-height">
+                <div class="card-top-row">
+                    <div class="main-metric">
+                        <?= $stats['orders_total'] ?>
+                    </div>
+                    <?php
+                    $orderTrend = $stats['trends']['orders'];
+                    $orderTrendClass = $orderTrend >= 0 ? 'positive' : 'negative';
+                    $orderTrendArrow = $orderTrend >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+                    ?>
+                    <div class="trend <?= $orderTrendClass ?>">
+                        <?= number_format(abs($orderTrend), 2) ?>% <i class="fas <?= $orderTrendArrow ?>"></i>
+                        <span class="trend-label"><?= __('Total Order') ?></span>
+                    </div>
+                    <a href="<?= $block->getUrl('marketplace/order/history') ?>"
+                        class="link-action"><?= __('View All Orders') ?></a>
+                </div>
+
+                <div class="sub-metrics">
+                    <div class="metric-item">
+                        <span class="value"><?= $stats['orders_processing'] ?></span>
+                        <span class="label"><?= __('Processing') ?></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="value"><?= $stats['orders_pending'] ?></span>
+                        <span class="label"><?= __('Pending') ?></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="value"><?= $stats['orders_complete'] ?></span>
+                        <span class="label"><?= __('Complete') ?></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="value"><?= $stats['orders_cancelled'] ?></span>
+                        <span class="label"><?= __('Cancelled') ?></span>
+                    </div>
+                </div>
+
+                <div class="chart-section" style="height: 180px;">
+                    <span class="chart-title"><?= __('Orders over time') ?></span>
+                    <div class="chart-canvas-wrapper" style="height: 140px; position: relative;">
+                        <canvas id="ordersChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Row -->
+    <div class="dashboard-row">
+        <div class="dashboard-col">
+            <div class="card stat-card">
+                <div class="main-metric small"><?= $block->formatPrice($stats['avg_order_value']) ?></div>
+                <?php
+                $avgTrend = $stats['trends']['avg_order'];
+                $avgTrendClass = $avgTrend >= 0 ? 'positive' : 'negative';
+                $avgTrendArrow = $avgTrend >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+                ?>
+                <div class="trend <?= $avgTrendClass ?>">
+                    <?= number_format(abs($avgTrend), 2) ?>% <i class="fas <?= $avgTrendArrow ?>"></i> Average Order
+                    Value
+                </div>
+            </div>
+        </div>
+        <div class="dashboard-col">
+            <div class="card stat-card">
+                <div class="main-metric small"><?= $stats['total_customers'] ?></div>
+                <div class="trend neutral">0.00% <i class="fas fa-minus"></i> Customers</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activities Tab Content (Hidden by default) -->
+<div id="dashboard-activities-content" style="display: none;">
+    <div class="card" style="padding: 20px;">
+        <h3><?= __('Recent Activities') ?></h3>
+        <div class="activities-list">
+            <?php
+            $recentOrders = $block->getRecentOrders(5);
+            if ($recentOrders && $recentOrders->getSize() > 0):
+                ?>
+                <?php foreach ($recentOrders as $order): ?>
+                    <div class="activity-item"
+                        style="padding: 15px 0; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px;">
+                        <i class="fas fa-shopping-cart" style="color: #007bdb;"></i>
+                        <div class="activity-details" style="flex-grow: 1;">
+                            <p style="margin:0;">
+                                <strong><?= __('Order #%1 Received', $order->getIncrementId()) ?></strong>
+                                <span class="status-badge <?= $order->getStatus() ?>"><?= ucfirst($order->getStatus()) ?></span>
+                            </p>
+                            <span class="date" style="font-size: 12px; color: #666;">
+                                <?= $block->formatDate($order->getCreatedAt(), \IntlDateFormatter::MEDIUM, true) ?>
+                            </span>
+                            <div class="actions" style="margin-top: 5px;">
+                                <a href="<?= $block->getUrl('marketplace/order/view', ['id' => $order->getId()]) ?>"
+                                    style="color: #007bdb; font-size: 12px; text-decoration: none;">
+                                    <?= __('View Order') ?>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p><?= __('No recent activities found.') ?></p>
+            <?php endif; ?>
+        </div>
+
+        <style>
+            .status-badge {
+                display: inline-block;
+                padding: 2px 8px;
+                font-size: 10px;
+                font-weight: 700;
+                border-radius: 12px;
+                text-transform: uppercase;
+                margin-left: 10px;
+                vertical-align: middle;
+            }
+
+            .status-badge.pending {
+                background: #fff3cd;
+                color: #856404;
+            }
+
+            .status-badge.processing {
+                background: #cfe2ff;
+                color: #084298;
+            }
+
+            .status-badge.complete {
+                background: #d1e7dd;
+                color: #0f5132;
+            }
+
+            .status-badge.canceled,
+            .status-badge.cancelled {
+                background: #f8d7da;
+                color: #842029;
+            }
+        </style>
+    </div>
+</div>
+
+<script>
+    require(['jquery', 'chartjs'], function ($, Chart) {
+        // Period filter - reload page with selected period param
+        document.getElementById('dashboard-period-select').addEventListener('change', function () {
+            var url = new URL(window.location.href);
+            url.searchParams.set('period', this.value);
+            window.location.href = url.toString();
+        });
+
+        // Tab switching logic
+        $('.dashboard-controls .tab').on('click', function (e) {
+            e.preventDefault();
+            var target = $(this).data('target');
+            $('.dashboard-controls .tab').removeClass('active');
+            $(this).addClass('active');
+
+            if (target === 'reports') {
+                $('#dashboard-reports-content').show();
+                $('#dashboard-activities-content').hide();
+            } else {
+                $('#dashboard-reports-content').hide();
+                $('#dashboard-activities-content').show();
+            }
+        });
+
+        // Initialize Charts
+        var rawData = <?= $chartData ?>;
+        var labels = rawData.map(function (d) { return d.date; });
+        var salesData = rawData.map(function (d) { return d.sales; });
+        var ordersData = rawData.map(function (d) { return d.orders; });
+
+        // Sales Chart (Bar)
+        new Chart(document.getElementById('salesChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Sales',
+                    data: salesData,
+                    backgroundColor: '#4e73df',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: false },
+                    y: { beginAtZero: true, display: false }
+                }
+            }
+        });
+
+        // Orders Chart (Line/Area)
+        new Chart(document.getElementById('ordersChart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Orders',
+                    data: ordersData,
+                    borderColor: '#4e73df',
+                    backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: false },
+                    y: { beginAtZero: true, display: false }
+                }
+            }
+        });
+    });
+</script>

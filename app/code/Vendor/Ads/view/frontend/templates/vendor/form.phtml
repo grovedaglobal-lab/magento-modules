@@ -1,0 +1,1105 @@
+<?php
+/** @var \Vendor\Ads\Block\Vendor\Form $block */
+/** @var \Magento\Framework\Escaper $escaper */
+$bid          = $block->getBid();
+$products     = $block->getVendorProducts();
+$matchTypes   = $block->getMatchTypes();
+$campaigns    = $block->getVendorCampaigns();
+$groups       = $block->getVendorGroups();
+$walletBalance = $block->getWalletBalance();
+$isEdit       = $bid && $bid->getId();
+
+$currentGroupId       = $bid ? $bid->getData('group_id') : null;
+$currentCampaignId    = $bid ? $bid->getData('campaign_id') : null;
+$currentTargetingType = $bid ? ($bid->getData('targeting_type') ?: 'manual') : 'manual';
+$currentKeyword       = $bid ? $block->getKeywordText($bid->getQueryId()) : '';
+?>
+
+
+<style>
+:root {
+    --ads-green: #113321;
+    --ads-green-light: #1a4d33;
+    --ads-accent: #00c853;
+    --ads-bg: #f0f7f3;
+    --ads-card: #ffffff;
+    --ads-border: #d9e8df;
+    --ads-text: #1a2e22;
+    --ads-muted: #6b8a74;
+    --ads-warn: #e65100;
+    --ds-radius: 12px;
+}
+.ads-campaign-form { max-width: 860px; margin: 0 auto; font-family: 'Inter', 'Segoe UI', sans-serif; color: var(--ads-text); }
+.ads-form-header { background: linear-gradient(135deg, var(--ads-green) 0%, var(--ads-green-light) 100%); color: #fff; border-radius: var(--ds-radius) var(--ds-radius) 0 0; padding: 28px 36px; }
+.ads-form-header h1 { margin: 0 0 6px; font-size: 22px; font-weight: 700; }
+.ads-form-header p { margin: 0; font-size: 13px; opacity: .75; }
+.ads-section { background: var(--ads-card); border: 1px solid var(--ads-border); border-top: none; padding: 28px 36px; }
+.ads-section:last-of-type { border-radius: 0 0 var(--ds-radius) var(--ds-radius); }
+.ads-section-title { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--ads-green); margin: 0 0 24px; padding-bottom: 14px; border-bottom: 2px solid var(--ads-bg); position: relative; }
+.ads-section-title::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 60px; height: 2px; background: var(--ads-accent); }
+.ads-section-title .step-badge { background: linear-gradient(135deg, var(--ads-green) 0%, var(--ads-green-light) 100%); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; flex-shrink: 0; box-shadow: 0 3px 6px rgba(17,51,33,.2); }
+.ads-section-title .title-icon { font-size: 20px; margin: 0 2px; }
+.ads-section-title .title-subtitle { font-size: 11px; color: var(--ads-muted); font-weight: 600; text-transform: none; letter-spacing: 0; margin-left: auto; opacity: 0.8; }
+
+/* Sticky Actions Bar */
+.ads-actions-outer { position: sticky; bottom: 0; z-index: 1000; margin-top: 24px; filter: drop-shadow(0 -10px 20px rgba(0,0,0,0.05)); }
+.ads-actions { display: flex; gap: 16px; align-items: center; padding: 18px 36px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border: 1.5px solid var(--ads-border); border-radius: var(--ds-radius); box-shadow: 0 -4px 30px rgba(0,0,0,0.03); justify-content: space-between; }
+.ads-actions-left { display: flex; align-items: center; gap: 20px; }
+.ads-actions-right { display: flex; gap: 12px; }
+
+/* Refined Info Cards */
+.info-card { background: var(--ads-bg); border: 1px solid var(--ads-border); border-left: 4px solid var(--ads-green); border-radius: 8px; padding: 14px 18px; margin-top: 14px; }
+.bid-intel-card { display: none; }
+.bid-intel-card.visible { display: block; }
+
+.bid-intel-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
+.bid-range { display: flex; gap: 16px; }
+.bid-range-item { text-align: center; }
+.bid-range-item span { display: block; font-size: 11px; color: var(--ads-muted); }
+.bid-range-item strong { font-size: 15px; color: var(--ads-green); }
+.competition-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.comp-low { background: #e8f5e9; color: #2e7d32; }
+.comp-medium { background: #fff8e1; color: #f57f17; }
+.comp-high { background: #fce4ec; color: #c62828; }
+
+/* Wallet bar */
+.wallet-bar { display: flex; align-items: center; justify-content: space-between; background: var(--ads-bg); border: 1px solid var(--ads-border); border-radius: 10px; padding: 14px 18px; margin-bottom: 18px; }
+.wallet-balance { font-size: 22px; font-weight: 800; color: var(--ads-green); }
+.wallet-label { font-size: 11px; color: var(--ads-muted); }
+.wallet-recharge-btn { background: var(--ads-green); color: #fff; text-decoration: none; padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; transition: background .2s; }
+.wallet-recharge-btn:hover { background: var(--ads-green-light); color: #fff; }
+.wallet-warning { color: var(--ads-warn); font-size: 12px; margin-top: 6px; display: none; }
+
+/* Performance estimate */
+.perf-estimate { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+.perf-card { background: var(--ads-bg); border: 1px solid var(--ads-border); border-radius: 10px; padding: 12px 16px; text-align: center; }
+.perf-card .perf-val { font-size: 20px; font-weight: 800; color: var(--ads-green); }
+.perf-card .perf-label { font-size: 11px; color: var(--ads-muted); margin-top: 3px; }
+
+/* Campaign inline form */
+.new-campaign-form { background: var(--ads-bg); border: 1px dashed var(--ads-border); border-radius: 10px; padding: 18px; margin-top: 14px; display: none; }
+.new-campaign-form.visible { display: block; }
+
+/* Actions */
+.btn-primary { background: var(--ads-green); color: #fff; border: none; padding: 13px 32px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background .2s, transform .1s; }
+.btn-primary:hover { background: var(--ads-green-light); transform: translateY(-1px); }
+.btn-secondary { color: var(--ads-muted); text-decoration: none; font-size: 14px; font-weight: 600; padding: 13px 20px; }
+
+/* Targeting section toggle */
+#targeting-section { transition: opacity .3s; }
+#targeting-section.hidden { opacity: .35; pointer-events: none; }
+
+/* ── Hierarchy Bar ── */
+.hierarchy-bar { display: flex; align-items: center; gap: 0; background: #fff; border: 1.5px solid var(--ads-border); border-radius: 12px; padding: 14px 20px; margin-bottom: 24px; flex-wrap: wrap; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+.hb-step { display: flex; flex-direction: column; align-items: center; min-width: 90px; }
+.hb-icon { font-size: 20px; }
+.hb-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ads-muted); margin-top: 2px; }
+.hb-name { font-size: 12px; font-weight: 600; color: var(--ads-green); margin-top: 2px; max-width: 140px; word-break: break-word; line-height: 1.2; padding: 4px 0; }
+.hb-arrow { font-size: 22px; color: var(--ads-border); margin: 0 6px; }
+.hb-block-title { font-size: 13px; font-weight: 700; color: var(--ads-green); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.hb-block-icon { font-size: 16px; }
+.hb-hint { font-size: 11px; color: var(--ads-muted); font-weight: 400; }
+.hierarchy-block { }
+
+.ads-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.ads-field { margin-bottom: 18px; }
+.ads-field label { display: block; font-size: 13px; font-weight: 600; color: var(--ads-text); margin-bottom: 6px; }
+.ads-field label .req { color: #c62828; }
+.ads-field .hint { font-size: 11px; color: var(--ads-muted); margin-top: 4px; }
+.ads-input, .ads-select { width: 100%; padding: 10px 14px; border: 1.5px solid var(--ads-border); border-radius: 8px; font-size: 14px; color: var(--ads-text); background: #fff; transition: border-color .2s, box-shadow .2s; box-sizing: border-box; }
+.ads-input:focus, .ads-select:focus { outline: none; border-color: var(--ads-green); box-shadow: 0 0 0 3px rgba(17,51,33,.1); }
+.ads-radio-group { display: flex; gap: 12px; }
+.ads-radio-card { flex: 1; border: 2px solid var(--ads-border); border-radius: 10px; padding: 14px 18px; cursor: pointer; transition: all .2s; background: #fff; }
+.ads-radio-card:hover { border-color: var(--ads-green); background: var(--ads-bg); }
+.ads-radio-card input[type=radio] { display: none; }
+.ads-radio-card.selected { border-color: var(--ads-green); background: var(--ads-bg); }
+.ads-radio-card .rc-title { font-weight: 700; font-size: 14px; margin-bottom: 3px; }
+.ads-radio-card .rc-desc { font-size: 11px; color: var(--ads-muted); }
+
+/* Keyword autocomplete */
+.ads-autocomplete-wrap { position: relative; }
+.ads-autocomplete-list { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1.5px solid var(--ads-green); border-top: none; border-radius: 0 0 8px 8px; max-height: 220px; overflow-y: auto; z-index: 999; display: none; box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+.ads-autocomplete-item { padding: 10px 14px; cursor: pointer; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.ads-autocomplete-item .kw-label { word-break: break-word; flex: 1; }
+.ads-autocomplete-item:hover { background: var(--ads-bg); }
+.ads-autocomplete-item .kw-meta { font-size: 11px; color: var(--ads-muted); }
+
+/* ── Keyword Targeting Panel ── */
+.kw-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1.5px solid var(--ads-border); border-radius: 10px; overflow: hidden; min-height: 420px; }
+.kw-source-panel { border-right: 1.5px solid var(--ads-border); display: flex; flex-direction: column; background: #fff; }
+.kw-added-panel  { display: flex; flex-direction: column; background: #fff; }
+
+/* Tabs */
+.kw-tabs { display: flex; border-bottom: 2px solid var(--ads-border); }
+.kw-tab  { background: none; border: none; padding: 12px 20px; font-size: 13px; font-weight: 600; color: var(--ads-muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color .2s, border-color .2s; display: flex; align-items: center; gap: 6px; }
+.kw-tab.active  { color: var(--ads-green); border-bottom-color: var(--ads-green); }
+.kw-tab-badge   { background: var(--ads-green); color: #fff; border-radius: 10px; padding: 1px 7px; font-size: 10px; font-weight: 800; }
+
+/* Controls row */
+.kw-tab-body  { padding: 14px 16px; flex: 1; overflow-y: auto; }
+.kw-controls-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.kw-control-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.kw-control-label { font-size: 12px; font-weight: 600; color: var(--ads-muted); }
+.kw-check-label { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--ads-text); cursor: pointer; }
+.kw-check-label input[type=checkbox] { accent-color: var(--ads-green); width: 14px; height: 14px; }
+
+/* Table headers */
+.kw-table-head { display: grid; grid-template-columns: 1fr 80px 90px 60px; gap: 4px; padding: 6px 16px; background: var(--ads-bg); border-bottom: 1px solid var(--ads-border); font-size: 11px; font-weight: 700; color: var(--ads-muted); text-transform: uppercase; letter-spacing: .05em; }
+.kw-added-head  { grid-template-columns: 1fr 80px 90px 100px 32px; }
+
+/* Rows */
+.kw-rows-wrap { flex: 1; overflow-y: auto; }
+.kw-row       { display: grid; grid-template-columns: 1fr 80px 90px 60px; gap: 4px; padding: 7px 16px; border-bottom: 1px solid #f5f5f5; font-size: 13px; align-items: center; }
+.kw-row:hover { background: var(--ads-bg); }
+.kw-row.added-row { grid-template-columns: 1fr 80px 90px 100px 32px; }
+.kw-row .kw-name  { font-weight: 500; line-height: 1.3; padding: 6px 0; word-break: break-word; }
+.kw-row .kw-mt    { font-size: 12px; color: var(--ads-muted); }
+.kw-row .kw-sugg  { font-size: 12px; }
+.kw-row .kw-sugg strong  { display: block; color: var(--ads-green); font-weight: 700; }
+.kw-row .kw-sugg small   { color: var(--ads-muted); font-size: 10px; }
+
+/* Match type badge */
+.mt-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+.mt-broad  { background: #e3f2fd; color: #1565c0; }
+.mt-phrase { background: #f3e5f5; color: #7b1fa2; }
+.mt-exact  { background: #e8f5e9; color: #2e7d32; }
+
+/* Add / Added buttons */
+.btn-add-kw   { border: none; background: none; color: var(--ads-green); font-weight: 700; font-size: 12px; cursor: pointer; padding: 3px 8px; border-radius: 6px; transition: background .15s; }
+.btn-add-kw:hover   { background: var(--ads-bg); }
+.btn-add-kw.is-added { color: var(--ads-muted); cursor: default; pointer-events: none; }
+.btn-add-all  { border: 1px solid var(--ads-green); background: #fff; color: var(--ads-green); font-weight: 700; font-size: 12px; cursor: pointer; padding: 5px 14px; border-radius: 6px; transition: all .15s; }
+.btn-add-all:hover  { background: var(--ads-green); color: #fff; }
+
+/* Added panel header */
+.kw-added-header { display: flex; justify-content: flex-end; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--ads-border); background: var(--ads-bg); }
+.kw-added-header span { font-size: 12px; color: var(--ads-muted); margin-right: auto; }
+.kw-added-title { font-size: 13px; color: var(--ads-green); }
+.apply-all-link { border: none; background: none; color: var(--ads-green); font-size: 11px; cursor: pointer; text-decoration: underline; margin-left: 6px; }
+
+/* Bid input in added row */
+.kw-bid-inp { display: flex; align-items: center; background: #fff; border: 1.5px solid var(--ads-border); border-radius: 6px; overflow: hidden; }
+.kw-bid-inp span { padding: 0 6px; font-size: 13px; color: var(--ads-muted); background: var(--ads-bg); border-right: 1px solid var(--ads-border); }
+.kw-bid-inp input { width: 60px; border: none; outline: none; padding: 5px 6px; font-size: 13px; }
+
+/* Remove btn */
+.btn-rm { border: none; background: none; color: #999; cursor: pointer; font-size: 16px; line-height: 1; transition: color .15s; padding: 0 4px; }
+.btn-rm:hover { color: #c62828; }
+
+/* Enter list tab */
+.enter-list-desc { font-size: 12px; color: var(--ads-muted); margin-bottom: 10px; }
+.kw-textarea { width: 100%; resize: vertical; border: 1.5px solid var(--ads-border); border-radius: 8px; padding: 10px 12px; font-size: 13px; font-family: monospace; box-sizing: border-box; }
+.kw-textarea:focus { outline: none; border-color: var(--ads-green); }
+.kw-enter-options { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin: 12px 0 10px; }
+.kw-default-bid-row { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; }
+.btn-add-list { background: var(--ads-green); color: #fff; border: none; padding: 9px 22px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s; }
+.btn-add-list:hover { background: var(--ads-green-light); }
+
+/* State */
+.kw-loading, .kw-empty-state { padding: 30px 16px; text-align: center; font-size: 13px; color: var(--ads-muted); }
+
+</style>
+
+<div class="ads-campaign-form">
+    <div class="ads-form-header">
+        <h1><?= $isEdit ? $escaper->escapeHtml(__('Edit Advertisement #%1', $bid->getId())) : $escaper->escapeHtml(__('Create New Advertisement')) ?></h1>
+        <p><?= $escaper->escapeHtml(__('Set up your sponsored product campaign with intelligent targeting and bidding.')) ?></p>
+    </div>
+
+    <form id="ads-campaign-form" action="<?= $escaper->escapeUrl($block->getSaveUrl()) ?>" method="post">
+        <?= $block->getBlockHtml('formkey') ?>
+        <?php if ($isEdit): ?>
+            <input type="hidden" name="bid_id" value="<?= (int)$bid->getId() ?>">
+        <?php endif; ?>
+
+        <!-- ═══ SECTION 1: GROUP & CAMPAIGN ═══ -->
+        <div class="ads-section">
+            <div class="ads-section-title">
+                <span class="step-badge">1</span>
+                <span class="title-icon">📂</span>
+                <?= $escaper->escapeHtml(__('Group & Campaign')) ?>
+                <span class="title-subtitle">
+                    <?= $escaper->escapeHtml(__('Portfolio → Campaign → Ad')) ?>
+                </span>
+            </div>
+
+            <!-- ── HIERARCHY BREADCRUMB ── -->
+            <div class="hierarchy-bar">
+                <div class="hb-step hb-step-group">
+                    <span class="hb-icon">🗂</span>
+                    <span class="hb-label"><?= $escaper->escapeHtml(__('Portfolio Group')) ?></span>
+                    <span class="hb-name" id="hb-group-name"><?= $escaper->escapeHtml(__('— not set —')) ?></span>
+                </div>
+                <div class="hb-arrow">›</div>
+                <div class="hb-step hb-step-campaign">
+                    <span class="hb-icon">📋</span>
+                    <span class="hb-label"><?= $escaper->escapeHtml(__('Campaign')) ?></span>
+                    <span class="hb-name" id="hb-campaign-name"><?= $escaper->escapeHtml(__('— not set —')) ?></span>
+                </div>
+                <div class="hb-arrow">›</div>
+                <div class="hb-step hb-step-ad">
+                    <span class="hb-icon">📣</span>
+                    <span class="hb-label"><?= $escaper->escapeHtml(__('This Ad')) ?></span>
+                </div>
+            </div>
+
+            <!-- ── STEP 1.1: Portfolio Selection ── -->
+            <div class="hierarchy-block" id="group-block">
+                <div class="hb-block-title">
+                    <span class="hb-block-icon">🗂</span>
+                    <?= $escaper->escapeHtml(__('1.1 Select or Create a Portfolio Group')) ?>
+                    <span class="hb-hint"><?= $escaper->escapeHtml(__('Organize campaigns into portfolios for aggregated management.')) ?></span>
+                </div>
+
+                <div class="ads-radio-group">
+                    <label class="ads-radio-card <?= (!$groups || !$currentGroupId) ? 'selected' : '' ?>">
+                        <input type="radio" name="group_mode" value="none" <?= (!$groups || !$currentGroupId) ? 'checked' : '' ?>>
+                        <div class="rc-title">🚀 <?= $escaper->escapeHtml(__('Standalone')) ?></div>
+                        <div class="rc-desc"><?= $escaper->escapeHtml(__('No portfolio group assigned.')) ?></div>
+                    </label>
+                    <label class="ads-radio-card">
+                        <input type="radio" name="group_mode" value="new_group">
+                        <div class="rc-title">➕ <?= $escaper->escapeHtml(__('New Portfolio')) ?></div>
+                        <div class="rc-desc"><?= $escaper->escapeHtml(__('Create a fresh group for this campaign.')) ?></div>
+                    </label>
+                    <?php if ($groups): ?>
+                    <label class="ads-radio-card <?= $currentGroupId ? 'selected' : '' ?>">
+                        <input type="radio" name="group_mode" value="existing_group" <?= $currentGroupId ? 'checked' : '' ?>>
+                        <div class="rc-title">📂 <?= $escaper->escapeHtml(__('Existing Portfolio')) ?></div>
+                        <div class="rc-desc"><?= $escaper->escapeHtml(__('Link to an existing management group.')) ?></div>
+                    </label>
+                    <?php endif; ?>
+                </div>
+
+                <?php if ($groups): ?>
+                <div id="existing-group-wrap" style="<?= $currentGroupId ? '' : 'display:none' ?>; margin-top:14px;">
+                    <div class="ads-field">
+                        <label for="group_id"><?= $escaper->escapeHtml(__('Management Group')) ?></label>
+                        <select name="group_id" id="group_id" class="ads-select">
+                            <option value=""><?= $escaper->escapeHtml(__('-- Select Portfolio --')) ?></option>
+                            <?php foreach ($groups as $g): ?>
+                                <option value="<?= (int)$g['id'] ?>" <?= $currentGroupId == $g['id'] ? 'selected' : '' ?>>
+                                    <?= $escaper->escapeHtml($g['name']) ?>
+                                    (<?= count($g['campaigns']) ?> <?= $escaper->escapeHtml(__('campaigns')) ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <div id="new-group-form" class="new-campaign-form">
+                    <div class="ads-grid-2">
+                        <div class="ads-field" style="margin-bottom:0">
+                            <label for="group_name"><?= $escaper->escapeHtml(__('Portfolio Name')) ?> <span class="req">*</span></label>
+                            <input type="text" name="group_name" id="group_name" class="ads-input"
+                                   placeholder="<?= $escaper->escapeHtmlAttr(__('e.g. Organic Collection 2025')) ?>">
+                        </div>
+                        <div class="ads-field" style="margin-bottom:0">
+                            <label for="group_status"><?= $escaper->escapeHtml(__('Initial Status')) ?></label>
+                            <select name="group_status" id="group_status" class="ads-select">
+                                <option value="1"><?= $escaper->escapeHtml(__('Active')) ?></option>
+                                <option value="0"><?= $escaper->escapeHtml(__('Paused')) ?></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── STEP 1.2: Campaign Selection ── -->
+            <div class="hierarchy-block" style="margin-top:24px; border-top:2px solid var(--ads-bg); padding-top:24px;">
+                <div class="hb-block-title">
+                    <span class="hb-block-icon">📋</span>
+                    <?= $escaper->escapeHtml(__('1.2 Select or Create a Campaign')) ?>
+                    <span class="hb-hint"><?= $escaper->escapeHtml(__('Campaigns group advertisements for budget and scheduling.')) ?></span>
+                </div>
+
+                <div class="ads-radio-group">
+                    <label class="ads-radio-card <?= empty($campaigns) || !$currentCampaignId ? 'selected' : '' ?>">
+                        <input type="radio" name="campaign_mode" value="new" <?= empty($campaigns) || !$currentCampaignId ? 'checked' : '' ?>>
+                        <div class="rc-title">➕ <?= $escaper->escapeHtml(__('Create New')) ?></div>
+                        <div class="rc-desc"><?= $escaper->escapeHtml(__('Start a fresh campaign for this product.')) ?></div>
+                    </label>
+                    <?php if ($campaigns): ?>
+                    <label class="ads-radio-card <?= $currentCampaignId ? 'selected' : '' ?>">
+                        <input type="radio" name="campaign_mode" value="existing" <?= $currentCampaignId ? 'checked' : '' ?>>
+                        <div class="rc-title">📂 <?= $escaper->escapeHtml(__('Pick Existing')) ?></div>
+                        <div class="rc-desc"><?= $escaper->escapeHtml(__('Add this ad to an active campaign.')) ?></div>
+                    </label>
+                    <?php endif; ?>
+                </div>
+
+                <?php if ($campaigns): ?>
+                <div id="existing-campaign-wrap" class="ads-field" style="<?= $currentCampaignId ? '' : 'display:none' ?>; margin-top:14px;">
+                    <label for="campaign_id"><?= $escaper->escapeHtml(__('Active Campaign')) ?></label>
+                    <select name="campaign_id" id="campaign_id" class="ads-select">
+                        <option value=""><?= $escaper->escapeHtml(__('-- Select Campaign --')) ?></option>
+                        <?php foreach ($campaigns as $c): ?>
+                            <option value="<?= (int)$c['id'] ?>"
+                                    data-group="<?= (int)($c['group_id'] ?? 0) ?>"
+                                    <?= $currentCampaignId == $c['id'] ? 'selected' : '' ?>>
+                                <?= $escaper->escapeHtml($c['name']) ?>
+                                <?php if ($c['daily_budget']): ?>(<?= $escaper->escapeHtml(__('Budget: ₹%1', number_format((float)$c['daily_budget'], 2))) ?>)<?php endif; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php endif; ?>
+
+                <div id="new-campaign-form" class="new-campaign-form <?= (!$campaigns || !$currentCampaignId) ? 'visible' : '' ?>">
+                    <div class="ads-grid-2">
+                        <div class="ads-field" style="margin-bottom:0">
+                            <label for="campaign_name"><?= $escaper->escapeHtml(__('Campaign Name')) ?> <span class="req">*</span></label>
+                            <input type="text" name="campaign_name" id="campaign_name" class="ads-input"
+                                   placeholder="<?= $escaper->escapeHtmlAttr(__('e.g. Summer Essentials')) ?>"
+                                   value="<?= $escaper->escapeHtmlAttr($this->getRequest()->getParam('campaign_name', '')) ?>">
+                        </div>
+                        <div class="ads-field" style="margin-bottom:0">
+                            <label for="campaign_status"><?= $escaper->escapeHtml(__('Campaign Status')) ?></label>
+                            <select name="campaign_status" id="campaign_status" class="ads-select">
+                                <option value="1"><?= $escaper->escapeHtml(__('Active')) ?></option>
+                                <option value="0"><?= $escaper->escapeHtml(__('Paused')) ?></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <!-- ═══ SECTION 2: PRODUCT & TARGETING TYPE ═══ -->
+        <div class="ads-section">
+            <div class="ads-section-title">
+                <span class="step-badge">2</span>
+                <span class="title-icon">📦</span>
+                <?= $escaper->escapeHtml(__('Product & Targeting')) ?>
+                <span class="title-subtitle"><?= $escaper->escapeHtml(__('Item Selection → Targeting Logic')) ?></span>
+            </div>
+
+            <!-- ── STEP 2.1: Product Selection ── -->
+            <div class="hierarchy-block">
+                <div class="hb-block-title">
+                    <span class="hb-block-icon">🏷️</span>
+                    <?= $escaper->escapeHtml(__('2.1 Select Advertised Product')) ?>
+                    <span class="hb-hint"><?= $escaper->escapeHtml(__('Choose the product you want to promote in search results.')) ?></span>
+                </div>
+                <div class="ads-field">
+                    <select name="product_id" id="product_id" class="ads-select" required>
+                        <option value=""><?= $escaper->escapeHtml(__('-- Please Select a Product --')) ?></option>
+                        <?php foreach ($products as $product): ?>
+                            <option value="<?= (int)$product['id'] ?>"
+                                    <?= ($bid && $bid->getProductId() == $product['id']) ? 'selected' : '' ?>>
+                                <?= $escaper->escapeHtml($product['name']) ?> (SKU: <?= $escaper->escapeHtml($product['sku']) ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ── STEP 2.2: Targeting Strategy ── -->
+            <div class="hierarchy-block" style="margin-top:24px; border-top:2px solid var(--ads-bg); padding-top:24px;">
+                <div class="hb-block-title">
+                    <span class="hb-block-icon">🎯</span>
+                    <?= $escaper->escapeHtml(__('2.2 Choose Targeting Strategy')) ?>
+                    <span class="hb-hint"><?= $escaper->escapeHtml(__('System-driven or manual keyword management.')) ?></span>
+                </div>
+                <div class="ads-radio-group">
+                    <label class="ads-radio-card <?= $currentTargetingType === 'manual' ? 'selected' : '' ?>" id="target-manual-label">
+                        <input type="radio" name="targeting_type" value="manual" id="target-manual" <?= $currentTargetingType === 'manual' ? 'checked' : '' ?>>
+                        <div class="rc-title">🎯 <?= $escaper->escapeHtml(__('Manual Targeting')) ?></div>
+                        <div class="rc-desc"><?= $escaper->escapeHtml(__('Full control over keywords and bids. Recommended.')) ?></div>
+                    </label>
+                    <label class="ads-radio-card <?= $currentTargetingType === 'auto' ? 'selected' : '' ?>" id="target-auto-label">
+                        <input type="radio" name="targeting_type" value="auto" id="target-auto" <?= $currentTargetingType === 'auto' ? 'checked' : '' ?>>
+                        <div class="rc-title">🤖 <?= $escaper->escapeHtml(__('Automatic Targeting')) ?></div>
+                        <div class="rc-desc"><?= $escaper->escapeHtml(__('System pairs your product with relevant queries automatically.')) ?></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ SECTION 3: KEYWORD TARGETING ═══ -->
+        <div class="ads-section" id="targeting-section" <?= $currentTargetingType === 'auto' ? 'style="opacity:.4;pointer-events:none"' : '' ?>>
+            <div class="ads-section-title">
+                <span class="step-badge">3</span>
+                <span class="title-icon">🔍</span>
+                <?= $escaper->escapeHtml(__('Keyword Targeting')) ?>
+                <span class="title-subtitle"><?= $escaper->escapeHtml(__('Bid & Match Type Optimization')) ?></span>
+            </div>
+
+
+            <!-- KW Panel wrapper -->
+            <div class="kw-panel">
+                <!-- LEFT: Source panel -->
+                <div class="kw-source-panel">
+                    <!-- Tabs -->
+                    <div class="kw-tabs">
+                        <button type="button" class="kw-tab active" data-tab="suggested"><?= $escaper->escapeHtml(__('Suggested')) ?> <span class="kw-tab-badge" id="sugg-count-badge">0</span></button>
+                        <button type="button" class="kw-tab" data-tab="enterlist"><?= $escaper->escapeHtml(__('Enter list')) ?></button>
+                    </div>
+
+                    <!-- ── TAB: SUGGESTED ── -->
+                    <div class="kw-tab-body" id="tab-suggested">
+                        <!-- Controls row -->
+                        <div class="kw-controls-row">
+                            <div class="kw-control-group">
+                                <span class="kw-control-label"><?= $escaper->escapeHtml(__('Filter by')) ?>:</span>
+                                <label class="kw-check-label">
+                                    <input type="checkbox" class="filter-mt" value="broad" checked> <?= $escaper->escapeHtml(__('Broad')) ?>
+                                </label>
+                                <label class="kw-check-label">
+                                    <input type="checkbox" class="filter-mt" value="phrase" checked> <?= $escaper->escapeHtml(__('Phrase')) ?>
+                                </label>
+                                <label class="kw-check-label">
+                                    <input type="checkbox" class="filter-mt" value="exact" checked> <?= $escaper->escapeHtml(__('Exact')) ?>
+                                </label>
+                            </div>
+                            <button type="button" class="btn-add-all" id="btn-add-all"><?= $escaper->escapeHtml(__('Add All')) ?></button>
+                        </div>
+
+                        <!-- Column headers -->
+                        <div class="kw-table-head">
+                            <span class="col-kw"><?= $escaper->escapeHtml(__('Keyword')) ?></span>
+                            <span class="col-mt"><?= $escaper->escapeHtml(__('Match type')) ?></span>
+                            <span class="col-sugg"><?= $escaper->escapeHtml(__('Sugg. bid')) ?></span>
+                            <span class="col-act"></span>
+                        </div>
+
+                        <!-- Suggested rows (populated by JS) -->
+                        <div id="suggested-rows" class="kw-rows-wrap">
+                            <div class="kw-loading"><?= $escaper->escapeHtml(__('Loading suggestions…')) ?></div>
+                        </div>
+                    </div>
+
+                    <!-- ── TAB: ENTER LIST ── -->
+                    <div class="kw-tab-body" id="tab-enterlist" style="display:none">
+                        <div class="enter-list-desc"><?= $escaper->escapeHtml(__('Enter one keyword per line. Select match types and a default bid below.')) ?></div>
+                        <textarea id="kw-enter-textarea" class="kw-textarea" rows="6" placeholder="<?= $escaper->escapeHtmlAttr(__("organic turmeric\nkashmiri saffron\ncold pressed oil")) ?>"></textarea>
+
+                        <div class="kw-enter-options">
+                            <div class="kw-control-group">
+                                <span class="kw-control-label"><?= $escaper->escapeHtml(__('Match types')) ?>:</span>
+                                <label class="kw-check-label"><input type="checkbox" class="enter-mt" value="broad" checked> <?= $escaper->escapeHtml(__('Broad')) ?></label>
+                                <label class="kw-check-label"><input type="checkbox" class="enter-mt" value="phrase" checked> <?= $escaper->escapeHtml(__('Phrase')) ?></label>
+                                <label class="kw-check-label"><input type="checkbox" class="enter-mt" value="exact" checked> <?= $escaper->escapeHtml(__('Exact')) ?></label>
+                            </div>
+                            <div class="kw-default-bid-row">
+                                <label><?= $escaper->escapeHtml(__('Default bid (₹)')) ?>:</label>
+                                <input type="number" step="0.01" min="0.01" id="enter-default-bid" class="ads-input" value="0.50" style="width:100px">
+                            </div>
+                        </div>
+                        <button type="button" id="btn-add-list" class="btn-add-list"><?= $escaper->escapeHtml(__('Add Keywords')) ?></button>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Added keywords panel -->
+                <div class="kw-added-panel">
+                    <div class="kw-added-header">
+                        <span id="kw-added-count">0 <?= $escaper->escapeHtml(__('added')) ?></span>
+                        <strong class="kw-added-title"><?= $escaper->escapeHtml(__('Keywords you added')) ?></strong>
+                    </div>
+
+                    <!-- Column headers -->
+                    <div class="kw-table-head kw-added-head">
+                        <span class="col-kw"><?= $escaper->escapeHtml(__('Keyword')) ?></span>
+                        <span class="col-mt"><?= $escaper->escapeHtml(__('Match type')) ?></span>
+                        <span class="col-sugg"><?= $escaper->escapeHtml(__('Sugg. bid')) ?></span>
+                        <span class="col-bid-inp">
+                            <?= $escaper->escapeHtml(__('Bid')) ?>
+                            <button type="button" id="apply-all-bid" class="apply-all-link"><?= $escaper->escapeHtml(__('Apply all')) ?></button>
+                        </span>
+                        <span class="col-del"></span>
+                    </div>
+
+                    <div id="added-rows" class="kw-rows-wrap">
+                        <div class="kw-empty-state"><?= $escaper->escapeHtml(__('No keywords added yet. Add from Suggested or Enter list.')) ?></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Hidden inputs container (submitted with the form) -->
+            <div id="kw-hidden-inputs"></div>
+        </div>
+
+
+        <!-- ═══ SECTION 4: BUDGET & ESTIMATION ═══ -->
+        <div class="ads-section">
+            <div class="ads-section-title">
+                <span class="step-badge">4</span>
+                <span class="title-icon">💰</span>
+                <?= $escaper->escapeHtml(__('Budget & Estimation')) ?>
+                <span class="title-subtitle"><?= $escaper->escapeHtml(__('Wallet Sync → Potential Reach')) ?></span>
+            </div>
+
+
+            <!-- Wallet balance bar -->
+            <div class="wallet-bar">
+                <div>
+                    <div class="wallet-label"><?= $escaper->escapeHtml(__('Your Ad Wallet Balance')) ?></div>
+                    <div class="wallet-balance">₹<?= number_format($walletBalance, 2) ?></div>
+                </div>
+                <a href="<?= $escaper->escapeUrl($block->getWalletUrl()) ?>" class="wallet-recharge-btn">
+                    <?= $escaper->escapeHtml(__('+ Recharge Wallet')) ?>
+                </a>
+            </div>
+            <div class="wallet-warning" id="wallet-warning">
+                ⚠️ <?= $escaper->escapeHtml(__('Your budget exceeds your wallet balance. Please recharge.')) ?>
+            </div>
+
+            <div class="ads-grid-2">
+                <div class="ads-field">
+                    <label for="daily_budget"><?= $escaper->escapeHtml(__('Daily Budget (₹)')) ?></label>
+                    <input type="number" step="0.01" min="0" name="daily_budget" id="daily_budget" class="ads-input"
+                           value="<?= ($bid && $bid->getDailyBudget()) ? number_format((float)$bid->getDailyBudget(), 2, '.', '') : '' ?>"
+                           placeholder="<?= $escaper->escapeHtmlAttr(__('No limit')) ?>">
+                    <div class="hint"><?= $escaper->escapeHtml(__('Optional. Ad pauses when this limit is reached daily.')) ?></div>
+                </div>
+                <div class="ads-field">
+                    <label for="total_budget"><?= $escaper->escapeHtml(__('Total Campaign Budget (₹)')) ?></label>
+                    <input type="number" step="0.01" min="0" name="total_budget" id="total_budget" class="ads-input"
+                           value="<?= ($bid && $bid->getTotalBudget()) ? number_format((float)$bid->getTotalBudget(), 2, '.', '') : '' ?>"
+                           placeholder="<?= $escaper->escapeHtmlAttr(__('No limit')) ?>">
+                    <div class="hint"><?= $escaper->escapeHtml(__('Optional. Ad stops permanently once reached.')) ?></div>
+                </div>
+            </div>
+
+            <!-- Performance estimates (driven by avg of all keyword bids) -->
+            <div style="font-size: 12px; color: var(--ads-muted); margin-bottom: 6px;">
+                <?= $escaper->escapeHtml(__('Estimated Daily Performance (based on your keyword bids & budget)')) ?>
+            </div>
+            <div class="perf-estimate">
+                <div class="perf-card"><div class="perf-val" id="est-impressions">—</div><div class="perf-label"><?= $escaper->escapeHtml(__('Estimated Impressions')) ?></div></div>
+                <div class="perf-card"><div class="perf-val" id="est-clicks">—</div><div class="perf-label"><?= $escaper->escapeHtml(__('Estimated Clicks')) ?></div></div>
+                <div class="perf-card"><div class="perf-val" id="est-spend">—</div><div class="perf-label"><?= $escaper->escapeHtml(__('Estimated Daily Spend')) ?></div></div>
+            </div>
+        </div>
+
+        <!-- ═══ SECTION 5: SCHEDULE & STATUS ═══ -->
+        <div class="ads-section" style="border-bottom: 1.5px solid var(--ads-border); border-radius: 0 0 var(--ds-radius) var(--ds-radius); margin-bottom: 40px;">
+            <div class="ads-section-title">
+                <span class="step-badge">5</span>
+                <span class="title-icon">📅</span>
+                <?= $escaper->escapeHtml(__('Schedule & Status')) ?>
+                <span class="title-subtitle"><?= $escaper->escapeHtml(__('Timeline → Visibility Toggle')) ?></span>
+            </div>
+            
+            <div class="ads-grid-2">
+                <div class="ads-field">
+                    <label for="start_date"><?= $escaper->escapeHtml(__('Start Date')) ?> <span class="req">*</span></label>
+                    <input type="date" name="start_date" id="start_date" class="ads-input" required
+                           value="<?= $bid ? $escaper->escapeHtmlAttr(date('Y-m-d', strtotime($bid->getStartDate()))) : $escaper->escapeHtmlAttr(date('Y-m-d')) ?>">
+                </div>
+                <div class="ads-field">
+                    <label for="end_date"><?= $escaper->escapeHtml(__('End Date')) ?> <span class="hint">(<?= $escaper->escapeHtml(__('Leave blank for no end date')) ?>)</span></label>
+                    <input type="date" name="end_date" id="end_date" class="ads-input"
+                           value="<?= ($bid && $bid->getEndDate()) ? $escaper->escapeHtmlAttr(date('Y-m-d', strtotime($bid->getEndDate()))) : '' ?>">
+                </div>
+            </div>
+
+            <div class="ads-field">
+                <label for="is_active"><?= $escaper->escapeHtml(__('Initial Ad Status')) ?></label>
+                <select name="is_active" id="is_active" class="ads-select">
+                    <option value="1" <?= (!$bid || $bid->getIsActive() == 1) ? 'selected' : '' ?>><?= $escaper->escapeHtml(__('Active - Show Ad Immediately')) ?></option>
+                    <option value="0" <?= ($bid && $bid->getIsActive() == 0) ? 'selected' : '' ?>><?= $escaper->escapeHtml(__('Paused - Keep Ad Hidden')) ?></option>
+                </select>
+            </div>
+        </div>
+
+
+        <!-- ═══ STICKY ACTIONS ═══ -->
+        <div class="ads-actions-outer">
+            <div class="ads-actions">
+                <div class="ads-actions-left">
+                    <div id="form-summary-hint" style="font-size:12px; color:var(--ads-muted); font-weight:500;">
+                        ✨ <?= $escaper->escapeHtml(__('Ready to grow? Review your strategy above.')) ?>
+                    </div>
+                </div>
+                <div class="ads-actions-right">
+                    <a href="<?= $escaper->escapeUrl($block->getUrl('vendor_ads/vendor/index')) ?>" class="btn-secondary">
+                        <?= $escaper->escapeHtml(__('Cancel')) ?>
+                    </a>
+                    <button type="submit" class="btn-primary">
+                        🚀 <?= $isEdit ? $escaper->escapeHtml(__('Update Advertisement')) : $escaper->escapeHtml(__('Launch Campaign')) ?>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+(function() {
+    var WALLET_BALANCE = <?= (float)$walletBalance ?>;
+    var KW_SUGGEST_URL = '<?= $escaper->escapeUrl($block->getKeywordSuggestUrl()) ?>';
+    var BID_SUGGEST_URL = '<?= $escaper->escapeUrl($block->getBidSuggestUrl()) ?>';
+    var bidIntelData = {};
+    var suggestTimeout;
+
+    // ═══════════════════════════════════════════
+    // GROUP + CAMPAIGN HIERARCHY LOGIC
+    // ═══════════════════════════════════════════
+
+    var GROUPS_DATA = <?= json_encode(array_map(fn($g) => [
+        'id'        => $g['id'],
+        'name'      => $g['name'],
+        'campaigns' => array_map(fn($c) => ['id' => $c['id'], 'name' => $c['name']], $g['campaigns'])
+    ], $groups)) ?>;
+
+    function updateBreadcrumb() {
+        var groupName = '— not set —';
+        var campaignName = '— not set —';
+
+        var groupMode = document.querySelector('[name=group_mode]:checked');
+        if (groupMode) {
+            if (groupMode.value === 'new_group') {
+                var gn = document.getElementById('group_name');
+                groupName = (gn && gn.value.trim()) ? gn.value.trim() : '(new group)';
+            } else if (groupMode.value === 'existing_group') {
+                var gs = document.getElementById('group_id');
+                if (gs && gs.selectedIndex > 0) groupName = gs.options[gs.selectedIndex].text.split('(')[0].trim();
+            } else {
+                groupName = 'Standalone';
+            }
+        }
+
+        var campaignMode = document.querySelector('[name=campaign_mode]:checked');
+        if (campaignMode) {
+            if (campaignMode.value === 'new') {
+                var cn = document.getElementById('campaign_name');
+                campaignName = (cn && cn.value.trim()) ? cn.value.trim() : '(new campaign)';
+            } else {
+                var cs = document.getElementById('campaign_id');
+                if (cs && cs.selectedIndex > 0) campaignName = cs.options[cs.selectedIndex].text.split('(')[0].trim();
+            }
+        }
+
+        var hbGroup = document.getElementById('hb-group-name');
+        var hbCamp  = document.getElementById('hb-campaign-name');
+        if (hbGroup)  hbGroup.textContent  = groupName;
+        if (hbCamp)   hbCamp.textContent   = campaignName;
+    }
+
+    // ── Group mode radios ──
+    document.querySelectorAll('[name=group_mode]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            var mode = this.value;
+            var newGroupForm    = document.getElementById('new-group-form');
+            var existingGrpWrap = document.getElementById('existing-group-wrap');
+
+            // Show/hide panels
+            if (newGroupForm)    newGroupForm.classList.toggle('visible', mode === 'new_group');
+            if (existingGrpWrap) existingGrpWrap.style.display = (mode === 'existing_group') ? '' : 'none';
+
+            // Update radio card selection styling
+            document.querySelectorAll('[name=group_mode]').forEach(function(r) {
+                r.closest('.ads-radio-card').classList.remove('selected');
+            });
+            this.closest('.ads-radio-card').classList.add('selected');
+
+            // Filter campaigns by group if existing selected
+            if (mode === 'existing_group') {
+                filterCampaignsByGroup();
+            } else {
+                showAllCampaigns();
+            }
+
+            updateBreadcrumb();
+        });
+    });
+
+    // ── Existing group select → filter campaigns ──
+    var groupSelect = document.getElementById('group_id');
+    if (groupSelect) {
+        groupSelect.addEventListener('change', function() {
+            filterCampaignsByGroup();
+            updateBreadcrumb();
+        });
+    }
+
+    function filterCampaignsByGroup() {
+        var gs = document.getElementById('group_id');
+        var selectedGroupId = gs ? parseInt(gs.value) : 0;
+        var campaignSel = document.getElementById('campaign_id');
+        if (!campaignSel) return;
+
+        Array.from(campaignSel.options).forEach(function(opt) {
+            if (!opt.value) return; // keep placeholder
+            var optGroup = parseInt(opt.dataset.group || 0);
+            opt.hidden = (selectedGroupId > 0 && optGroup !== selectedGroupId);
+        });
+        updateBreadcrumb();
+    }
+
+    function showAllCampaigns() {
+        var campaignSel = document.getElementById('campaign_id');
+        if (!campaignSel) return;
+        Array.from(campaignSel.options).forEach(function(opt) { opt.hidden = false; });
+    }
+
+    // ── Campaign mode radios ──
+    document.querySelectorAll('[name=campaign_mode]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            var isNew        = this.value === 'new';
+            var newForm      = document.getElementById('new-campaign-form');
+            var existingWrap = document.getElementById('existing-campaign-wrap');
+            if (newForm)      newForm.classList.toggle('visible', isNew);
+            if (existingWrap) existingWrap.style.display = isNew ? 'none' : '';
+
+            document.querySelectorAll('[name=campaign_mode]').forEach(function(r) {
+                r.closest('.ads-radio-card').classList.remove('selected');
+            });
+            this.closest('.ads-radio-card').classList.add('selected');
+            updateBreadcrumb();
+        });
+    });
+
+    // ── Live breadcrumb on typing campaign name / group name ──
+    ['campaign_name','group_name'].forEach(function(fid) {
+        var el = document.getElementById(fid);
+        if (el) el.addEventListener('input', updateBreadcrumb);
+    });
+    var campSel = document.getElementById('campaign_id');
+    if (campSel) campSel.addEventListener('change', updateBreadcrumb);
+
+    // ── Targeting type toggle ──
+    document.querySelectorAll('[name=targeting_type]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            var section = document.getElementById('targeting-section');
+            if (section) section.style.cssText = this.value === 'auto' ? 'opacity:.4;pointer-events:none' : '';
+            document.querySelectorAll('[name=targeting_type]').forEach(function(r) {
+                r.closest('.ads-radio-card').classList.remove('selected');
+            });
+            this.closest('.ads-radio-card').classList.add('selected');
+        });
+    });
+
+    // Init breadcrumb
+    updateBreadcrumb();
+
+
+
+    // ═══════════════════════════════════════════
+    // KEYWORD TARGETING PANEL
+    // ═══════════════════════════════════════════
+
+    var addedKeywords = []; // [{keyword, matchType, suggestedBid, bid}]
+    var suggestedData  = []; // raw API results
+
+    // ── Tab switching ──
+    document.querySelectorAll('.kw-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.kw-tab').forEach(function(t) { t.classList.remove('active'); });
+            this.classList.add('active');
+            var id = this.dataset.tab;
+            document.getElementById('tab-suggested').style.display  = id === 'suggested'  ? '' : 'none';
+            document.getElementById('tab-enterlist').style.display   = id === 'enterlist'  ? '' : 'none';
+        });
+    });
+
+    // ── Load popular suggested keywords on page load ──
+    function loadSuggested() {
+        fetch(KW_SUGGEST_URL + '?q=')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                suggestedData = data.suggestions || [];
+                document.getElementById('sugg-count-badge').textContent = suggestedData.length;
+                renderSuggestedRows();
+            })
+            .catch(function() {
+                document.getElementById('suggested-rows').innerHTML = '<div class="kw-loading">No suggestions available.</div>';
+            });
+    }
+
+    // ── Filter checkboxes ──
+    document.querySelectorAll('.filter-mt').forEach(function(cb) {
+        cb.addEventListener('change', renderSuggestedRows);
+    });
+
+    function getActiveFilters() {
+        return Array.from(document.querySelectorAll('.filter-mt:checked')).map(function(cb) { return cb.value; });
+    }
+
+    function renderSuggestedRows() {
+        var filters = getActiveFilters();
+        var wrap = document.getElementById('suggested-rows');
+        if (!suggestedData.length) {
+            wrap.innerHTML = '<div class="kw-loading">No suggestions yet. Try entering a keyword below.</div>';
+            return;
+        }
+        var html = '';
+        var mtLabels = { broad: 'Broad', phrase: 'Phrase', exact: 'Exact' };
+        var demandLabels = { high: '🔥 High', medium: '✅ Medium', low: '🔵 Low' };
+        var demandColors = { high: '#8b3a00', medium: '#2d6a00', low: '#004a8b' };
+        var demandBg     = { high: '#fff0e0', medium: '#e8f5e0', low: '#e0f0ff' };
+        suggestedData.forEach(function(s) {
+            ['broad', 'phrase', 'exact'].forEach(function(mt) {
+                if (filters.indexOf(mt) === -1) return;
+                var isAdded = addedKeywords.some(function(a) { return a.keyword === s.label && a.matchType === mt; });
+                var sugBid = s.suggestedBid ? '₹' + parseFloat(s.suggestedBid).toFixed(2) : '—';
+                var sugRange = s.bidMin && s.bidMax ? '₹' + parseFloat(s.bidMin).toFixed(2) + ' – ₹' + parseFloat(s.bidMax).toFixed(2) : '';
+                var demand = s.demand || 'low';
+                var popHtml = s.popularity > 0
+                    ? '<span style="font-size:10px;color:#888;margin-left:4px;">Used ' + s.popularity + '×</span>'
+                    : '';
+                var demandHtml = '<span style="display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;'
+                    + 'background:' + (demandBg[demand] || '#f5f5f5') + ';color:' + (demandColors[demand] || '#555') + ';margin-left:4px;">'
+                    + (demandLabels[demand] || demand) + '</span>';
+                html += '<div class="kw-row" data-kw="' + esc(s.label) + '" data-mt="' + mt + '">' +
+                    '<div class="kw-name" title="' + esc(s.label) + '">' + esc(s.label) + demandHtml + popHtml + '</div>' +
+                    '<div class="kw-mt"><span class="mt-badge mt-' + mt + '">' + mtLabels[mt] + '</span></div>' +
+                    '<div class="kw-sugg"><strong>' + sugBid + '</strong><small>' + sugRange + '</small></div>' +
+                    '<div><button type="button" class="btn-add-kw' + (isAdded ? ' is-added' : '') + '" data-kw="' + esc(s.label) + '" data-mt="' + mt + '" data-bid="' + (s.suggestedBid || '0.50') + '">' +
+                    (isAdded ? 'Added' : 'Add') + '</button></div>' +
+                    '</div>';
+            });
+        });
+        wrap.innerHTML = html || '<div class="kw-loading">No keywords match the selected filters.</div>';
+
+        // Attach add-btn listeners
+        wrap.querySelectorAll('.btn-add-kw:not(.is-added)').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                addKeyword(this.dataset.kw, this.dataset.mt, parseFloat(this.dataset.bid) || 0.50, null);
+            });
+        });
+    }
+
+    // ── Add All ──
+    document.getElementById('btn-add-all').addEventListener('click', function() {
+        var filters = getActiveFilters();
+        suggestedData.forEach(function(s) {
+            filters.forEach(function(mt) {
+                if (!addedKeywords.some(function(a) { return a.keyword === s.label && a.matchType === mt; })) {
+                    addKeyword(s.label, mt, parseFloat(s.suggestedBid) || 0.50, null);
+                }
+            });
+        });
+    });
+
+    // ── Enter list: Add Keywords ──
+    document.getElementById('btn-add-list').addEventListener('click', function() {
+        var text = document.getElementById('kw-enter-textarea').value;
+        var defaultBid = parseFloat(document.getElementById('enter-default-bid').value) || 0.50;
+        var mts = Array.from(document.querySelectorAll('.enter-mt:checked')).map(function(cb) { return cb.value; });
+        if (!mts.length) { alert('Please select at least one match type.'); return; }
+
+        var lines = text.split('\n').map(function(l) { return l.trim().toLowerCase(); }).filter(Boolean);
+        if (!lines.length) { alert('Please enter at least one keyword.'); return; }
+
+        lines.forEach(function(kw) {
+            mts.forEach(function(mt) {
+                if (!addedKeywords.some(function(a) { return a.keyword === kw && a.matchType === mt; })) {
+                    addKeyword(kw, mt, defaultBid, null);
+                }
+            });
+        });
+        document.getElementById('kw-enter-textarea').value = '';
+    });
+
+    // ── Core: add a keyword ──
+    function addKeyword(keyword, matchType, suggestedBid, customBid) {
+        keyword = keyword.trim().toLowerCase();
+        if (!keyword) return;
+        var bid = customBid || suggestedBid || 0.50;
+        addedKeywords.push({ keyword: keyword, matchType: matchType, suggestedBid: suggestedBid, bid: bid });
+        renderAddedRows();
+        renderSuggestedRows();
+        updateHiddenInputs();
+        updateEstimation();
+    }
+
+    // ── Remove keyword ──
+    function removeKeyword(idx) {
+        addedKeywords.splice(idx, 1);
+        renderAddedRows();
+        renderSuggestedRows();
+        updateHiddenInputs();
+        updateEstimation();
+    }
+
+
+    // ── Render added panel ──
+    function renderAddedRows() {
+        var wrap = document.getElementById('added-rows');
+        var countEl = document.getElementById('kw-added-count');
+        countEl.textContent = addedKeywords.length + ' added';
+
+        if (!addedKeywords.length) {
+            wrap.innerHTML = '<div class="kw-empty-state">No keywords added yet. Add from Suggested or Enter list.</div>';
+            return;
+        }
+
+        var mtLabels = { broad: 'Broad', phrase: 'Phrase', exact: 'Exact' };
+        var html = '';
+        addedKeywords.forEach(function(item, idx) {
+            var sugBid = item.suggestedBid ? '₹' + parseFloat(item.suggestedBid).toFixed(2) : '—';
+            html += '<div class="kw-row added-row" data-idx="' + idx + '">' +
+                '<div class="kw-name" title="' + esc(item.keyword) + '">' + esc(item.keyword) + '</div>' +
+                '<div class="kw-mt"><span class="mt-badge mt-' + item.matchType + '">' + mtLabels[item.matchType] + '</span></div>' +
+                '<div class="kw-sugg"><strong>' + sugBid + '</strong></div>' +
+                '<div><div class="kw-bid-inp"><span>₹</span><input type="number" step="0.01" min="0.01" class="added-bid-inp" data-idx="' + idx + '" value="' + parseFloat(item.bid).toFixed(2) + '"></div></div>' +
+                '<div><button type="button" class="btn-rm" data-idx="' + idx + '" title="Remove">×</button></div>' +
+                '</div>';
+        });
+        wrap.innerHTML = html;
+
+        // Bind remove
+        wrap.querySelectorAll('.btn-rm').forEach(function(btn) {
+            btn.addEventListener('click', function() { removeKeyword(parseInt(this.dataset.idx)); });
+        });
+
+        // Bind bid change
+        wrap.querySelectorAll('.added-bid-inp').forEach(function(inp) {
+            inp.addEventListener('change', function() {
+                var i = parseInt(this.dataset.idx);
+                addedKeywords[i].bid = parseFloat(this.value) || 0.50;
+                updateHiddenInputs();
+                updateEstimation();
+            });
+        });
+    }
+
+    // ── Apply all: apply first bid to all ──
+    document.getElementById('apply-all-bid').addEventListener('click', function() {
+        var firstBid = addedKeywords.length ? addedKeywords[0].bid : 0.50;
+        var applyBid = parseFloat(prompt('Apply bid amount (₹) to all keywords:', firstBid));
+        if (isNaN(applyBid) || applyBid <= 0) return;
+        addedKeywords.forEach(function(item) { item.bid = applyBid; });
+        renderAddedRows();
+        updateHiddenInputs();
+        updateEstimation();
+    });
+
+    // ── Generate hidden inputs for form submission ──
+    function updateHiddenInputs() {
+        var container = document.getElementById('kw-hidden-inputs');
+        var html = '';
+        addedKeywords.forEach(function(item, idx) {
+            html += '<input type="hidden" name="keywords[' + idx + '][keyword]" value="' + esc(item.keyword) + '">';
+            html += '<input type="hidden" name="keywords[' + idx + '][match_type]" value="' + esc(item.matchType) + '">';
+            html += '<input type="hidden" name="keywords[' + idx + '][bid_amount]" value="' + parseFloat(item.bid).toFixed(2) + '">';
+        });
+        container.innerHTML = html;
+    }
+
+    function esc(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ── Fetch bid intelligence for the global bid-intel card ──
+    function fetchBidIntelForKeyword(kw) {
+        if (!kw) return;
+        fetch(BID_SUGGEST_URL + '?keyword=' + encodeURIComponent(kw))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                bidIntelData = data;
+                renderBidIntel(data);
+                updateEstimation();
+                // Enrich suggested data with bid info
+                suggestedData.forEach(function(s) {
+                    if (s.label === kw) {
+                        s.suggestedBid = data.suggested;
+                        s.bidMin = data.min;
+                        s.bidMax = data.max;
+                    }
+                });
+            });
+    }
+
+    function fmt(v) { return v ? '₹' + parseFloat(v).toFixed(2) : '—'; }
+
+    function renderBidIntel(data) {
+        var card = document.getElementById('bid-intel-card');
+        if (!card) return;
+        card.classList.add('visible');
+        document.getElementById('bid-min').textContent = fmt(data.min);
+        document.getElementById('bid-avg').textContent = fmt(data.avg);
+        document.getElementById('bid-max').textContent = fmt(data.max);
+        document.getElementById('bid-suggested').textContent = fmt(data.suggested);
+
+        var badge = document.getElementById('comp-badge');
+        var compMap = { low: ['comp-low','🟢 Low'], medium: ['comp-medium','🟡 Medium'], high: ['comp-high','🔴 High'] };
+        var info = compMap[data.competition] || compMap.low;
+        badge.className = 'competition-badge ' + info[0];
+        badge.textContent = info[1] + ' Competition';
+
+        var countText = document.getElementById('bid-count-text');
+        countText.textContent = data.count + ' active bids on this keyword.';
+
+        var sugBtn = document.getElementById('use-suggested-btn');
+        sugBtn.style.display = data.suggested ? 'inline-block' : 'none';
+        sugBtn.onclick = function() {
+            document.getElementById('bid_amount').value = parseFloat(data.suggested).toFixed(2);
+            updateEstimation();
+        };
+    }
+
+    // ── Performance estimation (uses avg of keyword bids) ──
+    var dailyInput  = document.getElementById('daily_budget');
+    if (dailyInput){ dailyInput.addEventListener('input', updateEstimation); }
+
+    function getAvgKeywordBid() {
+        if (!addedKeywords.length) return 0;
+        var total = addedKeywords.reduce(function(sum, k) { return sum + (parseFloat(k.bid) || 0); }, 0);
+        return total / addedKeywords.length;
+    }
+
+    function updateEstimation() {
+        var bid   = getAvgKeywordBid();
+        var daily = parseFloat(dailyInput ? dailyInput.value : 0) || 0;
+        var avgBid = bidIntelData.avg ? parseFloat(bidIntelData.avg) : bid;
+        if (!avgBid) avgBid = bid;
+
+        var impressions = bid > 0 && avgBid > 0 ? Math.round((bid / avgBid) * 1000) : 0;
+        var ctr = 0.025;
+        var clicks = Math.round(impressions * ctr);
+        var spend  = clicks * bid;
+
+        if (daily > 0 && spend > daily) { spend = daily; clicks = Math.round(daily / (bid || 1)); impressions = Math.round(clicks / ctr); }
+
+        document.getElementById('est-impressions').textContent = impressions > 0 ? impressions.toLocaleString() : '—';
+        document.getElementById('est-clicks').textContent      = clicks > 0 ? clicks.toLocaleString() : '—';
+        document.getElementById('est-spend').textContent       = spend > 0 ? '₹' + spend.toFixed(2) : '—';
+    }
+
+
+    // ── Wallet budget validation ──
+    function validateBudget() {
+        var daily = parseFloat(dailyInput ? dailyInput.value : 0) || 0;
+        var total = parseFloat(document.getElementById('total_budget') ? document.getElementById('total_budget').value : 0) || 0;
+        var max   = Math.max(daily, total);
+        var warn  = document.getElementById('wallet-warning');
+        if (warn && max > 0 && max > WALLET_BALANCE) {
+            warn.style.display = 'block';
+        } else if (warn) {
+            warn.style.display = 'none';
+        }
+    }
+    if (dailyInput) dailyInput.addEventListener('input', validateBudget);
+    var totalInput = document.getElementById('total_budget');
+    if (totalInput) totalInput.addEventListener('input', validateBudget);
+
+    // ── Form submit guard ──
+    document.getElementById('ads-campaign-form').addEventListener('submit', function(e) {
+        var targetingType = document.querySelector('[name=targeting_type]:checked');
+        var isManual = !targetingType || targetingType.value === 'manual';
+        if (isManual && addedKeywords.length === 0) {
+            e.preventDefault();
+            alert('<?= $escaper->escapeHtml(__('Please add at least one keyword for Manual Targeting.')) ?>');
+            return;
+        }
+        var warn = document.getElementById('wallet-warning');
+        if (warn && warn.style.display === 'block') {
+            if (!confirm('<?= $escaper->escapeHtml(__('Your budget exceeds your wallet balance. Continue anyway?')) ?>')) {
+                e.preventDefault();
+            }
+        }
+    });
+
+    // ── Init ──
+    loadSuggested();
+    updateEstimation();
+})();
+</script>
+
+

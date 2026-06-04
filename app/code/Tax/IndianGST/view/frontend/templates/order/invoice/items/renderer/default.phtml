@@ -1,0 +1,87 @@
+<?php
+/**
+ * @var \Magento\Sales\Block\Order\Item\Renderer\DefaultRenderer $block
+ */
+$_item = $block->getItem();
+
+// Extract GST data (Invoice Item level)
+$cgst = (float)$_item->getData('indiangst_cgst_amount');
+$sgst = (float)$_item->getData('indiangst_sgst_amount');
+$igst = (float)$_item->getData('indiangst_igst_amount');
+$percent = (float)$_item->getData('indiangst_percent');
+
+$cgstRate = ($cgst > 0) ? ($percent / 2) : 0;
+$sgstRate = ($sgst > 0) ? ($percent / 2) : 0;
+$igstRate = ($igst > 0) ? $percent : 0;
+
+// HSN Code - Should be on Order Item
+$hsn = $_item->getOrderItem()->getProduct()->getData('hsn_code');
+if (!$hsn) {
+    // Try to load via product repository if not in object
+    // For now simplistic fallback or ignore
+    $hsn = '';
+}
+?>
+<tr id="order-item-row-<?= (int) $_item->getId() ?>">
+    <td class="col name" data-th="<?= $block->escapeHtml(__('Product Name')) ?>">
+        <strong class="product name product-item-name"><?= $block->escapeHtml($_item->getName()) ?></strong>
+        <?php if ($hsn): ?>
+            <div class="product-hsn">
+                <span><?= $block->escapeHtml(__('HSN')) ?>:</span> <?= $block->escapeHtml($hsn) ?>
+            </div>
+        <?php endif; ?>
+        <div class="product-sku-block">
+            <span><?= $block->escapeHtml(__('SKU')) ?>:</span> <?= $block->escapeHtml($_item->getSku()) ?>
+        </div>
+        <?php if ($_options = $block->getItemOptions()): ?>
+            <dl class="item-options">
+            <?php foreach ($_options as $_option): ?>
+                <dt><?= $block->escapeHtml($_option['label']) ?></dt>
+                <dd><?= $block->escapeHtml($_option['value']) ?></dd>
+            <?php endforeach; ?>
+            </dl>
+        <?php endif; ?>
+    </td>
+    <td class="col sku" data-th="<?= $block->escapeHtml(__('SKU')) ?>">
+        <?= $block->escapeHtml($_item->getSku()) ?>
+    </td>
+    <td class="col price" data-th="<?= $block->escapeHtml(__('Price')) ?>">
+        <?= $block->getItemPriceHtml() ?>
+    </td>
+    <td class="col qty" data-th="<?= $block->escapeHtml(__('Qty Invoiced')) ?>">
+        <span class="content"><?= (float) $_item->getQty() ?></span>
+    </td>
+
+    <!-- GST Columns -->
+    <td class="col cgst" data-th="<?= $block->escapeHtml(__('CGST')) ?>">
+        <?php if ($cgst > 0): ?>
+            <span class="price"><?= $block->getOrder()->formatPrice($cgst) ?></span>
+            <div class="gst-rate"><?= $cgstRate ?>%</div>
+        <?php else: ?>
+            <span class="price"><?= $block->getOrder()->formatPrice(0) ?></span>
+             <div class="gst-rate">0.00%</div>
+        <?php endif; ?>
+    </td>
+    <td class="col sgst" data-th="<?= $block->escapeHtml(__('SGST')) ?>">
+        <?php if ($sgst > 0): ?>
+            <span class="price"><?= $block->getOrder()->formatPrice($sgst) ?></span>
+            <div class="gst-rate"><?= $sgstRate ?>%</div>
+        <?php else: ?>
+            <span class="price"><?= $block->getOrder()->formatPrice(0) ?></span>
+             <div class="gst-rate">0.00%</div>
+        <?php endif; ?>
+    </td>
+    <td class="col igst" data-th="<?= $block->escapeHtml(__('IGST')) ?>">
+        <?php if ($igst > 0): ?>
+            <span class="price"><?= $block->getOrder()->formatPrice($igst) ?></span>
+            <div class="gst-rate"><?= $igstRate ?>%</div>
+        <?php else: ?>
+            <span class="price"><?= $block->getOrder()->formatPrice(0) ?></span>
+             <div class="gst-rate">0.00%</div>
+        <?php endif; ?>
+    </td>
+
+    <td class="col subtotal" data-th="<?= $block->escapeHtml(__('Subtotal')) ?>">
+        <?= $block->getItemRowTotalHtml() ?>
+    </td>
+</tr>

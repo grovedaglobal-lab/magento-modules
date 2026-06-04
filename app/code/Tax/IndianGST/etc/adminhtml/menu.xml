@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Tax_IndianGST::root" title="Indian GST" module="Tax_IndianGST" sortOrder="50" resource="Tax_IndianGST::root"/>
+        <add id="Tax_IndianGST::vendors" title="Manage Vendors" module="Tax_IndianGST" sortOrder="10" parent="Tax_IndianGST::root" action="indiangst/vendor/index" resource="Tax_IndianGST::vendors"/>
+        <add id="Tax_IndianGST::rates" title="GST Rates" module="Tax_IndianGST" sortOrder="20" parent="Tax_IndianGST::root" action="indiangst/rate/index" resource="Tax_IndianGST::rates"/>
+        <add id="Tax_IndianGST::config" title="Configuration" module="Tax_IndianGST" sortOrder="30" parent="Tax_IndianGST::root" action="adminhtml/system_config/edit/section/tax_indiangst" resource="Tax_IndianGST::config"/>
+    </menu>
+</config>

@@ -1,0 +1,40 @@
+<?php
+/** @var \Vendor\Ads\Block\Adminhtml\Wallet\Grid $block */
+$wallets = $block->getWalletData();
+?>
+<div class="vendor-ads-admin">
+    <h2><?= __('Vendor Wallets') ?></h2>
+    <p style="color:#666;"><?= __('Each wallet is linked to a vendor. Balance is deducted automatically on ad clicks (CPC model).') ?></p>
+    <p><a href="<?= $block->escapeUrl($block->getUrl('vendor_ads/wallet/history')) ?>"><?= __('View Wallet History') ?></a></p>
+
+    <?php if (empty($wallets)): ?>
+        <div class="message message-notice"><span><?= __('No wallet records found.') ?></span></div>
+    <?php else: ?>
+    <table class="data-grid admin__table-primary">
+        <thead>
+            <tr>
+                <th><?= __('Vendor ID') ?></th>
+                <th><?= __('Vendor Name') ?></th>
+                <th><?= __('Balance') ?></th>
+                <th><?= __('Currency') ?></th>
+                <th><?= __('Last Updated') ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($wallets as $wallet): ?>
+            <tr>
+                <td><?= (int)$wallet['vendor_id'] ?></td>
+                <td><strong><?= $block->escapeHtml($wallet['vendor_name'] ?? 'N/A') ?></strong></td>
+                <td>
+                    <span style="color:<?= $wallet['balance'] > 0 ? 'green' : 'red' ?>;font-weight:bold;">
+                        <?= number_format($wallet['balance'], 4) ?>
+                    </span>
+                </td>
+                <td><?= $block->escapeHtml($wallet['currency']) ?></td>
+                <td><?= $block->escapeHtml($wallet['updated_at']) ?></td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php endif; ?>
+</div>

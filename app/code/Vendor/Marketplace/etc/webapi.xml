@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+
+    <!-- Vendor Registration -->
+    <route url="/V1/vendor/register" method="POST">
+        <service class="Vendor\Marketplace\Api\VendorManagementInterface" method="registerVendor"/>
+        <resources>
+            <resource ref="self"/> <!-- Public allowed for self registration context, usually anonymous allowed? 
+            Since we pass Customer ID, this implies authorized customer context. 
+            So we should use self (Customer). -->
+        </resources>
+    </route>
+
+    <!-- Vendor Product Management -->
+    <route url="/V1/vendor/me/products" method="GET">
+        <service class="Vendor\Marketplace\Api\VendorProductManagementInterface" method="getMyProducts"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <route url="/V1/vendor/me/products/:sku" method="DELETE">
+        <service class="Vendor\Marketplace\Api\VendorProductManagementInterface" method="deleteMyProduct"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <!-- Vendor Order Management -->
+    <route url="/V1/vendor/me/orders" method="GET">
+        <service class="Vendor\Marketplace\Api\VendorOrderManagementInterface" method="getMyOrders"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <!-- Vendor Payout Management -->
+    <route url="/V1/vendor/me/earnings" method="GET">
+        <service class="Vendor\Marketplace\Api\VendorPayoutManagementInterface" method="getEarnings"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <route url="/V1/vendor/me/payout" method="POST">
+        <service class="Vendor\Marketplace\Api\VendorPayoutManagementInterface" method="requestPayout"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <!-- Vendor Category Permission Management -->
+    <route url="/V1/vendor/me/categories/request" method="POST">
+        <service class="Vendor\Marketplace\Api\VendorCategoryPermissionManagementInterface" method="requestCategory"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <route url="/V1/vendor/me/categories" method="GET">
+        <service class="Vendor\Marketplace\Api\VendorCategoryPermissionManagementInterface" method="getRequestedCategories"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <!-- Vendor Document Management -->
+    <route url="/V1/vendor/me/documents" method="POST">
+        <service class="Vendor\Marketplace\Api\VendorDocumentManagementInterface" method="uploadDocument"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <route url="/V1/vendor/me/documents" method="GET">
+        <service class="Vendor\Marketplace\Api\VendorDocumentManagementInterface" method="getMyDocuments"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <route url="/V1/marketplace/vendors" method="GET">
+        <service class="Vendor\Marketplace\Api\VendorRepositoryInterface" method="getList"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <route url="/V1/marketplace/vendors/:vendorId" method="GET">
+        <service class="Vendor\Marketplace\Api\VendorRepositoryInterface" method="getById"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <route url="/V1/marketplace/vendors/url/:shopUrl" method="GET">
+        <service class="Vendor\Marketplace\Api\VendorRepositoryInterface" method="getByShopUrl"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+</routes>

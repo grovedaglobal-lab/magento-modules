@@ -1,0 +1,62 @@
+<?php
+/** @var \Ticketing\SellerTicket\Block\Ticket\ViewTicket $block */
+$ticket = $block->getTicket();
+if (!$ticket) {
+    echo __('Ticket not found or access denied.');
+    return;
+}
+$messages = $block->getMessages($ticket->getId());
+?>
+<div class="wk-mp-design">
+    <fieldset class="fieldset info wk-mp-fieldset">
+        <legend class="legend"><span><?= __('Ticket #%1: %2', $ticket->getId(), $block->escapeHtml($ticket->getSubject())) ?></span></legend>
+        
+        <div class="ticket-details" style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #ddd;">
+            <p><strong><?= __('Category:') ?></strong> <?= $block->escapeHtml($ticket->getCategory()) ?></p>
+            <p><strong><?= __('Status:') ?></strong> <?= $block->escapeHtml($ticket->getStatus()) ?></p>
+            <p><strong><?= __('Priority:') ?></strong> <?= $block->escapeHtml($ticket->getPriority()) ?></p>
+            <p><strong><?= __('Created At:') ?></strong> <?= $block->formatDate($ticket->getCreatedAt(), \IntlDateFormatter::MEDIUM, true) ?></p>
+        </div>
+
+        <div class="ticket-messages">
+            <h3><?= __('Messages') ?></h3>
+            <?php if ($messages && $messages->getSize()): ?>
+                <?php foreach ($messages as $message): ?>
+                    <div class="message-item" style="margin-bottom: 15px; padding: 10px; border-left: 4px solid <?= $message->getSenderType() == 'Admin' ? '#007bdb' : '#e02b27' ?>; background: #fafafa;">
+                        <div class="message-header" style="font-weight: bold; margin-bottom: 5px;">
+                            <?= $block->escapeHtml($message->getSenderName()) ?> (<?= $block->escapeHtml($message->getSenderType()) ?>) - 
+                            <span style="font-size: 0.85em; color: #666; font-weight: normal;">
+                                <?= $block->formatDate($message->getCreatedAt(), \IntlDateFormatter::MEDIUM, true) ?>
+                            </span>
+                        </div>
+                        <div class="message-body">
+                            <?= nl2br($block->escapeHtml($message->getMessage())) ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p><?= __('No messages found for this ticket.') ?></p>
+            <?php endif; ?>
+        </div>
+
+        <div class="ticket-reply" style="margin-top: 30px;">
+            <h3><?= __('Reply to Ticket') ?></h3>
+            <form action="<?= $block->escapeUrl($block->getPostActionUrl()) ?>" method="post" id="form-ticket-reply">
+                <input type="hidden" name="ticket_id" value="<?= $ticket->getId() ?>" />
+                <div class="field required">
+                    <label class="label" for="message"><span><?= __('Message') ?></span></label>
+                    <div class="control">
+                        <textarea name="message" id="message" title="<?= __('Message') ?>" class="input-text required-entry" cols="5" rows="5"></textarea>
+                    </div>
+                </div>
+                <div class="actions-toolbar" style="margin-top:15px;">
+                    <div class="primary">
+                        <button type="submit" title="<?= __('Submit Reply') ?>" class="action submit primary">
+                            <span><?= __('Submit Reply') ?></span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </fieldset>
+</div>

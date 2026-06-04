@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Vendor_Ads::ads_root" title="Vendor Ads" sortOrder="100">
+                    <resource id="Vendor_Ads::ads_bids" title="Manage Bids" sortOrder="10"/>
+                    <resource id="Vendor_Ads::ads_wallet" title="Wallet" sortOrder="20">
+                        <resource id="Vendor_Ads::ads_wallets" title="Vendor Wallets" sortOrder="10"/>
+                        <resource id="Vendor_Ads::ads_wallet_history" title="Wallet History" sortOrder="20"/>
+                    </resource>
+                    <resource id="Vendor_Ads::ads_stats" title="Analytics Report" sortOrder="30"/>
+                    <resource id="Vendor_Ads::ads_keywords" title="Keywords" sortOrder="40"/>
+                    <resource id="Vendor_Ads::ads_reports" title="Reports" sortOrder="50"/>
+                    <resource id="Vendor_Ads::wallet_orders" title="Wallet Orders" sortOrder="60"/>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

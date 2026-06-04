@@ -1,0 +1,83 @@
+<?php
+/** @var \Ticketing\SellerTicket\Block\Ticket\ListTicket $block */
+$tickets = $block->getTickets();
+?>
+<div class="wk-mp-design">
+    <fieldset class="fieldset info wk-mp-fieldset">
+        <legend class="legend"><span>
+                <?= __('Seller Tickets') ?>
+            </span></legend>
+
+        <div class="actions-toolbar" style="margin-bottom: 20px;">
+            <div class="primary">
+                <a href="<?= $block->escapeUrl($block->getUrl('sellerticket/ticket/newAction')) ?>"
+                    class="action primary">
+                    <span><?= __('Add New Ticket') ?></span>
+                </a>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="data table" id="my-tickets-table">
+                <thead>
+                    <tr>
+                        <th scope="col" class="col id">
+                            <?= __('Ticket ID') ?>
+                        </th>
+                        <th scope="col" class="col subject">
+                            <?= __('Subject') ?>
+                        </th>
+                        <th scope="col" class="col category">
+                            <?= __('Category') ?>
+                        </th>
+                        <th scope="col" class="col status">
+                            <?= __('Status') ?>
+                        </th>
+                        <th scope="col" class="col date">
+                            <?= __('Date') ?>
+                        </th>
+                        <th scope="col" class="col actions">
+                            <?= __('Action') ?>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($tickets && $tickets->getSize()): ?>
+                        <?php foreach ($tickets as $ticket): ?>
+                            <tr>
+                                <td data-th="<?= __('Ticket ID') ?>" class="col id">
+                                    <?= $ticket->getId() ?>
+                                </td>
+                                <td data-th="<?= __('Subject') ?>" class="col subject">
+                                    <?= $block->escapeHtml($ticket->getSubject()) ?>
+                                </td>
+                                <td data-th="<?= __('Category') ?>" class="col category">
+                                    <?= $block->escapeHtml($ticket->getCategory()) ?>
+                                </td>
+                                <td data-th="<?= __('Status') ?>" class="col status">
+                                    <?= $block->escapeHtml($ticket->getStatus()) ?>
+                                </td>
+                                <td data-th="<?= __('Date') ?>" class="col date">
+                                    <?= $block->formatDate($ticket->getCreatedAt(), \IntlDateFormatter::SHORT, true) ?>
+                                </td>
+                                <td data-th="<?= __('Action') ?>" class="col actions">
+                                    <a href="<?= $block->escapeUrl($block->getViewUrl($ticket)) ?>" class="action view">
+                                        <span>
+                                            <?= __('View') ?>
+                                        </span>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6">
+                                <?= __('You have no tickets.') ?>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </fieldset>
+</div>

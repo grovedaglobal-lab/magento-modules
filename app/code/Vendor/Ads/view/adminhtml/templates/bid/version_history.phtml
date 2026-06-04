@@ -1,0 +1,186 @@
+<?php
+/** @var \Vendor\Ads\Block\Adminhtml\Bid\VersionHistory $block */
+$versions   = $block->getVersionChain();
+$compareUrl = $block->getCompareUrl();
+$backUrl    = $block->getBackUrl();
+
+$firstRow   = $versions[0] ?? null;
+$vendorName = $firstRow ? $block->getVendorName((int)$firstRow['vendor_id']) : '—';
+?>
+<div class="admin__page-section" style="padding:20px;">
+
+    <!-- Back + Title -->
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+        <a href="<?= $block->escapeUrl($backUrl) ?>" class="action-default">← <?= $block->escapeHtml(__('Back to Manage Bids')) ?></a>
+        <h2 style="margin:0;font-size:18px;font-weight:700;">
+            <?= $block->escapeHtml(__('Ad Version History')) ?>
+            <?php if ($firstRow): ?>
+                — <span style="color:#007bdb;"><?= $block->escapeHtml($vendorName) ?></span>
+            <?php endif; ?>
+        </h2>
+    </div>
+
+    <?php if (empty($versions)): ?>
+        <div class="message message-notice"><span><?= $block->escapeHtml(__('No version history found for this ad.')) ?></span></div>
+    <?php else: ?>
+
+    <!-- Version Timeline Table -->
+    <table class="data-grid admin__table-primary" style="width:100%;" id="versionHistoryTable">
+        <thead>
+            <tr>
+                <th style="width:60px;"><?= $block->escapeHtml(__('Version')) ?></th>
+                <th><?= $block->escapeHtml(__('Status')) ?></th>
+                <th><?= $block->escapeHtml(__('Keyword')) ?></th>
+                <th><?= $block->escapeHtml(__('CPC Bid')) ?></th>
+                <th><?= $block->escapeHtml(__('Daily Budget')) ?></th>
+                <th><?= $block->escapeHtml(__('Total Budget')) ?></th>
+                <th><?= $block->escapeHtml(__('Match Type')) ?></th>
+                <th><?= $block->escapeHtml(__('Spent')) ?></th>
+                <th><?= $block->escapeHtml(__('Date Active')) ?></th>
+                <th><?= $block->escapeHtml(__('Changed Fields')) ?></th>
+                <th><?= $block->escapeHtml(__('Compare')) ?></th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($versions as $i => $v): ?>
+            <tr class="<?= $v['is_active'] ? '' : '_disabled' ?>"
+                data-bid-id="<?= (int)$v['bid_id'] ?>"
+                data-version="<?= (int)$v['version'] ?>">
+
+                <td style="text-align:center;">
+                    <strong style="font-size:14px;color:<?= $v['is_active'] ? '#007bdb' : '#999' ?>;">
+                        v<?= (int)$v['version'] ?>
+                    </strong>
+                    <?php if ($v['is_active']): ?>
+                        <br><span style="font-size:10px;background:#e0f5e0;color:#2d7a2d;padding:1px 6px;border-radius:10px;">LIVE</span>
+                    <?php endif; ?>
+                </td>
+
+                <td>
+                    <?php if ($v['is_active']): ?>
+                        <span style="color:#2d7a2d;font-weight:600;"><?= $block->escapeHtml(__('Active')) ?></span>
+                    <?php else: ?>
+                        <span style="color:#999;"><?= $block->escapeHtml(__('Superseded')) ?></span>
+                    <?php endif; ?>
+                </td>
+
+                <td><code><?= $block->escapeHtml($v['keyword'] ?? '—') ?></code></td>
+                <td>₹<?= number_format((float)$v['bid_amount'], 2) ?></td>
+                <td><?= $v['daily_budget'] ? '₹' . number_format((float)$v['daily_budget'], 2) : '—' ?></td>
+                <td><?= $v['total_budget'] ? '₹' . number_format((float)$v['total_budget'], 2) : '—' ?></td>
+                <td><?= $block->escapeHtml(ucfirst($v['match_type'])) ?></td>
+                <td>₹<?= number_format((float)$v['spent_amount'], 2) ?></td>
+                <td style="font-size:12px;color:#555;"><?= $block->escapeHtml($v['started_at'] ?? $v['created_at']) ?></td>
+
+                <td>
+                    <?php if (!empty($v['changed_fields'])): ?>
+                        <?php foreach ($v['changed_fields'] as $f): ?>
+                            <span style="display:inline-block;background:#fff3cd;color:#664d03;font-size:11px;padding:1px 7px;border-radius:10px;margin:2px;">
+                                <?= $block->escapeHtml($block->fieldLabel($f)) ?>
+                            </span>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <span style="color:#ccc;font-size:11px;">Original</span>
+                    <?php endif; ?>
+                </td>
+
+                <td>
+                    <?php if ($i > 0): ?>
+                        <?php $prevBidId = $versions[$i - 1]['bid_id']; ?>
+                        <button class="action-default scalable btn-compare"
+                            data-bid-a="<?= (int)$prevBidId ?>"
+                            data-bid-b="<?= (int)$v['bid_id'] ?>"
+                            data-label-a="v<?= (int)$versions[$i-1]['version'] ?>"
+                            data-label-b="v<?= (int)$v['version'] ?>"
+                            style="font-size:12px;">
+                            Compare v<?= (int)$versions[$i-1]['version'] ?> ↔ v<?= (int)$v['version'] ?>
+                        </button>
+                    <?php else: ?>
+                        <span style="color:#ccc;font-size:11px;">—</span>
+                    <?php endif; ?>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+
+    <?php endif; ?>
+</div>
+
+<!-- ── Compare Modal ── -->
+<div id="versionCompareModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:8px;padding:28px;max-width:700px;width:95%;max-height:90vh;overflow-y:auto;position:relative;">
+        <button id="closeCompareModal" style="position:absolute;top:12px;right:16px;font-size:20px;background:none;border:none;cursor:pointer;">✕</button>
+        <h3 id="compareModalTitle" style="margin-top:0;font-size:16px;font-weight:700;color:#333;"></h3>
+        <div id="compareModalBody"></div>
+    </div>
+</div>
+
+<script>
+require(['jquery'], function ($) {
+    'use strict';
+
+    var compareUrl = '<?= $block->escapeJs($compareUrl) ?>';
+
+    // Open modal on Compare button click
+    $(document).on('click', '.btn-compare', function () {
+        var bidA   = $(this).data('bid-a');
+        var bidB   = $(this).data('bid-b');
+        var labelA = $(this).data('label-a');
+        var labelB = $(this).data('label-b');
+
+        $('#compareModalTitle').text('Comparing ' + labelA + ' → ' + labelB);
+        $('#compareModalBody').html('<p style="color:#999;text-align:center;padding:20px;">Loading...</p>');
+        $('#versionCompareModal').css('display', 'flex');
+
+        $.ajax({
+            url: compareUrl,
+            data: { bid_id_a: bidA, bid_id_b: bidB },
+            dataType: 'json',
+            success: function (res) {
+                if (!res.success) {
+                    $('#compareModalBody').html('<p style="color:red;">' + res.message + '</p>');
+                    return;
+                }
+                var html = '<table class="data-grid admin__table-primary" style="width:100%;">';
+                html += '<thead><tr>'
+                      + '<th>Field</th>'
+                      + '<th>' + res.version_a + '<br><small style="font-weight:400;color:#999;">' + (res.started_a || '') + '</small></th>'
+                      + '<th>' + res.version_b + '<br><small style="font-weight:400;color:#999;">' + (res.started_b || '') + '</small></th>'
+                      + '<th>Change</th>'
+                      + '</tr></thead><tbody>';
+
+                $.each(res.diff, function (i, row) {
+                    var rowStyle = row.changed ? 'background:#fffbe6;' : '';
+                    var changeCell = '—';
+                    if (row.changed && row.pct_change !== null) {
+                        var sign  = row.pct_change > 0 ? '+' : '';
+                        var color = row.pct_change > 0 ? '#2d7a2d' : '#c00';
+                        changeCell = '<span style="font-weight:700;color:' + color + ';">' + sign + row.pct_change + '%</span>';
+                    } else if (row.changed) {
+                        changeCell = '<span style="font-weight:700;color:#c07000;">Changed</span>';
+                    }
+                    html += '<tr style="' + rowStyle + '">'
+                          + '<td><strong>' + row.field + '</strong></td>'
+                          + '<td>' + row.value_a + '</td>'
+                          + '<td><strong>' + row.value_b + '</strong></td>'
+                          + '<td>' + changeCell + '</td>'
+                          + '</tr>';
+                });
+                html += '</tbody></table>';
+                $('#compareModalBody').html(html);
+            },
+            error: function () {
+                $('#compareModalBody').html('<p style="color:red;">Failed to load comparison data.</p>');
+            }
+        });
+    });
+
+    // Close modal
+    $('#closeCompareModal, #versionCompareModal').on('click', function (e) {
+        if (e.target === this) {
+            $('#versionCompareModal').hide();
+        }
+    });
+});
+</script>

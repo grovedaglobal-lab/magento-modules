@@ -1,0 +1,270 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/db_schema.xsd">
+    <table name="vendor_ads_wallet" resource="default" engine="innodb" comment="Vendor Advertising Wallet">
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="decimal" name="balance" scale="4" precision="20" nullable="false" default="0.0000" comment="Wallet Balance"/>
+        <column xsi:type="varchar" name="currency" nullable="false" length="3" default="USD" comment="Currency Code"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Update Time"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="vendor_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="VNDR_ADS_WLT_VNDR_ID_VNDR_ENT_ENT_ID" table="vendor_ads_wallet" column="vendor_id" referenceTable="vendor_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+    </table>
+
+    <table name="vendor_ads_wallet_recharge_history" resource="default" engine="innodb" comment="Vendor Ad Wallet Recharge History">
+        <column xsi:type="int" name="history_id" padding="10" unsigned="true" nullable="false" identity="true" comment="History ID"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="decimal" name="amount" scale="4" precision="20" nullable="false" default="0.0000" comment="Recharge Amount"/>
+        <column xsi:type="decimal" name="balance_before" scale="4" precision="20" nullable="false" default="0.0000" comment="Balance Before Recharge"/>
+        <column xsi:type="decimal" name="balance_after" scale="4" precision="20" nullable="false" default="0.0000" comment="Balance After Recharge"/>
+        <column xsi:type="varchar" name="source" nullable="false" length="20" default="vendor" comment="Recharge Source (vendor/admin)"/>
+        <column xsi:type="varchar" name="note" nullable="true" length="255" comment="Recharge Note"/>
+        <column xsi:type="varchar" name="razorpay_payment_id" nullable="true" length="80" comment="Razorpay Payment ID"/>
+        <column xsi:type="int" name="magento_order_id" padding="10" unsigned="true" nullable="true" comment="Magento Order ID"/>
+        <column xsi:type="varchar" name="tax_mode" length="20" nullable="true" comment="Tax Mode"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="history_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="VNDR_ADS_WLT_RCHRG_VNDR_ID_VNDR_ENT_ENT_ID" table="vendor_ads_wallet_recharge_history" column="vendor_id" referenceTable="vendor_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+
+        <index referenceId="VNDR_ADS_WLT_RCHRG_VENDOR_ID" indexType="btree">
+            <column name="vendor_id"/>
+        </index>
+        <index referenceId="VNDR_ADS_WLT_RCHRG_CREATED_AT" indexType="btree">
+            <column name="created_at"/>
+        </index>
+    </table>
+
+    <table name="vendor_ads_payment" resource="default" engine="innodb" comment="Vendor Ad Wallet Payments">
+        <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="int" name="customer_id" padding="10" unsigned="true" nullable="false" comment="Customer ID"/>
+        <column xsi:type="decimal" name="base_amount" scale="4" precision="20" nullable="false" default="0.0000" comment="Base Amount"/>
+        <column xsi:type="decimal" name="gst_amount" scale="4" precision="20" nullable="false" default="0.0000" comment="GST Amount"/>
+        <column xsi:type="decimal" name="total_amount" scale="4" precision="20" nullable="false" default="0.0000" comment="Total Amount"/>
+        <column xsi:type="varchar" name="tax_mode" length="20" nullable="false" default="exclusive" comment="Tax Mode"/>
+        <column xsi:type="varchar" name="razorpay_order_id" length="80" nullable="true" comment="Razorpay Order ID"/>
+        <column xsi:type="varchar" name="razorpay_payment_id" length="80" nullable="true" comment="Razorpay Payment ID"/>
+        <column xsi:type="varchar" name="status" length="20" nullable="false" default="pending" comment="Payment Status"/>
+        <column xsi:type="int" name="magento_order_id" padding="10" unsigned="true" nullable="true" comment="Magento Order ID"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+
+        <index referenceId="VNDR_ADS_PAY_VENDOR_ID" indexType="btree">
+            <column name="vendor_id"/>
+        </index>
+        <index referenceId="VNDR_ADS_PAY_STATUS" indexType="btree">
+            <column name="status"/>
+        </index>
+        <constraint xsi:type="unique" referenceId="VNDR_ADS_PAY_RZP_ORDER_ID_UNQ">
+            <column name="razorpay_order_id"/>
+        </constraint>
+    </table>
+
+    <table name="vendor_ads_wallet_transaction" resource="default" engine="innodb" comment="Vendor Ad Wallet Transactions">
+        <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="varchar" name="type" length="20" nullable="false" default="credit" comment="Transaction Type"/>
+        <column xsi:type="decimal" name="amount" scale="4" precision="20" nullable="false" default="0.0000" comment="Amount"/>
+        <column xsi:type="decimal" name="gst_amount" scale="4" precision="20" nullable="false" default="0.0000" comment="GST Amount"/>
+        <column xsi:type="int" name="reference_id" padding="10" unsigned="true" nullable="true" comment="Reference Payment ID"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <index referenceId="VNDR_ADS_WLT_TXN_VENDOR_ID" indexType="btree">
+            <column name="vendor_id"/>
+        </index>
+        <constraint xsi:type="unique" referenceId="VNDR_ADS_WLT_TXN_REFERENCE_ID_UNQ">
+            <column name="reference_id"/>
+        </constraint>
+    </table>
+
+    <table name="vendor_ads_search_link" resource="default" engine="innodb" comment="Link between Search Terms and Ads">
+        <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="int" name="query_id" padding="10" unsigned="true" nullable="false" comment="Search Query ID"/>
+        <column xsi:type="smallint" name="is_ads_enabled" padding="6" unsigned="true" nullable="false" default="0" comment="Is Ads Enabled"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="VNDR_ADS_SEARCH_LINK_QUERY_ID">
+            <column name="query_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="VNDR_ADS_SEARCH_LNK_QRY_ID_SRCH_QRY_QRY_ID" table="vendor_ads_search_link" column="query_id" referenceTable="search_query" referenceColumn="query_id" onDelete="CASCADE"/>
+    </table>
+
+    <table name="vendor_ads_group" resource="default" engine="innodb" comment="Vendor Ad Groups (Portfolio)">
+        <column xsi:type="int" name="group_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Group ID"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="varchar" name="name" nullable="false" length="255" comment="Group Name"/>
+        <column xsi:type="decimal" name="daily_budget" scale="4" precision="20" nullable="true" comment="Daily Budget Cap"/>
+        <column xsi:type="decimal" name="total_budget" scale="4" precision="20" nullable="true" comment="Total Budget Cap"/>
+        <column xsi:type="smallint" name="status" padding="6" unsigned="true" nullable="false" default="1" comment="Status: 1=Active 0=Paused"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="group_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="VNDR_ADS_GROUP_VNDR_ID_VNDR_ENT_ENT_ID" table="vendor_ads_group" column="vendor_id" referenceTable="vendor_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+        <index referenceId="VNDR_ADS_GROUP_VENDOR_ID" indexType="btree">
+            <column name="vendor_id"/>
+        </index>
+    </table>
+
+    <table name="vendor_ads_campaign" resource="default" engine="innodb" comment="Vendor Ad Campaigns">
+        <column xsi:type="int" name="campaign_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Campaign ID"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="int" name="group_id" padding="10" unsigned="true" nullable="true" comment="Ad Group ID (Portfolio)"/>
+        <column xsi:type="varchar" name="name" nullable="false" length="255" comment="Campaign Name"/>
+        <column xsi:type="decimal" name="daily_budget" scale="4" precision="20" nullable="true" comment="Daily Budget"/>
+        <column xsi:type="decimal" name="total_budget" scale="4" precision="20" nullable="true" comment="Total Budget"/>
+        <column xsi:type="smallint" name="status" padding="6" unsigned="true" nullable="false" default="1" comment="Status: 1=Active 0=Paused"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="campaign_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="VNDR_ADS_CAMPAIGN_VNDR_ID_VNDR_ENT_ENT_ID" table="vendor_ads_campaign" column="vendor_id" referenceTable="vendor_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="VNDR_ADS_CAMPAIGN_GRP_ID_VNDR_ADS_GRP_GRP_ID" table="vendor_ads_campaign" column="group_id" referenceTable="vendor_ads_group" referenceColumn="group_id" onDelete="SET NULL"/>
+        <index referenceId="VNDR_ADS_CAMPAIGN_VENDOR_ID" indexType="btree">
+            <column name="vendor_id"/>
+        </index>
+        <index referenceId="VNDR_ADS_CAMPAIGN_GROUP_ID" indexType="btree">
+            <column name="group_id"/>
+        </index>
+    </table>
+
+
+    <table name="vendor_ads_bid" resource="default" engine="innodb" comment="Vendor Bids for Search Terms">
+        <column xsi:type="int" name="bid_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Bid ID"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="int" name="campaign_id" padding="10" unsigned="true" nullable="true" comment="Campaign ID"/>
+        <column xsi:type="int" name="product_id" padding="10" unsigned="true" nullable="false" comment="Product ID"/>
+        <column xsi:type="int" name="query_id" padding="10" unsigned="true" nullable="true" comment="Search Query ID (null for auto targeting)"/>
+        <column xsi:type="varchar" name="targeting_type" nullable="false" length="10" default="manual" comment="Targeting Type: manual/auto"/>
+        <column xsi:type="decimal" name="bid_amount" scale="4" precision="20" nullable="false" default="0.0000" comment="Bid Amount (CPC)"/>
+        <column xsi:type="varchar" name="match_type" nullable="false" length="20" default="phrase" comment="Match Type: exact, phrase, broad"/>
+        <column xsi:type="decimal" name="daily_budget" scale="4" precision="20" nullable="true" comment="Daily Budget"/>
+        <column xsi:type="decimal" name="total_budget" scale="4" precision="20" nullable="true" comment="Total Budget"/>
+        <column xsi:type="decimal" name="spent_amount" scale="4" precision="20" nullable="false" default="0.0000" comment="Total Spent Amount"/>
+        <column xsi:type="date" name="start_date" nullable="true" comment="Ad Start Date"/>
+        <column xsi:type="date" name="end_date" nullable="true" comment="Ad End Date"/>
+        <column xsi:type="smallint" name="is_active" padding="6" unsigned="true" nullable="false" default="1" comment="Active Status"/>
+        <column xsi:type="timestamp" name="last_charged_at" nullable="true" comment="Last Charge Time"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Creation Time"/>
+        <column xsi:type="smallint" name="version" padding="6" unsigned="true" nullable="false" default="1" comment="Ad version number (incremented on each edit)"/>
+        <column xsi:type="int" name="parent_ad_id" padding="10" unsigned="true" nullable="true" comment="Root bid_id of this version chain (NULL for first version)"/>
+        <column xsi:type="timestamp" name="started_at" nullable="true" comment="When this version went live"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="bid_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="VNDR_ADS_BID_VNDR_ID_VNDR_ENT_ENT_ID" table="vendor_ads_bid" column="vendor_id" referenceTable="vendor_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="VNDR_ADS_BID_PROD_ID_CAT_PRD_ENT_ENT_ID" table="vendor_ads_bid" column="product_id" referenceTable="catalog_product_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="VNDR_ADS_BID_CAMPAIGN_ID_FK" table="vendor_ads_bid" column="campaign_id" referenceTable="vendor_ads_campaign" referenceColumn="campaign_id" onDelete="SET NULL"/>
+        <index referenceId="VNDR_ADS_BID_VENDOR_ID" indexType="btree">
+            <column name="vendor_id"/>
+        </index>
+        <index referenceId="VNDR_ADS_BID_CAMPAIGN_ID" indexType="btree">
+            <column name="campaign_id"/>
+        </index>
+        <index referenceId="VNDR_ADS_BID_PARENT_AD_ID" indexType="btree">
+            <column name="parent_ad_id"/>
+        </index>
+    </table>
+
+    <table name="vendor_ads_logs" resource="default" engine="innodb" comment="Raw Ad Event Log (impressions, clicks, conversions)">
+        <column xsi:type="int" name="log_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Log ID"/>
+        <column xsi:type="int" name="bid_id" padding="10" unsigned="true" nullable="false" comment="Bid ID"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="int" name="campaign_id" padding="10" unsigned="true" nullable="true" comment="Campaign ID"/>
+        <column xsi:type="varchar" name="event_type" nullable="false" length="20" comment="Event type: impression/click/conversion"/>
+        <column xsi:type="varchar" name="keyword" nullable="true" length="255" comment="Search keyword that triggered this event"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Event Time"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="log_id"/>
+        </constraint>
+        <index referenceId="VNDR_ADS_LOGS_BID_EVENT_DATE" indexType="btree">
+            <column name="bid_id"/>
+            <column name="event_type"/>
+            <column name="created_at"/>
+        </index>
+        <index referenceId="VNDR_ADS_LOGS_CREATED_AT" indexType="btree">
+            <column name="created_at"/>
+        </index>
+        <index referenceId="VNDR_ADS_LOGS_VENDOR_ID" indexType="btree">
+            <column name="vendor_id"/>
+        </index>
+    </table>
+
+    <table name="vendor_ads_stats" resource="default" engine="innodb" comment="Advertising Statistics">
+        <column xsi:type="int" name="stat_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Stat ID"/>
+        <column xsi:type="int" name="bid_id" padding="10" unsigned="true" nullable="false" comment="Bid ID"/>
+        <column xsi:type="int" name="impressions" padding="10" unsigned="true" nullable="false" default="0" comment="Total Impressions"/>
+        <column xsi:type="int" name="clicks" padding="10" unsigned="true" nullable="false" default="0" comment="Total Clicks"/>
+        <column xsi:type="int" name="conversions" padding="10" unsigned="true" nullable="false" default="0" comment="Total Conversions"/>
+        <column xsi:type="decimal" name="ctr" scale="4" precision="10" nullable="false" default="0.0000" comment="Click Through Rate"/>
+        <column xsi:type="date" name="date" nullable="false" comment="Stat Date"/>
+        
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="stat_id"/>
+        </constraint>
+        <!-- UNIQUE KEY: ensures ON DUPLICATE KEY UPDATE works for impression/click tracking upserts -->
+        <constraint xsi:type="unique" referenceId="VNDR_ADS_STATS_BID_DATE_UNQ">
+            <column name="bid_id"/>
+            <column name="date"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="VNDR_ADS_STATS_BID_ID_VNDR_ADS_BID_BID_ID" table="vendor_ads_stats" column="bid_id" referenceTable="vendor_ads_bid" referenceColumn="bid_id" onDelete="CASCADE"/>
+        <index referenceId="VENDOR_ADS_STATS_DATE" indexType="btree">
+            <column name="date"/>
+        </index>
+    </table>
+
+    <table name="sales_order" resource="default">
+        <column xsi:type="smallint" name="is_wallet_recharge" padding="5" unsigned="true" nullable="true" default="0" comment="Is Wallet Recharge Order"/>
+    </table>
+
+    <table name="sales_order_grid" resource="default">
+        <column xsi:type="smallint" name="is_wallet_recharge" padding="5" unsigned="true" nullable="true" default="0" comment="Is Wallet Recharge Order"/>
+        <column xsi:type="decimal" name="base_subtotal" scale="4" precision="20" nullable="true" comment="Base Subtotal"/>
+        <column xsi:type="decimal" name="base_tax_amount" scale="4" precision="20" nullable="true" comment="Base Tax Amount"/>
+    </table>
+
+    <table name="vendor_ads_report_daily" resource="default" engine="innodb" comment="Pre-aggregated Daily Ad Reports">
+
+        <column xsi:type="int" name="report_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Report ID"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="int" name="campaign_id" padding="10" unsigned="true" nullable="true" comment="Campaign ID"/>
+        <column xsi:type="date" name="date" nullable="false" comment="Report Date"/>
+        <column xsi:type="int" name="impressions" padding="10" unsigned="true" nullable="false" default="0" comment="Total Impressions"/>
+        <column xsi:type="int" name="clicks" padding="10" unsigned="true" nullable="false" default="0" comment="Total Clicks"/>
+        <column xsi:type="decimal" name="spend" scale="4" precision="20" nullable="false" default="0.0000" comment="Total Ad Spend"/>
+        <column xsi:type="decimal" name="ctr" scale="4" precision="10" nullable="false" default="0.0000" comment="Click-Through Rate (%)"/>
+        <column xsi:type="smallint" name="has_change_event" padding="2" unsigned="true" nullable="false" default="0" comment="1 if an ad version change occurred on this date (powers timeline markers)"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Last Aggregated At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="report_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="VNDR_ADS_REPORT_DAILY_VENDOR_CAMPAIGN_DATE">
+            <column name="vendor_id"/>
+            <column name="campaign_id"/>
+            <column name="date"/>
+        </constraint>
+        <index referenceId="VNDR_ADS_REPORT_DAILY_VENDOR_ID" indexType="btree">
+            <column name="vendor_id"/>
+        </index>
+        <index referenceId="VNDR_ADS_REPORT_DAILY_DATE" indexType="btree">
+            <column name="date"/>
+        </index>
+    </table>
+</schema>
+

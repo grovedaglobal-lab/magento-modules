@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
+    <module name="Vendor_Ads">
+        <sequence>
+            <module name="Vendor_Marketplace"/>
+            <module name="Magento_Payment"/>
+            <module name="Magento_Search"/>
+            <module name="Magento_CatalogSearch"/>
+            <module name="Magento_Backend"/>
+            <module name="Magento_Sales"/>
+            <module name="Magento_Ui"/>
+            <module name="Magento_Catalog"/>
+            <module name="Magento_CatalogGraphQl"/>
+            <module name="Tax_IndianGST"/>
+        </sequence>
+    </module>
+</config>

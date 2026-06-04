@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <title>Vendor Login</title>
+        <css src="Vendor_Marketplace::css/vendor_account_shared.css"/>
+        <css src="Vendor_Marketplace::css/vendor_login.css"/> 
+    </head>
+    <body>
+        <referenceContainer name="content">
+            <!-- Vendor Login Form Block -->
+            <block class="Magento\Customer\Block\Form\Login" name="vendor.marketplace.login" template="Vendor_Marketplace::account/login.phtml">
+
+            </block>
+        </referenceContainer>
+    </body>
+</page>

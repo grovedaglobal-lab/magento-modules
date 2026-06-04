@@ -1,0 +1,84 @@
+<?php
+/** @var $block \Vendor\Marketplace\Block\Print\Manage */
+$currentVendor = $block->getVendor();
+$currentProfile = $block->getProfile();
+$authorizedName = $currentProfile ? $currentProfile->getData('authorized_name') : ''; // Corrected method call
+$signatureUrl = $block->getSignatureUrl(); // Corrected method call
+
+// Note: Ensure getProfile() returns a valid object or null if none
+?>
+<div class="field-container">
+    <div class="field-title">
+        <h3>
+            <?= __('Manage Print Settings') ?>
+        </h3>
+    </div>
+    <form class="form-horizontal" action="<?= $block->getUrl('marketplace/print/save') ?>" method="post"
+        enctype="multipart/form-data">
+        <?= $block->getBlockHtml('formkey') ?>
+        <?= /* @noEscape */ $block->getChildHtml('messages') ?>
+
+        <div class="fieldset">
+            <h4 class="legend">
+                <?= __('Invoice Footer Settings') ?>
+            </h4>
+            <div class="field required">
+                <label class="label" for="authorized_name"><span>
+                        <?= __('Authorized Name (Signatory)') ?>
+                    </span></label>
+                <div class="control">
+                    <input type="text" name="authorized_name" id="authorized_name"
+                        value="<?= $block->escapeHtml($authorizedName) ?>" title="<?= __('Authorized Name') ?>"
+                        class="input-text" data-validate="{required:true}">
+                    <div class="note">This name will appear under 'Authorized Signatory' on the invoice.</div>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label" for="signature"><span>
+                        <?= __('Signature Image') ?>
+                    </span></label>
+                <div class="control">
+                    <input type="file" name="signature" id="signature" title="<?= __('Signature Image') ?>"
+                        class="input-file">
+                    <div class="note">Upload a scan of your signature (PNG/JPG). Recommended height: 50px.</div>
+
+                    <?php if ($signatureUrl): ?>
+                        <div class="current-signature-preview" style="margin-top: 10px;">
+                            <p><strong>
+                                    <?= __('Current Signature:') ?>
+                                </strong></p>
+                            <img src="<?= $block->escapeUrl($signatureUrl) ?>" alt="Current Signature"
+                                style="max-height: 80px; border: 1px solid #ddd; padding: 5px;">
+                            <div class="delete-signature-wrapper" style="margin-top: 5px;">
+                                <input type="checkbox" name="delete_signature" id="delete_signature" value="1">
+                                <label for="delete_signature">
+                                    <?= __('Remove Signature') ?>
+                                </label>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions-toolbar">
+            <div class="primary">
+                <button type="submit" class="action save primary" title="<?= __('Save Settings') ?>">
+                    <span>
+                        <?= __('Save Settings') ?>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    require([
+        'jquery',
+        'mage/mage'
+    ], function ($) {
+        var dataForm = $('#form-validate');
+        dataForm.mage('validation', {});
+    });
+</script>

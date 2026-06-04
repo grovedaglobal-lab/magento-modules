@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="marketplace_vendor_dashboard_layout"/>
+    <body>
+        <referenceBlock name="vendor.portal.wrapper">
+            <block class="Vendor\Marketplace\Block\Review\ReviewList" name="vendor.marketplace.review.list" as="main_content" template="Vendor_Marketplace::review/list.phtml" cacheable="false"/>
+        </referenceBlock>
+    </body>
+
+</page>

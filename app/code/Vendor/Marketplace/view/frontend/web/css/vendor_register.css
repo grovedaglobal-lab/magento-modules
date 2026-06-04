@@ -1,0 +1,210 @@
+/* Vendor Registration Styling - Consistent with Vendor Login */
+
+/* Page Background */
+body.vendor_marketplace-account-create {
+    background-color: #f4f6f8;
+}
+
+/* Center Page Title */
+body.vendor_marketplace-account-create .page-title {
+    text-align: center;
+}
+.page-title-wrapper {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.vendor-register-container {
+    max-width: 600px;
+    margin: 50px auto;
+    background: #fff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e1e1e1;
+}
+
+.vendor-register-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.vendor-register-header h2 {
+    font-size: 24px;
+    color: #333;
+    margin: 0 0 10px;
+    font-weight: 600;
+}
+
+.vendor-register-header p {
+    color: #777;
+    font-size: 14px;
+    margin: 0;
+}
+
+.vendor-register-container .block {
+    display: block;
+}
+
+.vendor-register-container .fieldset {
+    border: 0;
+    margin: 0 0 24px;
+    padding: 0;
+}
+
+.vendor-register-container .legend {
+    display: block;
+    margin-bottom: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.vendor-register-container .legend span {
+    display: block;
+}
+
+.vendor-register-container .field {
+    margin-bottom: 16px;
+}
+
+.vendor-register-container .field.note {
+    color: #555;
+    margin-bottom: 14px;
+    line-height: 1.5;
+}
+
+.vendor-register-container .label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.vendor-register-container .label span {
+    display: inline;
+}
+
+.vendor-register-container .control {
+    width: 100%;
+}
+
+.vendor-register-container input[type="text"],
+.vendor-register-container input[type="email"],
+.vendor-register-container input[type="password"],
+.vendor-register-container input[type="hidden"],
+.vendor-register-container .input-text,
+.vendor-register-container select,
+.vendor-register-container textarea {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 10px 12px;
+    box-sizing: border-box;
+    background: #fff;
+    font-size: 14px;
+}
+
+.vendor-register-container input[type="text"]:focus,
+.vendor-register-container input[type="email"]:focus,
+.vendor-register-container input[type="password"]:focus,
+.vendor-register-container input[type="hidden"]:focus,
+.vendor-register-container .input-text:focus,
+.vendor-register-container select:focus,
+.vendor-register-container textarea:focus {
+    outline: none;
+    border-color: #007bdb;
+    box-shadow: 0 0 0 2px rgba(0, 123, 219, 0.12);
+}
+
+.vendor-register-container .note {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #6f7782;
+}
+
+.vendor-register-container .form-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.vendor-register-container #password-strength-meter-container {
+    margin-top: 8px;
+    padding: 8px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+    font-size: 12px;
+    color: #555;
+}
+
+.vendor-register-container .actions-toolbar {
+    margin-top: 25px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 16px;
+}
+
+.vendor-register-container .actions-toolbar .primary {
+    flex: 0 1 auto;
+}
+
+.vendor-register-container .actions-toolbar .primary .action.submit {
+    background-color: #007bdb;
+    border: 1px solid #007bdb;
+    color: #fff;
+    padding: 10px 22px;
+    font-size: 16px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.vendor-register-container .actions-toolbar .primary .action.submit:hover {
+    background-color: #0056b3;
+}
+
+.vendor-register-container .actions-toolbar .secondary {
+    flex: 0 1 auto;
+}
+
+.vendor-register-container .actions-toolbar .secondary .action {
+    color: #007bdb;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.vendor-register-container .actions-toolbar .secondary .action:hover {
+    text-decoration: underline;
+}
+
+.vendor-register-link {
+    margin-top: 30px;
+    text-align: center;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+    font-size: 14px;
+}
+
+.vendor-register-link a {
+    font-weight: 600;
+    color: #007bdb;
+}
+
+@media (max-width: 768px) {
+    .vendor-register-container {
+        margin: 20px 12px;
+        padding: 24px 20px;
+    }
+
+    .vendor-register-container .actions-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

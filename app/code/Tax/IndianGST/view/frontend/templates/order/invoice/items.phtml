@@ -1,0 +1,38 @@
+<?php
+/**
+ * Copied from Magento_Sales::order/invoice/items.phtml
+ *
+ * @var \Magento\Sales\Block\Order\Invoice\Items $block
+ */
+?>
+<div class="table-wrapper invoice-items">
+    <table class="data table table-invoice-items" id="my-invoice-table-<?= (int) $block->getInvoice()->getId() ?>">
+        <caption class="table-caption"><?= $block->escapeHtml(__('Items Invoiced')) ?></caption>
+        <thead>
+            <tr>
+                <th class="col name"><?= $block->escapeHtml(__('Product Name')) ?></th>
+                <th class="col sku"><?= $block->escapeHtml(__('SKU')) ?></th>
+                <th class="col price"><?= $block->escapeHtml(__('Price')) ?></th>
+                <th class="col qty"><?= $block->escapeHtml(__('Qty Invoiced')) ?></th>
+                
+                <!-- GST Headers -->
+                <th class="col cgst"><?= $block->escapeHtml(__('CGST')) ?></th>
+                <th class="col sgst"><?= $block->escapeHtml(__('SGST')) ?></th>
+                <th class="col igst"><?= $block->escapeHtml(__('IGST')) ?></th>
+
+                <th class="col subtotal"><?= $block->escapeHtml(__('Subtotal')) ?></th>
+            </tr>
+        </thead>
+        <?php $_items = $block->getInvoice()->getAllItems(); ?>
+        <?php foreach ($_items as $_item) : ?>
+            <?php if (!$_item->getOrderItem()->getParentItem()) : ?>
+                <tbody>
+                    <?= $block->getItemHtml($_item) ?>
+                </tbody>
+            <?php endif; ?>
+        <?php endforeach; ?>
+        <tfoot>
+            <?= $block->getInvoiceTotalsHtml($block->getInvoice()) ?>
+        </tfoot>
+    </table>
+</div>

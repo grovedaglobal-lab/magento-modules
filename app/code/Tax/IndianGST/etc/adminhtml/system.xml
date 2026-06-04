@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="indiangst" translate="label" sortOrder="201">
+            <label>Indian GST</label>
+        </tab>
+        <section id="tax_indiangst" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>General Settings</label>
+            <tab>indiangst</tab>
+            <resource>Tax_IndianGST::config</resource>
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Configuration</label>
+                <field id="enable" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Module</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="gstin" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Admin GSTIN</label>
+                </field>
+                <field id="admin_logo" translate="label comment" type="image" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Admin Invoice Logo</label>
+                    <backend_model>Tax\IndianGST\Model\Config\Backend\AdminLogo</backend_model>
+                    <upload_dir config="system/filesystem/media">tax/indiangst/admin_logo</upload_dir>
+                    <base_url type="media">tax/indiangst/admin_logo</base_url>
+                    <comment>Upload logo used for admin invoice printouts.</comment>
+                </field>
+                <field id="display_price" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Display Product Prices In Catalog</label>
+                    <source_model>Magento\Tax\Model\System\Config\Source\Tax\Display\Type</source_model>
+                    <comment>Including or Excluding Tax</comment>
+                </field>
+            </group>
+            
+            <group id="marketplace_integration" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Marketplace Integration</label>
+                <field id="enable_multi_vendor" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Multi-Vendor Mode</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>If No, the system will use Admin Origin for all calculations regardless of vendor.</comment>
+                </field>
+
+                <field id="apply_gst_on_commission" translate="label comment" type="select" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Apply GST on Commission</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable GST calculation on marketplace commission (applicable for India)</comment>
+                </field>
+
+                <field id="commission_gst_rate" translate="label comment" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Commission GST Rate (%)</label>
+                    <comment>GST rate applicable on commission services (SAC Code: 9983). Default is 18%</comment>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <depends>
+                        <field id="apply_gst_on_commission">1</field>
+                    </depends>
+                </field>
+
+                <field id="commission_sac_code" translate="label comment" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Commission SAC Code</label>
+                    <comment>Service Accounting Code for Marketplace Commission. Default is 9983.</comment>
+                    <depends>
+                        <field id="apply_gst_on_commission">1</field>
+                    </depends>
+                </field>
+            </group>
+            
+            <group id="marketplace_integration_continued" translate="label" type="text" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
+                 <label>Marketplace Mapping</label>
+                 <field id="marketplace_module" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Marketplace Provider</label>
+                    <source_model>Tax\IndianGST\Model\Config\Source\MarketplaceModules</source_model>
+                    <comment>Select 'Custom' to manually map table and columns</comment>
+                </field>
+                <field id="vendor_table" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Vendor Entity Table Name</label>
+                    <frontend_model>Tax\IndianGST\Block\Adminhtml\System\Config\VendorTableField</frontend_model>
+                    <source_model>Tax\IndianGST\Model\Config\Source\Tables</source_model>
+                    <comment>Select the table where vendor data is stored</comment>
+                </field>
+                <field id="vendor_id_col" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Vendor ID Column</label>
+                    <source_model>Tax\IndianGST\Model\Config\Source\TableColumns</source_model>
+                    <comment>Primary key column (e.g., entity_id, vendor_id, seller_id)</comment>
+                </field>
+                <field id="vendor_business_name_col" translate="label" type="select" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Business Name Column</label>
+                    <source_model>Tax\IndianGST\Model\Config\Source\TableColumns</source_model>
+                    <comment>Column for Shop Name / Company Name</comment>
+                </field>
+                <field id="vendor_gstin_col" translate="label" type="select" sortOrder="26" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>GSTIN Column</label>
+                    <source_model>Tax\IndianGST\Model\Config\Source\TableColumns</source_model>
+                    <comment>Column for GST Number (if available)</comment>
+                </field>
+                <field id="vendor_pan_col" translate="label" type="select" sortOrder="27" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>PAN Number Column</label>
+                    <source_model>Tax\IndianGST\Model\Config\Source\TableColumns</source_model>
+                    <comment>Column for PAN Number</comment>
+                </field>
+                <field id="vendor_postcode_col" translate="label" type="select" sortOrder="28" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Postcode Column</label>
+                    <source_model>Tax\IndianGST\Model\Config\Source\TableColumns</source_model>
+                    <comment>Column for Zip/Pincode</comment>
+                </field>
+                <field id="vendor_state_col" translate="label" type="select" sortOrder="29" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>State/Region Column</label>
+                    <source_model>Tax\IndianGST\Model\Config\Source\TableColumns</source_model>
+                    <comment>Column for State (e.g., region, state, state_code)</comment>
+                </field>
+                <field id="vendor_code_col" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Vendor Display Column</label>
+                    <source_model>Tax\IndianGST\Model\Config\Source\TableColumns</source_model>
+                    <comment>Column to display in dropdown (e.g., shop_url, business_name)</comment>
+                </field>
+                <field id="product_vendor_attr" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Product Vendor Attribute Code</label>
+                    <source_model>Tax\IndianGST\Model\Config\Source\Attributes</source_model>
+                    <comment>Attribute linking product to vendor (select vendor_id or similar)</comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

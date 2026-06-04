@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">vendor_ads_wallet_listing.vendor_ads_wallet_listing_data_source</item>
+        </item>
+    </argument>
+    <settings>
+        <spinner>vendor_ads_wallet_columns</spinner>
+        <deps>
+            <dep>vendor_ads_wallet_listing.vendor_ads_wallet_listing_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="vendor_ads_wallet_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">vendor_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Vendor_Ads::ads_wallet</aclResource>
+        <dataProvider class="Vendor\Ads\Ui\DataProvider\Wallet\Listing" name="vendor_ads_wallet_listing_data_source">
+            <settings>
+                <requestFieldName>id</requestFieldName>
+                <primaryFieldName>vendor_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filters name="listing_filters"/>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+    <columns name="vendor_ads_wallet_columns">
+        <column name="vendor_id">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Vendor ID</label>
+            </settings>
+        </column>
+        <column name="vendor_name">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Vendor Name</label>
+            </settings>
+        </column>
+        <column name="balance" class="Magento\Sales\Ui\Component\Listing\Column\Price">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Current Balance</label>
+            </settings>
+        </column>
+        <column name="total_spent" class="Magento\Sales\Ui\Component\Listing\Column\Price">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Total Spent</label>
+            </settings>
+        </column>
+        <column name="updated_at" class="Magento\Ui\Component\Listing\Columns\Date" component="Magento_Ui/js/grid/columns/date">
+            <settings>
+                <filter>dateRange</filter>
+                <label translate="true">Last Updated</label>
+            </settings>
+        </column>
+        <actionsColumn name="actions" class="Vendor\Ads\Ui\Component\Listing\Column\WalletActions">
+            <settings>
+                <indexField>vendor_id</indexField>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>

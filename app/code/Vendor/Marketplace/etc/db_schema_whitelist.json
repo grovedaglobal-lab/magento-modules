@@ -1,0 +1,239 @@
+{
+    "vendor_entity": {
+        "column": {
+            "entity_id": true,
+            "customer_id": true,
+            "shop_url": true,
+            "status": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "VENDOR_ENTITY_CUSTOMER_ID": true,
+            "VENDOR_ENTITY_SHOP_URL": true
+        }
+    },
+    "vendor_profile": {
+        "column": {
+            "profile_id": true,
+            "vendor_id": true,
+            "shop_name": true,
+            "company_name": true,
+            "email": true,
+            "phone": true,
+            "website": true,
+            "description": true,
+            "address": true,
+            "city": true,
+            "state": true,
+            "zip_code": true,
+            "country": true,
+            "business_license": true,
+            "tax_id": true,
+            "business_license_document": true,
+            "tax_certificate_document": true,
+            "logo": true,
+            "banner": true,
+            "twitter_id": true,
+            "twitter_active": true,
+            "facebook_id": true,
+            "facebook_active": true,
+            "instagram_id": true,
+            "instagram_active": true,
+            "youtube_id": true,
+            "youtube_active": true,
+            "vimeo_id": true,
+            "vimeo_active": true,
+            "pinterest_id": true,
+            "pinterest_active": true,
+            "return_policy": true,
+            "shipping_policy": true,
+            "meta_keywords": true,
+            "meta_description": true,
+            "payment_history": true,
+            "payment_info": true,
+            "google_analytics_id": true,
+            "min_order_amount": true,
+            "low_stock_notification": true,
+            "fulfillment_image": true,
+            "fulfillment_text": true,
+            "pickup_address": true,
+            "pickup_city": true,
+            "pickup_state": true,
+            "pickup_zip_code": true,
+            "pickup_country": true,
+            "pickup_phone": true,
+            "pickup_email": true,
+            "free_shipping_amount": true,
+            "shipping_source": true,
+            "shipping_tax_class": true,
+            "allowed_shipping_sources": true,
+            "fulfillment_label": true,
+            "signature": true,
+            "authorized_name": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "VENDOR_PROFILE_VENDOR_ID_VENDOR_ENTITY_ENTITY_ID": true
+        }
+    },
+    "vendor_order": {
+        "column": {
+            "entity_id": true,
+            "vendor_id": true,
+            "order_id": true,
+            "subtotal": true,
+            "commission_amount": true,
+            "vendor_earnings": true,
+            "status": true,
+            "shipping_amount": true,
+            "discount_amount": true,
+            "commission_tax_amount": true,
+            "commission_cgst_amount": true,
+            "commission_sgst_amount": true,
+            "commission_igst_amount": true,
+            "commission_sac_code": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "VENDOR_ORDER_VENDOR_ID_VENDOR_ENTITY_ENTITY_ID": true
+        }
+    },
+    "vendor_commission": {
+        "column": {
+            "entity_id": true,
+            "category_id": true,
+            "min_price": true,
+            "max_price": true,
+            "commission_percent": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "vendor_payout": {
+        "column": {
+            "entity_id": true,
+            "vendor_id": true,
+            "amount": true,
+            "status": true,
+            "notes": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "VENDOR_PAYOUT_VENDOR_ID_VENDOR_ENTITY_ENTITY_ID": true
+        }
+    },
+    "vendor_category_permission": {
+        "column": {
+            "entity_id": true,
+            "vendor_id": true,
+            "category_id": true,
+            "status": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "VENDOR_CATEGORY_PERMISSION_VENDOR_ID_CATEGORY_ID": true,
+            "VENDOR_CATEGORY_PERMISSION_VENDOR_ID_VENDOR_ENTITY_ENTITY_ID": true
+        }
+    },
+    "vendor_document": {
+        "column": {
+            "entity_id": true,
+            "vendor_id": true,
+            "document_type": true,
+            "label": true,
+            "file_path": true,
+            "status": true,
+            "created_at": true,
+            "registration_date": true,
+            "expiry_date": true,
+            "certificate_number": true,
+            "issuer": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "VENDOR_DOCUMENT_VENDOR_ID_VENDOR_ENTITY_ENTITY_ID": true
+        }
+    },
+    "vendor_shipping_rate": {
+        "column": {
+            "rate_id": true,
+            "vendor_id": true,
+            "country_id": true,
+            "region_id": true,
+            "zip_code": true,
+            "weight_from": true,
+            "weight_to": true,
+            "price": true
+        },
+        "index": {
+            "VENDOR_SHIPPING_RATE_VENDOR_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "VENDOR_SHIPPING_RATE_VENDOR_ID_VENDOR_ENTITY_ENTITY_ID": true
+        }
+    },
+    "vendor_news": {
+        "column": {
+            "entity_id": true,
+            "title": true,
+            "content": true,
+            "status": true,
+            "target_type": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "vendor_news_seller": {
+        "column": {
+            "news_id": true,
+            "vendor_id": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "VENDOR_NEWS_SELLER_NEWS_ID_VENDOR_NEWS_ENTITY_ID": true,
+            "VENDOR_NEWS_SELLER_VENDOR_ID_VENDOR_ENTITY_ENTITY_ID": true
+        }
+    },
+    "vendor_notification": {
+        "column": {
+            "entity_id": true,
+            "vendor_id": true,
+            "type": true,
+            "title": true,
+            "message": true,
+            "link": true,
+            "is_read": true,
+            "created_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "VENDOR_NOTIFICATION_VENDOR_ID_VENDOR_ENTITY_ENTITY_ID": true
+        }
+    },
+    "vendor_sales_rule": {
+        "column": {
+            "entity_id": true,
+            "vendor_id": true,
+            "rule_id": true,
+            "created_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "VENDOR_SALES_RULE_VENDOR_ID_VENDOR_ENTITY_ENTITY_ID": true,
+            "VENDOR_SALES_RULE_RULE_ID_SALESRULE_RULE_ID": true
+        }
+    }
+}

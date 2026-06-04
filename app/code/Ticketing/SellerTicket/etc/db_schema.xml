@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="seller_ticket" resource="default" engine="innodb" comment="Seller Tickets">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Ticket ID"/>
+        <column xsi:type="int" name="vendor_id" unsigned="true" nullable="true" comment="Vendor ID"/>
+        <column xsi:type="int" name="customer_id" unsigned="true" nullable="true" comment="Customer ID"/>
+        <column xsi:type="varchar" name="subject" nullable="false" length="255" comment="Ticket Subject"/>
+        <column xsi:type="varchar" name="category" nullable="false" length="100" comment="Ticket Category"/>
+        <column xsi:type="varchar" name="status" nullable="false" length="50" default="Open" comment="Ticket Status"/>
+        <column xsi:type="varchar" name="priority" nullable="false" length="50" default="Medium" comment="Ticket Priority"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>
+        
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        
+        <index referenceId="SELLER_TICKET_VENDOR_ID" indexType="btree">
+            <column name="vendor_id"/>
+        </index>
+        <index referenceId="SELLER_TICKET_CUSTOMER_ID" indexType="btree">
+            <column name="customer_id"/>
+        </index>
+        <index referenceId="SELLER_TICKET_STATUS" indexType="btree">
+            <column name="status"/>
+        </index>
+    </table>
+
+    <table name="seller_ticket_message" resource="default" engine="innodb" comment="Seller Ticket Messages">
+        <column xsi:type="int" name="message_id" unsigned="true" nullable="false" identity="true" comment="Message ID"/>
+        <column xsi:type="int" name="ticket_id" unsigned="true" nullable="false" comment="Ticket ID"/>
+        <column xsi:type="varchar" name="sender_type" nullable="false" length="50" comment="Sender Type (Seller/Admin)"/>
+        <column xsi:type="varchar" name="sender_name" nullable="false" length="255" comment="Sender Name"/>
+        <column xsi:type="text" name="message" nullable="false" comment="Message Content"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="message_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="SELLER_TICKET_MESSAGE_TICKET_ID_SELLER_TICKET_ENTITY_ID" table="seller_ticket_message" column="ticket_id" referenceTable="seller_ticket" referenceColumn="entity_id" onDelete="CASCADE"/>
+        
+        <index referenceId="SELLER_TICKET_MESSAGE_TICKET_ID" indexType="btree">
+            <column name="ticket_id"/>
+        </index>
+    </table>
+</schema>

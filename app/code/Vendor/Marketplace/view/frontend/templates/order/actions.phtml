@@ -1,0 +1,86 @@
+<?php
+/** @var \Vendor\Marketplace\Block\Order\View $block */
+$vendorOrder = $block->getVendorOrder();
+$order = $block->getOrder();
+
+if (!$vendorOrder || !$order) {
+    return;
+}
+?>
+<div class="page-actions-buttons">
+    <div class="actions-group">
+        <?php
+        $payment = $order->getPayment();
+        $methodCode = $payment ? (string) $payment->getMethod() : '';
+        $isCod = in_array($methodCode, ['cashondelivery', 'checkmo'], true);
+        if (strtolower($order->getStatus()) != 'pending' || $isCod):
+            ?>
+            <?php if ($order->canInvoice()): ?>
+                <a href="<?= $block->getInvoiceUrl() ?>" class="action-btn primary action-invoice">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <?= __('Invoice') ?>
+                </a>
+            <?php endif; ?>
+
+            <?php if ($block->canVendorShip()): ?>
+                <a href="<?= $block->getShipUrl() ?>" class="action-btn secondary action-ship">
+                    <i class="fas fa-shipping-fast"></i>
+                    <?= $block->escapeHtml(__('Ship')) ?>
+                </a>
+            <?php endif; ?>
+
+            <?php if ($order->canCancel()): ?>
+                <a href="<?= $block->getCancelUrl() ?>" class="action-btn danger action-cancel"
+                    onclick="return confirm('Are you sure you want to cancel this order?');">
+                    <i class="fas fa-times-circle"></i>
+                    <?= __('Cancel') ?>
+                </a>
+            <?php endif; ?>
+        <?php endif; ?>
+
+
+        <?php if ($block->canPrintInvoice()): ?>
+            <a href="<?= $block->getPrintInvoiceUrl() ?>" class="action-btn action-print" target="_blank">
+                <i class="fas fa-file-invoice"></i>
+                <?= __('Print Invoice') ?>
+            </a>
+        <?php endif; ?>
+
+        <a href="<?= $block->getBackUrl() ?>" class="action-btn action-back">
+            <i class="fas fa-arrow-left"></i>
+            <?= __('Back to List') ?>
+        </a>
+    </div>
+</div>
+
+<div class="order-view-header">
+    <h2 class="order-title">
+        <?= __('Order #%1', $order->getIncrementId()) ?>
+    </h2>
+    <div class="order-meta-row">
+        <span class="order-date">
+            <?= date('M d, Y g:i A', strtotime($order->getCreatedAt())) ?>
+        </span>
+        <span class="order-status status-<?= strtolower($order->getStatus()) ?>">
+            <?= $order->getStatusLabel() ?>
+        </span>
+    </div>
+
+    <?php
+    $invoices = $block->getVendorInvoices();
+    if (count($invoices) > 0): ?>
+        <div class="order-invoices">
+            <span class="label"><?= __('Invoice ID:') ?></span>
+            <?php foreach ($invoices as $invoice): ?>
+                <span class="invoice-pill">#<?= $block->escapeHtml($invoice->getIncrementId()) ?></span>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</div>
+
+<script>
+    require(['jquery'], function ($) {
+        // Update the main dashboard title dynamically if we are on the order view page
+        $('.dashboard-page-title').text('<?= $block->escapeJs(__("Order Details")) ?>');
+    });
+</script>

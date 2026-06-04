@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <title>Manage Coupon</title>
+    </head>
+    <update handle="marketplace_vendor_dashboard_layout"/>
+    <body>
+        <referenceBlock name="vendor.portal.wrapper">
+            <block class="Vendor\Marketplace\Block\Coupon\Edit" name="vendor.coupon.edit" template="Vendor_Marketplace::coupon/edit.phtml" as="main_content"/>
+        </referenceBlock>
+    </body>
+</page>

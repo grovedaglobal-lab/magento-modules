@@ -1,0 +1,46 @@
+<?php
+/** @var $block \Vendor\Marketplace\Block\Seller\Navigation */
+// Manually defining menu items with Icons for the clone
+$menuItems = [
+    ['label' => 'Dashboard', 'url' => 'marketplace/seller/dashboard', 'icon' => 'fa-tachometer-alt'],
+    ['label' => 'Orders', 'url' => 'marketplace/order/history', 'icon' => 'fa-dollar-sign'],
+    ['label' => 'Products', 'url' => 'marketplace/product/index', 'icon' => 'fa-box'],
+    ['label' => 'Coupons', 'url' => 'marketplace/coupon/index', 'icon' => 'fa-ticket-alt'],
+    ['label' => 'Coupon Report', 'url' => 'marketplace/report/coupon', 'icon' => 'fa-chart-line'],
+    ['label' => 'Earnings', 'url' => 'marketplace/report/earnings', 'icon' => 'fa-chart-pie'],
+    ['label' => 'Review', 'url' => 'marketplace/review/index', 'icon' => 'fa-star'],
+    ['label' => 'Tickets', 'url' => 'sellerticket/ticket/index', 'icon' => 'fa-headset'],
+    ['label' => 'Admin News', 'url' => 'marketplace/news/list', 'icon' => 'fa-newspaper'],
+    ['label' => 'Shipping', 'url' => 'marketplace/shipping/index', 'icon' => 'fa-truck'],
+    // --- Vendor Ads ---
+    ['label' => 'My Advertisements', 'url' => 'vendor_ads/vendor/index', 'icon' => 'fa-bullhorn'],
+    ['label' => 'Ad Performance', 'url' => 'vendor_ads/vendor/report', 'icon' => 'fa-chart-bar'],
+    ['label' => 'Ad Wallet', 'url' => 'vendor_ads/vendor/wallet', 'icon' => 'fa-wallet'],
+    ['label' => 'Recharge History', 'url' => 'vendor_ads/vendor/wallethistory', 'icon' => 'fa-history'],
+    // ------------------
+    ['label' => 'Settings', 'url' => 'marketplace/seller/profile', 'icon' => 'fa-cog'],
+];
+?>
+<div class="block account-nav">
+    <div class="content">
+        <nav class="account-nav-content">
+            <ul class="nav items">
+                <?php foreach ($menuItems as $item): ?>
+                    <?php
+                    $isCurrent = $block->getRequest()->getFullActionName() == 'vendor_marketplace_seller_dashboard' && strpos($item['url'], 'dashboard') !== false;
+                    // Simple active check logic for now, can be improved
+                    if (strpos($block->getUrl($item['url']), $block->getRequest()->getPathInfo()) !== false) {
+                        $isCurrent = true;
+                    }
+                    ?>
+                    <li class="nav item <?= $isCurrent ? 'current' : '' ?>">
+                        <a href="<?= $block->getUrl($item['url']) ?>">
+                            <i class="fas <?= $item['icon'] ?>"></i>
+                            <span class="nav-label"><?= $item['label'] ?></span>
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </nav>
+    </div>
+</div>

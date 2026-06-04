@@ -1,0 +1,960 @@
+<?php
+/** @var \Vendor\Marketplace\Block\Seller\Profile $block */
+$profile = $block->getProfile();
+$vendor = $block->getVendor();
+
+?>
+<div class="vendor-profile-container">
+    <form class="form form-edit-account" action="<?= $block->escapeUrl($block->getSaveUrl()) ?>" method="post"
+        id="form-validate" enctype="multipart/form-data"
+        data-hasrequired="<?= $block->escapeHtmlAttr(__('* Required Fields')) ?>" autocomplete="off">
+        <?= $block->getBlockHtml('formkey') ?>
+
+        <!-- General Information Card -->
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header">
+                <h3><i class="fas fa-user-edit"></i> <?= $block->escapeHtml(__('Profile Information')) ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="profile-form-grid">
+                    <div class="form-field-group required">
+                        <label for="shop_name"><?= $block->escapeHtml(__('Shop Name')) ?></label>
+                        <input type="text" name="shop_name" id="shop_name"
+                            value="<?= $block->escapeHtmlAttr($profile->getShopName()) ?>" class="input-text shadow-xs"
+                            data-validate="{required:true}">
+                    </div>
+                    <div class="form-field-group">
+                        <label for="company_name"><?= $block->escapeHtml(__('Company Name')) ?></label>
+                        <input type="text" name="company_name" id="company_name"
+                            value="<?= $block->escapeHtmlAttr($profile->getCompanyName()) ?>"
+                            class="input-text shadow-xs">
+                    </div>
+                </div>
+
+                <div class="form-field-group mt-6">
+                    <label for="website"><?= $block->escapeHtml(__('Website URL')) ?></label>
+                    <input type="text" name="website" id="website"
+                        value="<?= $block->escapeHtmlAttr($profile->getData('website')) ?>" class="input-text shadow-xs"
+                        data-validate="{ 'validate-url': true }">
+                </div>
+
+                <div class="form-field-group mt-6">
+                    <label for="description"><?= $block->escapeHtml(__('Company Description')) ?></label>
+                    <textarea name="description" id="description" class="input-text shadow-xs" cols="5"
+                        rows="5"><?= $block->escapeHtml($profile->getDescription()) ?></textarea>
+                </div>
+
+                <div class="profile-form-grid mt-6">
+                    <div class="form-field-group">
+                        <label for="logo"><?= $block->escapeHtml(__('Shop Logo')) ?></label>
+                        <div class="upload-control">
+                            <input type="file" name="logo" id="logo" accept="image/*" class="input-file">
+                            <?php if ($profile->getLogo()): ?>
+                                <div class="current-asset shadow-sm mt-3">
+                                    <img src="<?= $block->escapeUrl($block->getMediaUrl() . 'vendor/logo/' . $profile->getLogo()) ?>"
+                                        alt="Current Logo">
+                                    <div class="mt-2">
+                                        <input type="checkbox" name="delete_logo" id="delete_logo" value="1">
+                                        <label for="delete_logo"><?= $block->escapeHtml(__('Remove Logo')) ?></label>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="banner"><?= $block->escapeHtml(__('Company Banner')) ?></label>
+                        <div class="upload-control">
+                            <input type="file" name="banner" id="banner" accept="image/*" class="input-file">
+                            <?php if ($profile->getData('banner')): ?>
+                                <div class="current-asset shadow-sm mt-3">
+                                    <img src="<?= $block->escapeUrl($block->getMediaUrl() . 'vendor/banner/' . $profile->getData('banner')) ?>"
+                                        alt="Current Banner">
+                                    <div class="mt-2">
+                                        <input type="checkbox" name="delete_banner" id="delete_banner" value="1">
+                                        <label for="delete_banner"><?= $block->escapeHtml(__('Remove Banner')) ?></label>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Business Information Card -->
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header">
+                <h3><i class="fas fa-briefcase"></i> <?= $block->escapeHtml(__('Business Information')) ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="profile-form-grid">
+                    <div class="form-field-group">
+                        <label for="business_license"><?= $block->escapeHtml(__('Business License Number')) ?></label>
+                        <input type="text" name="business_license" id="business_license"
+                            value="<?= $block->escapeHtmlAttr($profile->getData('business_license')) ?>"
+                            class="input-text shadow-xs">
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="tax_id"><?= $block->escapeHtml(__('Tax ID / VAT Number')) ?></label>
+                        <input type="text" name="tax_id" id="tax_id"
+                            value="<?= $block->escapeHtmlAttr($profile->getData('tax_id')) ?>"
+                            class="input-text shadow-xs">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vendor Documents Card -->
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header">
+                <h3><i class="fas fa-file-contract"></i> <?= $block->escapeHtml(__('Vendor Documents')) ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="table-wrapper shadow-xs rounded-lg overflow-hidden border border-gray-100">
+                    <table class="shipping-rates-table">
+                        <thead>
+                            <tr>
+                                <th class="col label"><?= $block->escapeHtml(__('Document Label')) ?></th>
+                                <th class="col type"><?= $block->escapeHtml(__('Type')) ?></th>
+                                <th class="col type"><?= $block->escapeHtml(__('Reg. Date')) ?></th>
+                                <th class="col type"><?= $block->escapeHtml(__('Expiry Date')) ?></th>
+                                <th class="col status text-center"><?= $block->escapeHtml(__('Status')) ?></th>
+                                <th class="col file text-center"><?= $block->escapeHtml(__('File')) ?></th>
+                                <th class="col delete text-center"><?= $block->escapeHtml(__('Delete')) ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php $documents = $block->getOtherDocuments(); ?>
+                            <?php if (count($documents)): ?>
+                                <?php foreach ($documents as $document): ?>
+                                    <tr>
+                                        <td class="col label font-bold text-gray-700">
+                                            <?= $block->escapeHtml($document->getLabel()) ?>
+                                        </td>
+                                        <td class="col type text-sm text-gray-600">
+                                            <?= $block->escapeHtml(ucwords(str_replace('_', ' ', $document->getDocumentType()))) ?>
+                                        </td>
+                                        <td class="col type text-sm text-gray-600">
+                                            <?= $document->getRegistrationDate() ? $block->formatDate($document->getRegistrationDate(), \IntlDateFormatter::MEDIUM) : '-' ?>
+                                        </td>
+                                        <td class="col type text-sm text-gray-600">
+                                            <?= $document->getExpiryDate() ? $block->formatDate($document->getExpiryDate(), \IntlDateFormatter::MEDIUM) : '-' ?>
+                                        </td>
+                                        <td class="col status text-center">
+                                            <?php
+                                            $status = $document->getStatus();
+                                            $statusLabel = 'Pending';
+                                            $statusClass = 'pending';
+                                            if ($status == 1) {
+                                                $statusLabel = 'Approved';
+                                                $statusClass = 'enabled';
+                                            } elseif ($status == 2) {
+                                                $statusLabel = 'Rejected';
+                                                $statusClass = 'disabled';
+                                            }
+                                            ?>
+                                            <span
+                                                class="status-badge <?= $statusClass ?>"><?= $block->escapeHtml(__($statusLabel)) ?></span>
+                                        </td>
+                                        <td class="col file text-center">
+                                            <?php if ($document->getFilePath()): ?>
+                                                <a href="<?= $block->getUrl('vendor_marketplace/document/view', ['id' => $document->getId()]) ?>"
+                                                    target="_blank" class="tool-btn view whitespace-nowrap">
+                                                    <i class="fas fa-eye"></i> <?= $block->escapeHtml(__('View')) ?>
+                                                </a>
+                                            <?php else: ?>
+                                                <span
+                                                    class="text-xs text-gray-400 italic"><?= $block->escapeHtml(__('No File')) ?></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="col delete text-center">
+                                            <a href="<?= $block->getUrl('marketplace/seller/deleteDocument', ['id' => $document->getId()]) ?>"
+                                                class="tool-btn delete"
+                                                onclick="return confirm('<?= $block->escapeJs(__('Are you sure you want to delete this document?')) ?>')">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="5" class="text-center py-10 italic text-gray-400">
+                                        <?= $block->escapeHtml(__('No documents uploaded yet.')) ?>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-10">
+                    <label class="font-bold text-gray-700 block mb-4 border-b pb-2">
+                        <i class="fas fa-plus-circle text-blue-500"></i>
+                        <?= $block->escapeHtml(__('Add New Vendor Document')) ?>
+                    </label>
+                    <div class="table-wrapper shadow-xs rounded-lg border border-gray-100" style="overflow-x:auto; overflow-y:hidden;">
+                        <table class="shipping-rates-table" style="min-width: 1400px;">
+                            <thead>
+                                <tr>
+                                    <th><?= $block->escapeHtml(__('Document Label')) ?></th>
+                                    <th><?= $block->escapeHtml(__('Type')) ?></th>
+                                    <th><?= $block->escapeHtml(__('Reg. Date')) ?></th>
+                                    <th><?= $block->escapeHtml(__('Expiry Date')) ?></th>
+                                    <th><?= $block->escapeHtml(__('File')) ?></th>
+                                    <th class="text-center"><?= $block->escapeHtml(__('Action')) ?></th>
+                                </tr>
+                            </thead>
+                            <tbody id="new-documents-body">
+                                <!-- Rows will be added here via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4">
+                        <button type="button" id="add-document-btn" class="action-btn secondary">
+                            <i class="fas fa-plus"></i> <?= $block->escapeHtml(__('Add Document Row')) ?>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Organic Certification Card -->
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header">
+                <h3><i class="fas fa-leaf"></i> <?= $block->escapeHtml(__('Organic Certification')) ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="table-wrapper shadow-xs rounded-lg overflow-hidden border border-gray-100">
+                    <table class="shipping-rates-table">
+                        <thead>
+                            <tr>
+                                <th class="col label"><?= $block->escapeHtml(__('Certification Name')) ?></th>
+                                <th class="col label"><?= $block->escapeHtml(__('Certificate Number')) ?></th>
+                                <th class="col label"><?= $block->escapeHtml(__('Issuing Body')) ?></th>
+                                <th class="col type"><?= $block->escapeHtml(__('Reg. Date')) ?></th>
+                                <th class="col type"><?= $block->escapeHtml(__('Expiry Date')) ?></th>
+                                <th class="col status text-center"><?= $block->escapeHtml(__('Status')) ?></th>
+                                <th class="col file text-center"><?= $block->escapeHtml(__('File')) ?></th>
+                                <th class="col delete text-center"><?= $block->escapeHtml(__('Delete')) ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php $organicDocs = $block->getOrganicCertifications(); ?>
+                            <?php if (count($organicDocs)): ?>
+                                <?php foreach ($organicDocs as $document): ?>
+                                    <tr>
+                                        <td class="col label font-bold text-gray-700">
+                                            <?= $block->escapeHtml($document->getLabel()) ?>
+                                        </td>
+                                        <td class="col label text-sm text-gray-600">
+                                            <?= $block->escapeHtml($document->getCertificateNumber()) ?>
+                                        </td>
+                                        <td class="col label text-sm text-gray-600">
+                                            <?= $block->escapeHtml($document->getIssuer()) ?>
+                                        </td>
+                                        <td class="col type text-sm text-gray-600">
+                                            <?= $document->getRegistrationDate() ? $block->formatDate($document->getRegistrationDate(), \IntlDateFormatter::MEDIUM) : '-' ?>
+                                        </td>
+                                        <td class="col type text-sm text-gray-600">
+                                            <?= $document->getExpiryDate() ? $block->formatDate($document->getExpiryDate(), \IntlDateFormatter::MEDIUM) : '-' ?>
+                                        </td>
+                                        <td class="col status text-center">
+                                            <?php
+                                            $status = $document->getStatus();
+                                            $statusLabel = 'Pending';
+                                            $statusClass = 'pending';
+                                            if ($status == 1) {
+                                                $statusLabel = 'Approved';
+                                                $statusClass = 'enabled';
+                                            } elseif ($status == 2) {
+                                                $statusLabel = 'Rejected';
+                                                $statusClass = 'disabled';
+                                            }
+                                            ?>
+                                            <span
+                                                class="status-badge <?= $statusClass ?>"><?= $block->escapeHtml(__($statusLabel)) ?></span>
+                                        </td>
+                                        <td class="col file text-center">
+                                            <?php if ($document->getFilePath()): ?>
+                                                <a href="<?= $block->getUrl('vendor_marketplace/document/view', ['id' => $document->getId()]) ?>"
+                                                    target="_blank" class="tool-btn view whitespace-nowrap">
+                                                    <i class="fas fa-eye"></i> <?= $block->escapeHtml(__('View')) ?>
+                                                </a>
+                                            <?php else: ?>
+                                                <span
+                                                    class="text-xs text-gray-400 italic"><?= $block->escapeHtml(__('No File')) ?></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="col delete text-center">
+                                            <a href="<?= $block->getUrl('marketplace/seller/deleteDocument', ['id' => $document->getId()]) ?>"
+                                                class="tool-btn delete"
+                                                onclick="return confirm('<?= $block->escapeJs(__('Are you sure you want to delete this certification?')) ?>')">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="6" class="text-center py-10 italic text-gray-400">
+                                        <?= $block->escapeHtml(__('No organic certifications uploaded yet.')) ?>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-10">
+                    <label class="font-bold text-gray-700 block mb-4 border-b pb-2">
+                        <i class="fas fa-plus-circle text-green-500"></i>
+                        <?= $block->escapeHtml(__('Add New Organic Certifications')) ?>
+                    </label>
+                    <div class="table-wrapper shadow-xs rounded-lg border border-gray-100" style="overflow-x:auto; overflow-y:hidden;">
+                        <table class="shipping-rates-table" style="min-width: 1100px;">
+                            <thead>
+                                <tr>
+                                    <th><?= $block->escapeHtml(__('Certification Name')) ?></th>
+                                    <th><?= $block->escapeHtml(__('Certificate Number')) ?></th>
+                                    <th><?= $block->escapeHtml(__('Issuing Body')) ?></th>
+                                    <th><?= $block->escapeHtml(__('Reg. Date')) ?></th>
+                                    <th><?= $block->escapeHtml(__('Expiry Date')) ?></th>
+                                    <th><?= $block->escapeHtml(__('File')) ?></th>
+                                    <th class="text-center"><?= $block->escapeHtml(__('Action')) ?></th>
+                                </tr>
+                            </thead>
+                            <tbody id="new-organic-body">
+                                <!-- Rows will be added here via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4">
+                        <button type="button" id="add-organic-btn" class="action-btn secondary">
+                            <i class="fas fa-plus"></i> <?= $block->escapeHtml(__('Add Certification Row')) ?>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Media Links Card -->
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header">
+                <h3><i class="fas fa-share-alt"></i> <?= $block->escapeHtml(__('Social Media Links')) ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="profile-form-grid">
+                    <?php
+                    $socialIcons = [
+                        'twitter' => 'fab fa-twitter text-blue-400',
+                        'facebook' => 'fab fa-facebook text-blue-600',
+                        'instagram' => 'fab fa-instagram text-pink-500',
+                        'youtube' => 'fab fa-youtube text-red-600',
+                        'vimeo' => 'fab fa-vimeo text-blue-400',
+                        'pinterest' => 'fab fa-pinterest text-red-700'
+                    ];
+                    foreach ($socialIcons as $social => $icon):
+                        ?>
+                        <div class="form-field-group">
+                            <label for="<?= $social ?>_id">
+                                <i class="<?= $icon ?> mr-1"></i> <?= $block->escapeHtml(ucfirst($social) . ' ID') ?>
+                            </label>
+                            <div class="flex items-center gap-4">
+                                <input type="text" name="<?= $social ?>_id" id="<?= $social ?>_id"
+                                    value="<?= $block->escapeHtmlAttr($profile->getData($social . '_id')) ?>"
+                                    class="input-text shadow-xs flex-grow"
+                                    placeholder="<?= $block->escapeHtmlAttr(__('Username/ID')) ?>">
+                                <div class="toggle-switch">
+                                    <input type="checkbox" name="<?= $social ?>_active" id="<?= $social ?>_active" value="1"
+                                        <?= $profile->getData($social . '_active') ? 'checked' : '' ?>>
+                                    <label for="<?= $social ?>_active" class="shadow-xs"></label>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- COA Report Section -->
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header flex justify-between items-center">
+                <h3 class="flex items-center">
+                    <i class="fas fa-file-alt mr-2 text-blue-500"></i>
+                    <?= $block->escapeHtml(__('COA Report')) ?>
+                </h3>
+                <button type="button" class="action-btn secondary" id="add-coa-btn">
+                    <i class="fas fa-plus mr-1"></i>
+                    <?= $block->escapeHtml(__('Add New COA')) ?>
+                </button>
+            </div>
+            <div class="card-content">
+                <?php $coaReports = $block->getCoaReports(); ?>
+                <?php if (empty($coaReports)): ?>
+                    <div
+                        class="text-center py-6 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                        <i class="fas fa-cloud-upload-alt text-3xl mb-2"></i>
+                        <p>
+                            <?= $block->escapeHtml(__('No COA reports uploaded yet.')) ?>
+                        </p>
+                    </div>
+                <?php else: ?>
+                    <div class="table-wrapper shadow-xs rounded-lg border border-gray-100" style="overflow-x:auto; overflow-y:hidden;">
+                        <table class="shipping-rates-table" style="min-width: 1300px;">
+                            <thead>
+                                <tr>
+                                    <th class="col label">
+                                        <?= $block->escapeHtml(__('Report Name')) ?>
+                                    </th>
+                                    <th class="col label">
+                                        <?= $block->escapeHtml(__('Report Number')) ?>
+                                    </th>
+                                    <th class="col label">
+                                        <?= $block->escapeHtml(__('Issuing Body')) ?>
+                                    </th>
+                                    <th class="col label">
+                                        <?= $block->escapeHtml(__('Product Name')) ?>
+                                    </th>
+                                    <th class="col label">
+                                        <?= $block->escapeHtml(__('Product Description')) ?>
+                                    </th>
+                                    <th class="col type">
+                                        <?= $block->escapeHtml(__('Reg. Date')) ?>
+                                    </th>
+                                    <th class="col type">
+                                        <?= $block->escapeHtml(__('Expiry Date')) ?>
+                                    </th>
+                                    <th class="col status text-center">
+                                        <?= $block->escapeHtml(__('Status')) ?>
+                                    </th>
+                                    <th class="col file text-center">
+                                        <?= $block->escapeHtml(__('File')) ?>
+                                    </th>
+                                    <th class="col delete text-center">
+                                        <?= $block->escapeHtml(__('Delete')) ?>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($coaReports as $document): ?>
+                                    <tr>
+                                        <td class="col label font-bold text-gray-700">
+                                            <?= $block->escapeHtml($document->getLabel()) ?>
+                                        </td>
+                                        <td class="col label text-sm text-gray-600">
+                                            <?= $block->escapeHtml($document->getCertificateNumber()) ?>
+                                        </td>
+                                        <td class="col label text-sm text-gray-600">
+                                            <?= $block->escapeHtml($document->getIssuer()) ?>
+                                        </td>
+                                        <td class="col label text-sm text-gray-600">
+                                            <?= $block->escapeHtml($document->getProductName()) ?>
+                                        </td>
+                                        <td class="col label text-sm text-gray-600">
+                                            <?= $block->escapeHtml($document->getProductDesc()) ?>
+                                        </td>
+                                        <td class="col type text-sm text-gray-600">
+                                            <?= $document->getRegistrationDate() ? $block->formatDate($document->getRegistrationDate(), \IntlDateFormatter::MEDIUM) : '-' ?>
+                                        </td>
+                                        <td class="col type text-sm text-gray-600">
+                                            <?= $document->getExpiryDate() ? $block->formatDate($document->getExpiryDate(), \IntlDateFormatter::MEDIUM) : '-' ?>
+                                        </td>
+                                        <td class="col status text-center">
+                                            <?php
+                                            $status = $document->getStatus();
+                                            $statusLabel = 'Pending';
+                                            $statusClass = 'pending';
+                                            if ($status == 1) {
+                                                $statusLabel = 'Approved';
+                                                $statusClass = 'enabled';
+                                            } elseif ($status == 2) {
+                                                $statusLabel = 'Rejected';
+                                                $statusClass = 'disabled';
+                                            }
+                                            ?>
+                                            <span class="status-badge <?= $statusClass ?>">
+                                                <?= $block->escapeHtml(__($statusLabel)) ?>
+                                            </span>
+                                        </td>
+                                        <td class="col file text-center">
+                                            <?php if ($document->getFilePath()): ?>
+                                                <a href="<?= $block->getUrl('vendor_marketplace/document/view', ['id' => $document->getId()]) ?>"
+                                                    target="_blank" class="tool-btn view whitespace-nowrap">
+                                                    <i class="fas fa-eye"></i>
+                                                    <?= $block->escapeHtml(__('View')) ?>
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="text-xs text-gray-400 italic">
+                                                    <?= $block->escapeHtml(__('No File')) ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="col delete text-center">
+                                            <a href="<?= $block->getUrl('marketplace/seller/deleteDocument', ['id' => $document->getId()]) ?>"
+                                                class="tool-btn delete"
+                                                onclick="return confirm('<?= $block->escapeJs(__('Are you sure you want to delete this report?')) ?>')">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+
+                <!-- Add New COA Table -->
+                <div id="new-coa-container" class="mt-10 hidden">
+                    <label class="font-bold text-gray-700 block mb-4 border-b pb-2">
+                        <i class="fas fa-plus-circle text-blue-500"></i>
+                        <?= $block->escapeHtml(__('Add New COA Reports')) ?>
+                    </label>
+                    <div class="table-wrapper shadow-xs rounded-lg border border-gray-100" style="overflow-x:auto; overflow-y:hidden;">
+                        <table class="shipping-rates-table" style="min-width: 1300px;">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <?= $block->escapeHtml(__('Report Name')) ?>
+                                    </th>
+                                    <th>
+                                        <?= $block->escapeHtml(__('Report Number')) ?>
+                                    </th>
+                                    <th>
+                                        <?= $block->escapeHtml(__('Issuing Body')) ?>
+                                    </th>
+                                    <th>
+                                        <?= $block->escapeHtml(__('Product Name')) ?>
+                                    </th>
+                                    <th>
+                                        <?= $block->escapeHtml(__('Product Description')) ?>
+                                    </th>
+                                    <th>
+                                        <?= $block->escapeHtml(__('Reg. Date')) ?>
+                                    </th>
+                                    <th>
+                                        <?= $block->escapeHtml(__('Expiry Date')) ?>
+                                    </th>
+                                    <th>
+                                        <?= $block->escapeHtml(__('File')) ?>
+                                    </th>
+                                    <th class="text-center">
+                                        <?= $block->escapeHtml(__('Action')) ?>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="new-coa-body">
+                                <!-- New rows will be added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Policies Card -->
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header">
+                <h3><i class="fas fa-gavel"></i> <?= $block->escapeHtml(__('Policies')) ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="form-field-group">
+                    <label for="return_policy"><?= $block->escapeHtml(__('Return Policy')) ?></label>
+                    <textarea name="return_policy" id="return_policy" class="input-text shadow-xs"
+                        rows="5"><?= $block->escapeHtml($profile->getData('return_policy')) ?></textarea>
+                </div>
+
+                <div class="form-field-group mt-10">
+                    <label for="shipping_policy"><?= $block->escapeHtml(__('Shipping Policy')) ?></label>
+                    <textarea name="shipping_policy" id="shipping_policy" class="input-text shadow-xs"
+                        rows="5"><?= $block->escapeHtml($profile->getData('shipping_policy')) ?></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEO Information Card -->
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header">
+                <h3><i class="fas fa-search"></i> <?= $block->escapeHtml(__('SEO Information')) ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="form-field-group">
+                    <label for="meta_keywords"><?= $block->escapeHtml(__('Meta Keywords')) ?></label>
+                    <textarea name="meta_keywords" id="meta_keywords" class="input-text shadow-xs"
+                        rows="3"><?= $block->escapeHtml($profile->getData('meta_keywords')) ?></textarea>
+                </div>
+
+                <div class="form-field-group mt-10">
+                    <label for="meta_description"><?= $block->escapeHtml(__('Meta Description')) ?></label>
+                    <textarea name="meta_description" id="meta_description" class="input-text shadow-xs"
+                        rows="3"><?= $block->escapeHtml($profile->getData('meta_description')) ?></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Information Card -->
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header">
+                <h3><i class="fas fa-credit-card"></i> <?= $block->escapeHtml(__('Payment Information')) ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="form-field-group">
+                    <label for="payment_info"><?= $block->escapeHtml(__('Payment Details')) ?></label>
+                    <input type="text" name="payment_info" id="payment_info"
+                        value="<?= $block->escapeHtmlAttr($profile->getData('payment_info')) ?>"
+                        class="input-text shadow-xs"
+                        placeholder="<?= $block->escapeHtmlAttr(__('e.g., Bank Account details')) ?>">
+                </div>
+
+                <div class="form-field-group mt-6">
+                    <label for="payment_document"><?= $block->escapeHtml(__('Payment Document (PDF only)')) ?></label>
+                    <div class="upload-control">
+                        <input type="file" name="payment_document" id="payment_document" accept=".pdf"
+                            class="input-file">
+                        <?php if ($profile->getData('payment_document')): ?>
+                            <div class="current-asset shadow-sm mt-3">
+                                <?php $ext = pathinfo($profile->getData('payment_document'), PATHINFO_EXTENSION); ?>
+                                <?php if (strtolower($ext) === 'pdf'): ?>
+                                    <a href="<?= $block->escapeUrl($block->getMediaUrl() . 'vendor/payment_document/' . ltrim($profile->getData('payment_document'), '/')) ?>"
+                                        target="_blank" class="text-blue-600 hover:underline">
+                                        <i class="fas fa-file-pdf"></i> <?= $block->escapeHtml(__('View Payment Document')) ?>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Card -->
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header">
+                <h3><i class="fas fa-cog"></i> <?= $block->escapeHtml(__('Advanced Settings')) ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="profile-form-grid">
+                    <div class="form-field-group" style="display: none;">
+                        <label for="google_analytics_id"><?= $block->escapeHtml(__('Google Analytic Id')) ?></label>
+                        <input type="text" name="google_analytics_id" id="google_analytics_id"
+                            value="<?= $block->escapeHtmlAttr($profile->getData('google_analytics_id')) ?>"
+                            class="input-text shadow-xs" placeholder="UA-XXXXXXXXX-X or G-XXXXXXXXXX">
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="min_order_amount"><?= $block->escapeHtml(__('Minimum Order Amount')) ?></label>
+                        <input type="text" name="min_order_amount" id="min_order_amount"
+                            value="<?= $block->escapeHtmlAttr($profile->getData('min_order_amount')) ?>"
+                            class="input-text shadow-xs">
+                    </div>
+                </div>
+
+                <div class="form-field-group mt-6">
+                    <label
+                        for="low_stock_notification"><?= $block->escapeHtml(__('Low Stock Quantity Notification')) ?></label>
+                    <input type="number" name="low_stock_notification" id="low_stock_notification"
+                        value="<?= $block->escapeHtmlAttr($profile->getData('low_stock_notification')) ?>"
+                        class="input-text shadow-xs" placeholder="5">
+                </div>
+            </div>
+        </div>
+
+        <!-- Fulfillment Card -->
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header">
+                <h3><i class="fas fa-truck-loading"></i> <?= $block->escapeHtml(__('Fulfillment Information')) ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="form-field-group">
+                    <label for="fulfillment_image"><?= $block->escapeHtml(__('Fulfillment Image')) ?></label>
+                    <div class="upload-control">
+                        <input type="file" name="fulfillment_image" id="fulfillment_image" accept="image/*"
+                            class="input-file">
+                        <?php if ($profile->getData('fulfillment_image')): ?>
+                            <div class="current-asset shadow-sm mt-3">
+                                <img src="<?= $block->escapeUrl($block->getMediaUrl() . 'vendor/fulfillment/' . $profile->getData('fulfillment_image')) ?>"
+                                    alt="Current Fulfillment Image">
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="profile-form-grid mt-10">
+                    <div class="form-field-group">
+                        <label for="fulfillment_label"><?= $block->escapeHtml(__('Fulfillment Label')) ?></label>
+                        <input type="text" name="fulfillment_label" id="fulfillment_label"
+                            value="<?= $block->escapeHtmlAttr($profile->getData('fulfillment_label')) ?>"
+                            class="input-text shadow-xs"
+                            placeholder="<?= $block->escapeHtmlAttr(__('e.g., Fast Shipping')) ?>">
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="fulfillment_text"><?= $block->escapeHtml(__('Fulfillment Text')) ?></label>
+                        <input type="text" name="fulfillment_text" id="fulfillment_text"
+                            value="<?= $block->escapeHtmlAttr($profile->getData('fulfillment_text')) ?>"
+                            class="input-text shadow-xs"
+                            placeholder="<?= $block->escapeHtmlAttr(__('e.g., Delivered in 2-4 business days')) ?>">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact & Address Card -->
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header">
+                <h3><i class="fas fa-address-book"></i> <?= $block->escapeHtml(__('Contact & Address Information')) ?>
+                </h3>
+            </div>
+            <div class="card-content">
+                <div class="profile-form-grid">
+                    <div class="form-field-group">
+                        <label for="phone"><?= $block->escapeHtml(__('Phone Number')) ?></label>
+                        <input type="text" name="phone" id="phone"
+                            value="<?= $block->escapeHtmlAttr($profile->getPhone()) ?>" class="input-text shadow-xs">
+                    </div>
+                    <div class="form-field-group">
+                        <label for="country"><?= $block->escapeHtml(__('Country')) ?></label>
+                        <input type="text" name="country" id="country"
+                            value="<?= $block->escapeHtmlAttr($profile->getData('country')) ?>"
+                            class="input-text shadow-xs">
+                    </div>
+                </div>
+
+                <div class="form-field-group mt-6">
+                    <label for="address"><?= $block->escapeHtml(__('Street Address')) ?></label>
+                    <input type="text" name="address" id="address"
+                        value="<?= $block->escapeHtmlAttr($profile->getAddress()) ?>" class="input-text shadow-xs">
+                </div>
+
+                <div class="profile-form-grid mt-6">
+                    <div class="form-field-group">
+                        <label for="city"><?= $block->escapeHtml(__('City')) ?></label>
+                        <input type="text" name="city" id="city"
+                            value="<?= $block->escapeHtmlAttr($profile->getCity()) ?>" class="input-text shadow-xs">
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="state"><?= $block->escapeHtml(__('State/Province')) ?></label>
+                        <input type="text" name="state" id="state"
+                            value="<?= $block->escapeHtmlAttr($profile->getData('state')) ?>"
+                            class="input-text shadow-xs">
+                    </div>
+                </div>
+
+                <div class="form-field-group mt-6">
+                    <label for="zip_code"><?= $block->escapeHtml(__('ZIP/Postal Code')) ?></label>
+                    <input type="text" name="zip_code" id="zip_code"
+                        value="<?= $block->escapeHtmlAttr($profile->getData('zip_code')) ?>"
+                        class="input-text shadow-xs w-full lg:w-1/2">
+                </div>
+            </div>
+        </div>
+
+        <!-- Pickup Information Card -->
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header">
+                <h3><i class="fas fa-store-alt"></i> <?= $block->escapeHtml(__('Store Pickup Information')) ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="form-field-group">
+                    <label for="pickup_address"><?= $block->escapeHtml(__('Pickup Street Address')) ?></label>
+                    <textarea name="pickup_address" id="pickup_address" class="input-text shadow-xs"
+                        rows="3"><?= $block->escapeHtml($profile->getData('pickup_address')) ?></textarea>
+                </div>
+
+                <div class="profile-form-grid mt-6">
+                    <div class="form-field-group">
+                        <label for="pickup_city"><?= $block->escapeHtml(__('Pickup City')) ?></label>
+                        <input type="text" name="pickup_city" id="pickup_city"
+                            value="<?= $block->escapeHtmlAttr($profile->getData('pickup_city')) ?>"
+                            class="input-text shadow-xs">
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="pickup_state"><?= $block->escapeHtml(__('Pickup State/Province')) ?></label>
+                        <input type="text" name="pickup_state" id="pickup_state"
+                            value="<?= $block->escapeHtmlAttr($profile->getData('pickup_state')) ?>"
+                            class="input-text shadow-xs">
+                    </div>
+                </div>
+
+                <div class="profile-form-grid mt-6">
+                    <div class="form-field-group">
+                        <label for="pickup_zip_code"><?= $block->escapeHtml(__('Pickup ZIP/Postal Code')) ?></label>
+                        <input type="text" name="pickup_zip_code" id="pickup_zip_code"
+                            value="<?= $block->escapeHtmlAttr($profile->getData('pickup_zip_code')) ?>"
+                            class="input-text shadow-xs">
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="pickup_country"><?= $block->escapeHtml(__('Pickup Country')) ?></label>
+                        <input type="text" name="pickup_country" id="pickup_country"
+                            value="<?= $block->escapeHtmlAttr($profile->getData('pickup_country')) ?>"
+                            class="input-text shadow-xs">
+                    </div>
+                </div>
+
+                <div class="profile-form-grid mt-6">
+                    <div class="form-field-group">
+                        <label for="pickup_phone"><?= $block->escapeHtml(__('Pickup Phone')) ?></label>
+                        <input type="text" name="pickup_phone" id="pickup_phone"
+                            value="<?= $block->escapeHtmlAttr($profile->getData('pickup_phone')) ?>"
+                            class="input-text shadow-xs">
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="pickup_email"><?= $block->escapeHtml(__('Pickup Email')) ?></label>
+                        <input type="email" name="pickup_email" id="pickup_email"
+                            value="<?= $block->escapeHtmlAttr($profile->getData('pickup_email')) ?>"
+                            class="input-text shadow-xs" data-validate="{ 'validate-email': true }">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Signature Information Card -->
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header">
+                <h3><i class="fas fa-signature"></i> <?= $block->escapeHtml(__('Signature Information')) ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="form-field-group">
+                    <label for="authorized_name"><?= $block->escapeHtml(__('Authorized Signatory Name')) ?></label>
+                    <input type="text" name="authorized_name" id="authorized_name"
+                        value="<?= $block->escapeHtmlAttr($profile->getData('authorized_name')) ?>"
+                        class="input-text shadow-xs">
+                </div>
+
+                <div class="form-field-group mt-10">
+                    <label for="signature"><?= $block->escapeHtml(__('Signature Image')) ?></label>
+                    <div class="upload-control">
+                        <input type="file" name="signature" id="signature" accept="image/*" class="input-file">
+                        <?php if ($profile->getData('signature')): ?>
+                            <div class="current-asset shadow-sm mt-3">
+                                <img src="<?= $block->escapeUrl($block->getMediaUrl() . 'vendor/signature/' . ltrim($profile->getData('signature'), '/')) ?>"
+                                    alt="Current Signature">
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions-toolbar mt-10">
+            <div class="primary">
+                <button type="submit" class="action-btn primary large"
+                    title="<?= $block->escapeHtmlAttr(__('Save Profile')) ?>">
+                    <i class="fas fa-save"></i> <span><?= $block->escapeHtml(__('Save Profile Changes')) ?></span>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    require(['jquery', 'mage/template'], function ($, mageTemplate) {
+        'use strict';
+
+        var docIndex = 0;
+        var docRowTemplate = mageTemplate(
+            '<tr id="new-doc-row-<%- data.index %>">' +
+            '<td><input type="text" name="new_documents[<%- data.index %>][label]" class="input-text shadow-xs" required /></td>' +
+            '<td>' +
+            '<select name="new_documents[<%- data.index %>][type]" class="select shadow-xs">' +
+            '<option value="id_proof"><?= $block->escapeJs(__('ID Proof')) ?></option>' +
+            '<option value="address_proof"><?= $block->escapeJs(__('Address Proof')) ?></option>' +
+            '<option value="business_license"><?= $block->escapeJs(__('Business License')) ?></option>' +
+            '<option value="tax_document"><?= $block->escapeJs(__('Tax Document')) ?></option>' +
+            '<option value="other"><?= $block->escapeJs(__('Other')) ?></option>' +
+            '</select>' +
+            '</td>' +
+            '<td><input type="date" name="new_documents[<%- data.index %>][registration_date]" class="input-text shadow-xs" /></td>' +
+            '<td><input type="date" name="new_documents[<%- data.index %>][expiry_date]" class="input-text shadow-xs" /></td>' +
+            '<td>' +
+            '<input type="hidden" name="new_documents[<%- data.index %>][file_id]" value="new_document_file_<%- data.index %>" />' +
+            '<input type="file" name="new_document_file_<%- data.index %>" class="input-file" required />' +
+            '</td>' +
+            '<td class="text-center">' +
+            '<button type="button" class="tool-btn delete remove-doc-row" data-index="<%- data.index %>">' +
+            '<i class="fas fa-trash"></i>' +
+            '</button>' +
+            '</td>' +
+            '</tr>'
+        );
+
+        var organicRowTemplate = mageTemplate(
+            '<tr id="new-doc-row-<%- data.index %>">' +
+            '<td><input type="text" name="new_documents[<%- data.index %>][label]" class="input-text shadow-xs" required placeholder="<?= $block->escapeJs(__('e.g. NPOP Organic')) ?>" />' +
+            '<input type="hidden" name="new_documents[<%- data.index %>][type]" value="organic_certification" /></td>' +
+            '<td><input type="text" name="new_documents[<%- data.index %>][certificate_number]" class="input-text shadow-xs" placeholder="<?= $block->escapeJs(__('Cert. No.')) ?>" /></td>' +
+            '<td><input type="text" name="new_documents[<%- data.index %>][issuer]" class="input-text shadow-xs" placeholder="<?= $block->escapeJs(__('e.g. APEDA')) ?>" /></td>' +
+            '<td><input type="date" name="new_documents[<%- data.index %>][registration_date]" class="input-text shadow-xs" /></td>' +
+            '<td><input type="date" name="new_documents[<%- data.index %>][expiry_date]" class="input-text shadow-xs" /></td>' +
+            '<td>' +
+            '<input type="hidden" name="new_documents[<%- data.index %>][file_id]" value="new_document_file_<%- data.index %>" />' +
+            '<input type="file" name="new_document_file_<%- data.index %>" class="input-file" required />' +
+            '</td>' +
+            '<td class="text-center">' +
+            '<button type="button" class="tool-btn delete remove-doc-row" data-index="<%- data.index %>">' +
+            '<i class="fas fa-trash"></i>' +
+            '</button>' +
+            '</td>' +
+            '</tr>'
+        );
+
+        var coaRowTemplate = mageTemplate(
+            '<tr id="new-doc-row-<%- data.index %>">' +
+            '<td><input type="text" name="new_documents[<%- data.index %>][label]" class="input-text shadow-xs" required placeholder="<?= $block->escapeJs(__('e.g. Batch COA-01')) ?>" />' +
+            '<input type="hidden" name="new_documents[<%- data.index %>][type]" value="coa_report" /></td>' +
+            '<td><input type="text" name="new_documents[<%- data.index %>][certificate_number]" class="input-text shadow-xs" placeholder="<?= $block->escapeJs(__('Report No.')) ?>" /></td>' +
+            '<td><input type="text" name="new_documents[<%- data.index %>][issuer]" class="input-text shadow-xs" placeholder="<?= $block->escapeJs(__('e.g. Lab XYZ')) ?>" /></td>' +
+            '<td><input type="text" name="new_documents[<%- data.index %>][product_name]" class="input-text shadow-xs" placeholder="<?= $block->escapeJs(__('Product Name')) ?>" /></td>' +
+            '<td><input type="text" name="new_documents[<%- data.index %>][product_desc]" class="input-text shadow-xs" placeholder="<?= $block->escapeJs(__('Product Description')) ?>" /></td>' +
+            '<td><input type="date" name="new_documents[<%- data.index %>][registration_date]" class="input-text shadow-xs" /></td>' +
+            '<td><input type="date" name="new_documents[<%- data.index %>][expiry_date]" class="input-text shadow-xs" /></td>' +
+            '<td>' +
+            '<input type="hidden" name="new_documents[<%- data.index %>][file_id]" value="new_document_file_<%- data.index %>" />' +
+            '<input type="file" name="new_document_file_<%- data.index %>" class="input-file" required />' +
+            '</td>' +
+            '<td class="text-center">' +
+            '<button type="button" class="tool-btn delete remove-doc-row" data-index="<%- data.index %>">' +
+            '<i class="fas fa-trash"></i>' +
+            '</button>' +
+            '</td>' +
+            '</tr>'
+        );
+
+        $('#add-document-btn').on('click', function () {
+            var progressData = {
+                index: docIndex++
+            };
+            $('#new-documents-body').append(docRowTemplate({
+                data: progressData
+            }));
+        });
+
+        $('#add-organic-btn').on('click', function () {
+            var progressData = {
+                index: docIndex++
+            };
+            $('#new-organic-body').append(organicRowTemplate({
+                data: progressData
+            }));
+        });
+
+        // Add row for COA Reports
+        $('#add-coa-btn').on('click', function () {
+            $('#new-coa-container').removeClass('hidden');
+            var data = { index: docIndex++ };
+            $('#new-coa-body').append(coaRowTemplate({ data: data }));
+        });
+
+        // Remove Document Row
+        $(document).on('click', '.remove-doc-row', function () {
+            var index = $(this).data('index');
+            $('#new-doc-row-' + index).remove();
+        });
+    });
+</script>

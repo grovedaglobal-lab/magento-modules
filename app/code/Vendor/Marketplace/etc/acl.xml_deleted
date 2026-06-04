@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Vendor_Marketplace::marketplace" title="Vendor Marketplace" sortOrder="10">
+                    <resource id="Vendor_Marketplace::manage_seller" title="Manage Seller" />
+                    <resource id="Vendor_Marketplace::manage_product" title="Manage Product" />
+                    <resource id="Vendor_Marketplace::manage_commission" title="Referral Fees" />
+                    <resource id="Vendor_Marketplace::manage_documents" title="Vendor Documents" />
+                    <resource id="Vendor_Marketplace::sellers_transaction" title="Sellers Transaction" />
+                    <resource id="Vendor_Marketplace::manage_feedback" title="Manage Feedback" />
+                    <resource id="Vendor_Marketplace::seller_flag_reason" title="Seller Flag Reason" />
+                    <resource id="Vendor_Marketplace::product_flag_reason" title="Product Flag Reason" />
+                    <resource id="Vendor_Marketplace::manage_news" title="Manage News" />
+                    <resource id="Vendor_Marketplace::configuration_settings" title="Configuration Settings" />
+                    <resource id="Vendor_Marketplace::support" title="Support">
+                        <resource id="Vendor_Marketplace::user_guide" title="User Guide" />
+                        <resource id="Vendor_Marketplace::store_extension" title="Store Extension" />
+                        <resource id="Vendor_Marketplace::ticket" title="Ticket/Customisations" />
+                        <resource id="Vendor_Marketplace::services" title="Services" />
+                        <resource id="Vendor_Marketplace::reviews" title="Reviews" />
+                    </resource>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

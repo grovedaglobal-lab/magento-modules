@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <tax_indiangst>
+            <general>
+                <enable>0</enable>
+                <service_tax_rate>18</service_tax_rate>
+            </general>
+            <marketplace_integration>
+                <marketplace_module>custom</marketplace_module>
+                <vendor_table>vendor_profile</vendor_table>
+                <vendor_id_col>vendor_id</vendor_id_col>
+                <vendor_code_col>shop_name</vendor_code_col>
+                <product_vendor_attr>vendor_id</product_vendor_attr>
+                <apply_gst_on_commission>1</apply_gst_on_commission>
+                <commission_gst_rate>18</commission_gst_rate>
+                <commission_sac_code>9983</commission_sac_code>
+            </marketplace_integration>
+        </tax_indiangst>
+    </default>
+</config>

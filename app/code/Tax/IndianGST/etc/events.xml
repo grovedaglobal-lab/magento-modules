@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="sales_order_save_after">
+        <observer name="Tax_IndianGST_SaveOrderGstDetails" instance="Tax\IndianGST\Observer\SaveOrderGstDetails"/>
+    </event>
+    <event name="sales_model_service_quote_submit_before">
+        <observer name="Tax_IndianGST_QuoteSubmitBefore" instance="Tax\IndianGST\Observer\QuoteSubmitBefore"/>
+    </event>
+    <event name="vendor_marketplace_vendor_save_after">
+        <observer name="tax_indiangst_vendor_sync" instance="Tax\IndianGST\Observer\VendorSaveAfterObserver"/>
+    </event>
+    <event name="vendor_marketplace_vendor_profile_save_after">
+        <observer name="tax_indiangst_vendor_profile_sync" instance="Tax\IndianGST\Observer\VendorSaveAfterObserver"/>
+    </event>
+    <event name="vendor_marketplace_commission_calculated">
+        <observer name="tax_indiangst_calculate_commission_gst" instance="Tax\IndianGST\Observer\CalculateCommissionGst"/>
+    </event>
+</config>

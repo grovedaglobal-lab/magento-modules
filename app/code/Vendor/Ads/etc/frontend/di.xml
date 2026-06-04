@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Sales\Block\Order\Print\Invoice">
+        <plugin name="vendor_ads_wallet_recharge_invoice_print" type="Vendor\Ads\Plugin\Sales\Block\Order\InvoicePrintPlugin" />
+    </type>
+    <type name="Magento\Sales\Block\Order\Invoice\Items">
+        <plugin name="vendor_ads_wallet_recharge_invoice_items_print" type="Vendor\Ads\Plugin\Sales\Block\Order\InvoicePrintPlugin" />
+    </type>
+    <type name="Vendor\Marketplace\Block\Order\View">
+        <plugin name="vendor_ads_wallet_recharge_vendor_invoice_print" type="Vendor\Ads\Plugin\Sales\Block\Order\InvoicePrintPlugin" />
+    </type>
+</config>

@@ -1,0 +1,457 @@
+/* ----------------------------------------------------------- */
+/* SELLER PROFILE - MODERN CARD-BASED UI */
+/* ----------------------------------------------------------- */
+
+body.vendor-marketplace-seller-profile .page-main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+.page-title-wrapper {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* Force standard block display with clearfix */
+body.vendor-marketplace-seller-profile .columns {
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.vendor-marketplace-seller-profile .columns::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Sidebar: Standard Float Left */
+body.vendor-marketplace-seller-profile .sidebar-main {
+    width: 23% !important;
+    float: left !important;
+    box-sizing: border-box;
+    padding-right: 25px !important;
+    margin: 0 !important;
+    display: block !important;
+}
+
+/* Restore Additional Sidebar */
+body.vendor-marketplace-seller-profile .sidebar-additional {
+    display: block !important;
+    float: left !important;
+}
+
+/* Main Content: Float Left */
+body.vendor-marketplace-seller-profile .column.main {
+    width: 77% !important;
+    float: left !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+    min-height: 500px;
+}
+
+/* ----------------------------------------------------------- */
+/* PROFILE FORM GRID & CARDS */
+/* ----------------------------------------------------------- */
+
+.profile-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.form-field-group {
+    margin-bottom: 24px;
+}
+
+.form-field-group label {
+    display: block;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text-main, #334155);
+    margin-bottom: 8px;
+    letter-spacing: 0.01em;
+}
+
+/* Input Overrides for Profile Page */
+body.vendor-marketplace-seller-profile .input-text,
+body.vendor-marketplace-seller-profile .select {
+    width: 100%;
+    height: 52px;
+    padding: 0 16px;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: 8px;
+    background: #fff;
+    font-size: 1.1rem;
+    color: var(--text-main, #334155);
+    transition: all 0.2s ease;
+}
+
+body.vendor-marketplace-seller-profile textarea.input-text {
+    height: auto;
+    padding: 16px;
+    line-height: 1.5;
+}
+
+body.vendor-marketplace-seller-profile .input-text:focus {
+    border-color: var(--brand-primary, #4f46e5);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    outline: none;
+}
+
+/* Assets & Uploads */
+.current-asset {
+    max-width: 200px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f8fafc;
+    border: 1px solid var(--border-light, #e2e8f0);
+    padding: 8px;
+}
+
+.current-asset img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+}
+
+.upload-control {
+    background: #f8fafc;
+    border: 2px dashed var(--border-light, #e2e8f0);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.upload-control:hover {
+    border-color: var(--brand-primary, #4f46e5);
+    background: #f1f5f9;
+}
+
+.upload-control .input-file {
+    width: 100%;
+    cursor: pointer;
+}
+
+/* Toggle Switch Styling */
+.toggle-switch {
+    display: inline-block;
+    height: 28px;
+    position: relative;
+    width: 50px;
+}
+
+.toggle-switch input {
+    display: none;
+}
+
+.toggle-switch label {
+    background-color: #cbd5e1;
+    border-radius: 34px;
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+    margin-bottom: 0;
+}
+
+.toggle-switch label:before {
+    background-color: white;
+    border-radius: 50%;
+    bottom: 4px;
+    content: "";
+    height: 20px;
+    left: 4px;
+    position: absolute;
+    transition: .4s;
+    width: 20px;
+}
+
+.toggle-switch input:checked+label {
+    background-color: var(--brand-primary, #4f46e5);
+}
+
+.toggle-switch input:checked+label:before {
+    transform: translateX(22px);
+}
+
+/* Social Media Icons */
+.form-field-group label i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Document Table Columns */
+.shipping-rates-table .col.file {
+    width: 120px;
+}
+
+.shipping-rates-table .col.status {
+    width: 140px;
+}
+
+.shipping-rates-table .col.delete {
+    width: 80px;
+}
+
+/* Tool Buttons */
+.tool-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid var(--border-light, #e2e8f0);
+    color: var(--text-main, #334155);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    text-decoration: none;
+    padding: 0;
+    outline: none;
+}
+
+.tool-btn i {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.tool-btn:hover {
+    background: #f1f5f9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.tool-btn.delete {
+    color: #ef4444;
+    border-color: #fee2e2;
+}
+
+.tool-btn.delete:hover {
+    background: #fef2f2;
+    border-color: #ef4444;
+    color: #dc2626;
+}
+
+/* Ensure FontAwesome is available for the icon */
+.tool-btn i.fas {
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", sans-serif;
+    font-weight: 900;
+}
+
+/* ----------------------------------------------------------- */
+/* UTILS & MOBILE */
+/* ----------------------------------------------------------- */
+
+.shadow-xs {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.rounded-lg {
+    border-radius: 12px;
+}
+
+.overflow-hidden {
+    overflow: hidden;
+}
+
+.border-gray-100 {
+    border-color: #f1f5f9;
+}
+
+/* ----------------------------------------------------------- */
+/* THEME ALIGNMENT OVERRIDES */
+/* ----------------------------------------------------------- */
+
+body.vendor-marketplace-seller-profile {
+    --brand-primary: #0f4c3a;
+    --brand-primary-dark: #0b3a2d;
+    --text-main: #19352a;
+    --text-muted: #64748b;
+    --border-light: #dbe5df;
+    --card-bg: #ffffff;
+}
+
+body.vendor-marketplace-seller-profile {
+    background: #f4f7f6;
+}
+
+body.vendor-marketplace-seller-profile .dashboard-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(15, 76, 58, 0.06);
+    overflow: hidden;
+}
+
+body.vendor-marketplace-seller-profile .dashboard-card .card-header {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border-light);
+    background: linear-gradient(180deg, #ffffff 0%, #f8fcfa 100%);
+}
+
+body.vendor-marketplace-seller-profile .dashboard-card .card-header h3 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--brand-primary);
+    font-weight: 800;
+    font-size: 2rem;
+}
+
+body.vendor-marketplace-seller-profile .dashboard-card .card-header h3 i {
+    color: #4f46e5;
+}
+
+body.vendor-marketplace-seller-profile .dashboard-card .card-content {
+    padding: 26px 28px;
+}
+
+body.vendor-marketplace-seller-profile .input-text,
+body.vendor-marketplace-seller-profile .select {
+    border-color: var(--border-light);
+    color: var(--text-main);
+}
+
+body.vendor-marketplace-seller-profile .input-text:focus,
+body.vendor-marketplace-seller-profile .select:focus {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 4px rgba(15, 76, 58, 0.12);
+}
+
+body.vendor-marketplace-seller-profile .input-text::placeholder {
+    color: #9aa8b6;
+}
+
+body.vendor-marketplace-seller-profile .upload-control:hover {
+    border-color: var(--brand-primary);
+    background: #eef8f4;
+}
+
+body.vendor-marketplace-seller-profile .shipping-rates-table th {
+    background: #f1f6f4;
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border-light);
+}
+
+body.vendor-marketplace-seller-profile .shipping-rates-table td {
+    border-bottom: 1px solid #edf3ef;
+}
+
+body.vendor-marketplace-seller-profile .shipping-rates-table tr:hover td {
+    background: #f9fcfa;
+}
+
+body.vendor-marketplace-seller-profile .status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 12px;
+    min-width: 90px;
+    border: 1px solid transparent;
+}
+
+body.vendor-marketplace-seller-profile .status-badge.pending {
+    background: #fff7e6;
+    color: #92400e;
+    border-color: #fde68a;
+}
+
+body.vendor-marketplace-seller-profile .status-badge.enabled {
+    background: #ecfdf3;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+
+body.vendor-marketplace-seller-profile .status-badge.disabled {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #fecaca;
+}
+
+body.vendor-marketplace-seller-profile .action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 10px;
+    border: 1px solid var(--brand-primary);
+    padding: 11px 18px;
+    font-weight: 700;
+    line-height: 1;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+body.vendor-marketplace-seller-profile .action-btn.secondary {
+    background: var(--brand-primary);
+    color: #fff;
+}
+
+body.vendor-marketplace-seller-profile .action-btn.secondary:hover {
+    background: var(--brand-primary-dark);
+    border-color: var(--brand-primary-dark);
+}
+
+body.vendor-marketplace-seller-profile .input-file::file-selector-button {
+    margin-right: 12px;
+    border: 1px solid var(--brand-primary);
+    border-radius: 8px;
+    background: #ecfdf3;
+    color: var(--brand-primary);
+    font-weight: 700;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+body.vendor-marketplace-seller-profile .input-file::file-selector-button:hover {
+    background: var(--brand-primary);
+    color: #fff;
+}
+
+@media (max-width: 1024px) {
+    body.vendor-marketplace-seller-profile .sidebar-main {
+        width: 100% !important;
+        float: none !important;
+        padding-right: 0 !important;
+        margin-bottom: 24px !important;
+    }
+
+    body.vendor-marketplace-seller-profile .column.main {
+        width: 100% !important;
+        float: none !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .profile-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-card .card-header {
+        padding: 20px;
+    }
+
+    .dashboard-card .card-content {
+        padding: 20px;
+    }
+
+    body.vendor-marketplace-seller-profile .dashboard-card .card-header h3 {
+        font-size: 1.6rem;
+    }
+}

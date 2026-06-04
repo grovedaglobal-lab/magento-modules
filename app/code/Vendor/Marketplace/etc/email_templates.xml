@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
+    <template id="vendor_marketplace_email_vendor_order_new_template" label="Vendor - New Order Notification" file="vendor_order_new.html" type="html" area="frontend" module="Vendor_Marketplace"/>
+    <template id="vendor_marketplace_customer_password_reset_confirmation_template" label="Customer Password Reset Confirmation" file="password_reset_confirmation.html" type="html" module="Vendor_Marketplace" area="frontend"/>
+    <template id="vendor_marketplace_email_vendor_forgot_password_template" label="Vendor Forgot Password (Legacy ID)" file="vendor_forgot_password.html" type="html" module="Vendor_Marketplace" area="frontend"/>
+    <template id="vendor_marketplace_vendor_forgot_password_template" label="Vendor Forgot Password" file="vendor_forgot_password.html" type="html" module="Vendor_Marketplace" area="frontend"/>
+</config>

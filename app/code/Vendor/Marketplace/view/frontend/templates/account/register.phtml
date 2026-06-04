@@ -1,0 +1,142 @@
+<?php
+/** @var \Vendor\Marketplace\Block\Account\Register $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+$formData = $block->getFormData();
+?>
+<div class="vendor-register-container">
+    <div class="vendor-register-header">
+        <h2><?= $escaper->escapeHtml(__('Vendor Portal Registration')) ?></h2>
+        <p><?= $escaper->escapeHtml(__('Create your seller account')) ?></p>
+    </div>
+
+    <?= $block->getChildHtml('form_fields_before') ?>
+    <form class="form create account form-create-account" action="<?= $escaper->escapeUrl($block->getAction()) ?>"
+        method="post" id="form-validate" enctype="multipart/form-data" autocomplete="off">
+        <?= /* @noEscape */ $block->getBlockHtml('formkey') ?>
+        <input type="hidden" name="success_url" value="<?= $escaper->escapeUrl($block->getSuccessUrl()) ?>">
+        <input type="hidden" name="error_url" value="<?= $escaper->escapeUrl($block->getErrorUrl()) ?>">
+
+        <fieldset class="fieldset create info">
+            <legend class="legend"><span><?= $escaper->escapeHtml(__('Personal Information')) ?></span></legend>
+
+            <?= $block->getLayout()
+                ->createBlock(\Magento\Customer\Block\Widget\Name::class)
+                ->setObject($formData)
+                ->setForceUseCustomerAttributes(true)
+                ->toHtml() ?>
+
+            <div class="field required">
+                <label for="email_address" class="label"><span><?= $escaper->escapeHtml(__('Email')) ?></span></label>
+                <div class="control">
+                    <input type="email" name="email" autocomplete="email" id="email_address"
+                        value="<?= $escaper->escapeHtmlAttr($formData->getEmail()) ?>"
+                        title="<?= $escaper->escapeHtmlAttr(__('Email')) ?>" class="input-text"
+                        data-mage-init='{"mage/trim-input":{}}' data-validate="{required:true, 'validate-email':true}">
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="fieldset create vendor" data-hasrequired="<?= $escaper->escapeHtmlAttr(__('* Required Fields')) ?>">
+            <legend class="legend"><span><?= $escaper->escapeHtml(__('Vendor Information')) ?></span></legend>
+
+        <div class="field required">
+            <label for="shop_url" class="label"><span>
+                    <?= $escaper->escapeHtml(__('Shop URL')) ?>
+                </span></label>
+            <div class="control">
+                <input type="text" name="shop_url" id="shop_url" title="<?= $escaper->escapeHtmlAttr(__('Shop URL')) ?>"
+                    class="input-text" data-validate="{required:true, 'validate-alphanum-with-dashes':true}"
+                    autocomplete="off">
+                <div class="note">
+                    <?php echo __('Your shop URL will be domain.com/marketplace/seller/index/id/your-url'); ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="field required">
+            <label for="shop_name" class="label"><span>
+                    <?= $escaper->escapeHtml(__('Shop Name')) ?>
+                </span></label>
+            <div class="control">
+                <input type="text" name="shop_name" id="shop_name"
+                    title="<?= $escaper->escapeHtmlAttr(__('Shop Name')) ?>" class="input-text"
+                    data-validate="{required:true}" autocomplete="off">
+            </div>
+        </div>
+
+        <div class="field required">
+            <label for="phone" class="label"><span><?= $escaper->escapeHtml(__('Phone Number')) ?></span></label>
+            <div class="control">
+                <input type="text" name="phone" id="phone" title="<?= $escaper->escapeHtmlAttr(__('Phone Number')) ?>"
+                    class="input-text" minlength="10" maxlength="10"
+                    data-validate="{required:true, 'validate-digits':true}" autocomplete="off">
+                <div class="note"><?php echo __('Please enter a valid 10-digit mobile number.'); ?></div>
+            </div>
+        </div>
+        </fieldset>
+
+        <fieldset class="fieldset create account" data-hasrequired="<?= $escaper->escapeHtmlAttr(__('* Required Fields')) ?>">
+            <legend class="legend"><span><?= $escaper->escapeHtml(__('Sign-in Information')) ?></span></legend>
+
+        <div class="field password required">
+            <label for="password" class="label"><span>
+                    <?= $escaper->escapeHtml(__('Password')) ?>
+                </span></label>
+            <div class="control">
+                <input type="password" name="password" id="password"
+                    title="<?= $escaper->escapeHtmlAttr(__('Password')) ?>" class="input-text"
+                    data-password-min-length="<?= $escaper->escapeHtmlAttr($block->getMinimumPasswordLength()) ?>"
+                    data-password-min-character-sets="<?= $escaper->escapeHtmlAttr($block->getRequiredCharacterClassesNumber()) ?>"
+                    data-validate="{required:true, 'validate-customer-password':true}" autocomplete="off">
+                <div id="password-strength-meter-container" data-role="password-strength-meter" aria-live="polite">
+                    <div id="password-strength-meter" class="password-strength-meter">
+                        <?= $escaper->escapeHtml(__('Password Strength')) ?>:
+                        <span id="password-strength-meter-label" data-role="password-strength-meter-label">
+                            <?= $escaper->escapeHtml(__('No Password')) ?>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="field confirmation required">
+            <label for="password-confirmation" class="label">
+                <span>
+                    <?= $escaper->escapeHtml(__('Confirm Password')) ?>
+                </span>
+            </label>
+            <div class="control">
+                <input type="password" name="password_confirmation"
+                    title="<?= $escaper->escapeHtmlAttr(__('Confirm Password')) ?>" id="password-confirmation"
+                    class="input-text" data-validate="{required:true, equalTo:'#password'}" autocomplete="off">
+            </div>
+        </div>
+    </fieldset>
+
+        <div class="actions-toolbar">
+            <div class="primary">
+                <button type="submit" class="action submit primary" title="<?= $escaper->escapeHtmlAttr(__('Create Vendor Account')) ?>">
+                    <span><?= $escaper->escapeHtml(__('Create Vendor Account')) ?></span>
+                </button>
+            </div>
+            <div class="secondary">
+                <a class="action back" href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>">
+                    <span><?= $escaper->escapeHtml(__('Back')) ?></span>
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/x-magento-init">
+    {
+        "#form-validate": {
+            "validation": {}
+        },
+        ".field.password": {
+            "passwordStrengthIndicator": {
+                "formSelector": "form.form-create-account"
+            }
+        }
+    }
+</script>

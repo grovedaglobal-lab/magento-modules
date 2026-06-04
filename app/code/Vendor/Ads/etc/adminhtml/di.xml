@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Vendor\Ads\Model\ResourceModel\Keyword\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">search_query</argument>
+            <argument name="resourceModel" xsi:type="string">Magento\Search\Model\ResourceModel\Query</argument>
+        </arguments>
+    </type>
+
+    <type name="Vendor\Ads\Model\ResourceModel\Bid\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">vendor_ads_bid</argument>
+            <argument name="resourceModel" xsi:type="string">Vendor\Ads\Model\ResourceModel\Bid</argument>
+        </arguments>
+    </type>
+
+    <type name="Vendor\Ads\Model\ResourceModel\Wallet\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">vendor_ads_wallet</argument>
+            <argument name="resourceModel" xsi:type="string">Vendor\Ads\Model\ResourceModel\Wallet</argument>
+        </arguments>
+    </type>
+
+    <type name="Vendor\Ads\Model\ResourceModel\Report\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">search_query</argument>
+            <argument name="resourceModel" xsi:type="string">Magento\Search\Model\ResourceModel\Query</argument>
+        </arguments>
+    </type>
+
+
+
+
+
+    <virtualType name="VendorAdsWalletOrdersGridCollection" type="Vendor\Ads\Model\ResourceModel\WalletOrders\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">sales_order_grid</argument>
+            <argument name="resourceModel" xsi:type="string">Magento\Sales\Model\ResourceModel\Order</argument>
+        </arguments>
+    </virtualType>
+
+</config>

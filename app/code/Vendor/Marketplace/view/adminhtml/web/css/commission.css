@@ -1,0 +1,29 @@
+/**
+ * Commission Form - Dynamic Rows alignment fix
+ * Adds a "Sort" header label for the drag-and-drop column
+ * so that headers align with data columns properly.
+ */
+
+/* Style the drag column header to show "Sort" label */
+.admin__dynamic-rows thead tr th.admin__dynamic-rows-table-col-drag {
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: #303030;
+}
+
+.admin__dynamic-rows thead tr th.admin__dynamic-rows-table-col-drag::after {
+    content: "Sort";
+}
+
+/* Make all columns evenly spaced */
+.admin__dynamic-rows .admin__dynamic-rows-table-col {
+    vertical-align: middle;
+}
+
+/* Shrink the drag column width since it only has the handle icon */
+.admin__dynamic-rows .admin__dynamic-rows-table-col-drag {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+}

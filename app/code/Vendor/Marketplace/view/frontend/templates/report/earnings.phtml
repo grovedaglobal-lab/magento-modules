@@ -1,0 +1,97 @@
+<?php
+/** @var $block \Vendor\Marketplace\Block\Report\Earnings */
+$collection = $block->getEarningsCollection();
+$totalSales = 0;
+$totalCommission = 0;
+$totalEarnings = 0;
+
+foreach ($collection as $item) {
+    $totalSales += $item->getSubtotal();
+    $totalCommission += $item->getCommissionAmount();
+    $totalEarnings += $item->getVendorEarnings();
+}
+?>
+<div class="vendor-report-earnings-container">
+    <div class="earnings-header">
+        <h2 class="page-title"><?= __('Earnings Report') ?></h2>
+    </div>
+
+    <div class="earnings-summary-grid">
+        <div class="stat-card sales">
+            <div class="stat-icon"><i class="fas fa-chart-bar"></i></div>
+            <div class="stat-info">
+                <span class="stat-value"><?= $block->formatPrice($totalSales) ?></span>
+                <span class="stat-label"><?= __('Total Sales') ?></span>
+            </div>
+        </div>
+        <div class="stat-card commission">
+            <div class="stat-icon"><i class="fas fa-percentage"></i></div>
+            <div class="stat-info">
+                <span class="stat-value text-danger"><?= $block->formatPrice($totalCommission) ?></span>
+                <span class="stat-label"><?= __('Total Commission') ?></span>
+            </div>
+        </div>
+        <div class="stat-card net-earnings">
+            <div class="stat-icon"><i class="fas fa-wallet"></i></div>
+            <div class="stat-info">
+                <span class="stat-value text-success"><?= $block->formatPrice($totalEarnings) ?></span>
+                <span class="stat-label"><?= __('Net Earnings') ?></span>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="breakdown-section">
+        <div class="section-header">
+            <h3><?= __('Earnings Breakdown') ?></h3>
+        </div>
+
+        <div class="table-wrapper earnings-grid-wrapper">
+            <table class="data-grid history" id="earnings-breakdown-table">
+                <thead>
+                    <tr>
+                        <th class="col-id"><?= __('Order #') ?></th>
+                        <th class="col-date"><?= __('Date') ?></th>
+                        <th class="col-status"><?= __('Status') ?></th>
+                        <th class="col-sales"><?= __('Sales') ?></th>
+                        <th class="col-commission"><?= __('Commission') ?></th>
+                        <th class="col-earnings"><?= __('Earnings') ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($collection->getSize() > 0): ?>
+                        <?php foreach ($collection as $item): ?>
+                            <?php $order = $block->getOrder($item->getOrderId()); ?>
+                            <tr>
+                                <td class="col-id">#<?= $order->getIncrementId() ?></td>
+                                <td class="col-date">
+                                    <?= $block->formatDate($item->getCreatedAt(), \IntlDateFormatter::MEDIUM) ?>
+                                </td>
+                                <td class="col-status">
+                                    <?php
+                                    $status = strtolower($item->getStatus());
+                                    $statusLabel = ucfirst($item->getStatus());
+                                    ?>
+                                    <span class="status-badge <?= $status ?>"><?= $statusLabel ?></span>
+                                </td>
+                                <td class="col-sales"><?= $block->formatPrice($item->getSubtotal()) ?></td>
+                                <td class="col-commission"><?= $block->formatPrice($item->getCommissionAmount()) ?></td>
+                                <td class="col-earnings highlight"><?= $block->formatPrice($item->getVendorEarnings()) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="empty-message"><?= __('No earnings found.') ?></td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <?php if ($block->getPagerHtml()): ?>
+            <div class="order-products-toolbar toolbar bottom">
+                <?= $block->getPagerHtml() ?>
+            </div>
+        <?php endif ?>
+    </div>
+</div>

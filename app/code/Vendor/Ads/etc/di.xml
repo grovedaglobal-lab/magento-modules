@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Search\Api\SearchInterface">
+        <plugin name="vendor_ads_search_plugin" type="Vendor\Ads\Plugin\SearchPlugin" sortOrder="10"/>
+    </type>
+    
+    <type name="Magento\Catalog\Model\Product">
+        <plugin name="vendor_ads_product_plugin" type="Vendor\Ads\Plugin\ProductPlugin" sortOrder="10"/>
+    </type>
+    
+    <type name="Magento\Catalog\Block\Product\AbstractProduct">
+        <plugin name="vendor_ads_product_block_plugin" type="Vendor\Ads\Plugin\ProductBlockPlugin" sortOrder="10"/>
+    </type>
+
+    <!-- Inject Ads links into Vendor Marketplace sidebar -->
+    <type name="Vendor\Marketplace\Block\Seller\Navigation">
+        <plugin name="vendor_ads_navigation_plugin" type="Vendor\Ads\Plugin\NavigationPlugin" sortOrder="10"/>
+    </type>
+
+    <!-- Inject sponsored products into category pages -->
+    <type name="Magento\Catalog\Model\Layer">
+        <plugin name="vendor_ads_category_plugin" type="Vendor\Ads\Plugin\CategoryCollectionPlugin" sortOrder="10"/>
+    </type>
+
+    <!-- Stabilize standard Products GraphQL resolver -->
+    <type name="Magento\CatalogGraphQl\Model\Resolver\Products">
+        <plugin name="vendor_ads_products_stabilizer" type="Vendor\Ads\Plugin\ProductsResolverPlugin" sortOrder="1"/>
+    </type>
+
+    <!-- Repositories -->
+    <preference for="Vendor\Ads\Api\StatsRepositoryInterface" type="Vendor\Ads\Model\StatsRepository"/>
+    <preference for="Vendor\Ads\Api\BidRepositoryInterface" type="Vendor\Ads\Model\BidRepository"/>
+    <preference for="Vendor\Ads\Api\WalletRepositoryInterface" type="Vendor\Ads\Model\WalletRepository"/>
+    <preference for="Vendor\Ads\Api\SearchLinkRepositoryInterface" type="Vendor\Ads\Model\SearchLinkRepository"/>
+
+    <!-- Multi-Vendor Resolver — switch here to change vendor module integration -->
+    <preference for="Vendor\Ads\Api\VendorResolverInterface" type="Vendor\Ads\Model\Resolver\DynamicVendorResolver"/>
+
+    <preference for="Vendor\Ads\Api\Data\SearchLinkInterface" type="Vendor\Ads\Model\SearchLink"/>
+    <preference for="Vendor\Ads\Api\Data\BidInterface" type="Vendor\Ads\Model\Bid"/>
+    <preference for="Vendor\Ads\Api\Data\WalletInterface" type="Vendor\Ads\Model\Wallet"/>
+    <preference for="Vendor\Ads\Api\Data\StatsInterface" type="Vendor\Ads\Model\Stats"/>
+    <preference for="Vendor\Ads\Api\Data\SearchLinkSearchResultsInterface" type="Magento\Framework\Api\SearchResults"/>
+
+    <virtualType name="Magento\Sales\Model\ResourceModel\Order\Grid">
+        <arguments>
+            <argument name="columns" xsi:type="array">
+                <item name="is_wallet_recharge" xsi:type="string">sales_order.is_wallet_recharge</item>
+                <item name="base_subtotal" xsi:type="string">sales_order.base_subtotal</item>
+                <item name="base_tax_amount" xsi:type="string">sales_order.base_tax_amount</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Vendor\Ads\Model\ResourceModel\Report\GridCollection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">vendor_ads_stats</argument>
+            <argument name="resourceModel" xsi:type="string">Vendor\Ads\Model\ResourceModel\Stats</argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="vendor_ads_wallet_orders_grid_data_source" xsi:type="string">VendorAdsWalletOrdersGridCollection</item>
+                <item name="vendor_ads_report_listing_data_source" xsi:type="string">Vendor\Ads\Model\ResourceModel\Report\GridCollection</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <virtualType name="VendorAdsWalletOrdersGridCollection" type="Vendor\Ads\Model\ResourceModel\WalletOrders\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">sales_order_grid</argument>
+            <argument name="resourceModel" xsi:type="string">Magento\Sales\Model\ResourceModel\Order</argument>
+        </arguments>
+    </virtualType>
+
+
+</config>

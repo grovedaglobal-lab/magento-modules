@@ -1,0 +1,332 @@
+<?php
+/** @var \Vendor\Marketplace\Block\Shipping\Settings $block */
+$profile = $block->getVendorProfile();
+$freeShippingAmount = $profile ? (float)$profile->getFreeShippingAmount() : 0.0;
+?>
+
+<div class="shipping-settings-container">
+    <form action="<?= $block->escapeUrl($block->getSaveActionUrl()) ?>" method="post" id="shipping-settings-form"
+        enctype="multipart/form-data">
+        <?= $block->getBlockHtml('formkey') ?>
+
+        <!-- Main Shipping Settings Card -->
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header">
+                <h3><i class="fas fa-truck-loading"></i> <?= $block->escapeHtml(__('Main Shipping Settings')) ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="shipping-form-grid">
+                    <div class="form-field-group required">
+                        <label for="shipping_source"><?= $block->escapeHtml(__('Shipping Source')) ?></label>
+                        <select name="shipping_source" id="shipping_source" class="validate-select shadow-xs">
+                            <?php foreach ($block->getShippingSourceOptions() as $option): ?>
+                                <option value="<?= $block->escapeHtmlAttr($option['value']) ?>"
+                                    <?= ($profile && $profile->getShippingSource() == $option['value']) ? 'selected' : '' ?>>
+                                    <?= $block->escapeHtml($option['label']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="shipping_tax_class"><?= $block->escapeHtml(__('Shipping Tax Class')) ?></label>
+                        <select name="shipping_tax_class" id="shipping_tax_class" class="shadow-xs">
+                            <?php foreach ($block->getTaxClassOptions() as $option): ?>
+                                <option value="<?= $block->escapeHtmlAttr($option['value']) ?>"
+                                    <?= ($profile && $profile->getShippingTaxClass() == $option['value']) ? 'selected' : '' ?>>
+                                    <?= $block->escapeHtml($option['label']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="free_shipping_amount"><?= $block->escapeHtml(__('Free Shipping Threshold')) ?></label>
+                        <input name="free_shipping_amount" id="free_shipping_amount"
+                            value="<?= number_format($freeShippingAmount, 4, '.', '') ?>"
+                            class="input-text validate-number shadow-xs" type="text" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Rate Management Card -->
+        <div class="dashboard-card shadow-sm" id="self_ship_rates" 
+             style="display: <?= ($profile && $profile->getShippingSource() == 'easy_ship') ? 'none' : 'block' ?>;">
+            <div class="card-header">
+                <h3><i class="fas fa-table"></i> <?= $block->escapeHtml(__('Table Rate Management (Self Ship)')) ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="field-title mb-4">
+                    <label class="font-bold text-gray-700"><?= $block->escapeHtml(__('Manual Rates Management')) ?></label>
+                </div>
+                
+                <datalist id="india-regions">
+                    <option value="0">All Regions (*)</option>
+                    <?php foreach ($block->getIndiaRegions() as $region): ?>
+                        <option value="<?= $region['id'] ?>"><?= $block->escapeHtml($region['name']) ?> (<?= $region['code'] ?>)</option>
+                    <?php endforeach; ?>
+                </datalist>
+
+                <!-- Container for Region Groups -->
+                <div id="manual-rates-groups-container">
+                    <!-- Groups injected by JS -->
+                </div>
+
+                <div class="shipping-action-buttons mt-6 pb-6 border-b border-gray-100">
+                    <button type="button" class="action-btn secondary" id="add-region-group-btn" style="background:#f0fdf4; border:1px solid #bbf7d0; color:#166534;">
+                        <i class="fas fa-plus"></i> <?= __('Add New Region Group') ?>
+                    </button>
+                    <button type="button" class="action-btn action-print" id="prefill-india-btn">
+                        <i class="fas fa-magic"></i> <?= __('Auto-Prefill India Regions') ?>
+                    </button>
+                </div>
+
+                <div class="csv-upload-box mt-10">
+                    <label class="font-bold text-indigo-700 block mb-2">
+                        <i class="fas fa-file-csv"></i> <?= $block->escapeHtml(__('Bulk CSV Upload (Replacement Only)')) ?>
+                    </label>
+                    <input name="shipping_rates_csv" id="shipping_rates_csv" class="input-file" type="file" />
+                    <div class="note">
+                        <?= $block->escapeHtml(__('Format: Country ID, Region ID, Zip, Weight From, Weight To, Price')) ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="shipping-footer-actions">
+            <button type="submit" class="action-btn primary lg shadow-lg">
+                <i class="fas fa-save"></i> <span><?= $block->escapeHtml(__('Save Shipping Settings')) ?></span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    require(['jquery', 'mage/template'], function ($, mageTemplate) {
+        var indiaRegions = <?= json_encode($block->getIndiaRegions()) ?>;
+        var regionsMap = {};
+        $.each(indiaRegions, function (i, region) { regionsMap[region.id] = region.name; });
+
+        var countryOptions = <?= json_encode($block->getCountryOptions()) ?>;
+        
+        var initialRates = [
+            <?php foreach ($block->getShippingRates() as $rate): ?>
+            {
+                country_id: "<?= $block->escapeJs($rate->getCountryId()) ?>",
+                region_id: "<?= $block->escapeJs($rate->getRegionId()) ?>",
+                zip_code: "<?= $block->escapeJs($rate->getZipCode()) ?>",
+                weight_from: "<?= $block->escapeJs($rate->getWeightFrom()) ?>",
+                weight_to: "<?= $block->escapeJs($rate->getWeightTo()) ?>",
+                price: "<?= $block->escapeJs($rate->getPrice()) ?>"
+            },
+            <?php endforeach; ?>
+        ];
+
+        var rateIndex = 0;
+        var groupId = 0;
+
+        // Toggle Easy Ship visibility
+        $('#shipping_source').on('change', function () {
+            if ($(this).val() === 'easy_ship') $('#self_ship_rates').fadeOut();
+            else $('#self_ship_rates').fadeIn();
+        });
+
+        function createCountrySelectHtml(selectedVal) {
+            var html = '<select class="group-country font-bold text-gray-700" style="height: 42px; line-height: normal; padding: 0 14px; border-radius: 6px; border: 1px solid #d1d5db; width: 100%; box-sizing: border-box; font-size: 14px; outline: none; -webkit-appearance: menulist; margin: 0;">';
+            $.each(countryOptions, function(i, opt) {
+                var sel = (opt.value == selectedVal) ? 'selected' : '';
+                html += '<option value="'+opt.value+'" '+sel+'>'+opt.label+'</option>';
+            });
+            html += '</select>';
+            return html;
+        }
+
+        function addRegionGroup(country_id, region_id, zip_code, tiersData) {
+            groupId++;
+            country_id = country_id || 'IN';
+            region_id = region_id || '*';
+            zip_code = zip_code || '*';
+            var currentGroupId = groupId;
+
+            var groupHtml = `
+                <div class="region-group-card" id="group-${currentGroupId}" style="background: #ffffff; margin-bottom: 24px; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); overflow: hidden;">
+                    <div class="group-header" style="background: #fdfdfd; border-bottom: 1px solid #f3f4f6; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
+                        <div style="flex: 1 1 180px; min-width: 150px; padding-right: 10px; box-sizing: border-box;">
+                            <label style="font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">Country</label>
+                            <div>${createCountrySelectHtml(country_id)}</div>
+                        </div>
+                        <div style="flex: 1 1 180px; min-width: 150px; padding-right: 10px; box-sizing: border-box;">
+                            <label style="font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">Region ID</label>
+                            <input class="group-region input-text" list="india-regions" value="${region_id}" style="height: 42px; line-height: normal; width: 100%; box-sizing: border-box; padding: 0 14px; border-radius: 6px; border: 1px solid #d1d5db; font-size: 14px; color: #374151; font-weight: 500; outline: none; transition: border-color 0.2s; margin: 0;" placeholder="e.g. 569 or *">
+                            <div class="group-region-label" style="font-size: 12px; color: #2563eb; font-weight: 500; margin-top: 6px; min-height: 18px; word-break: break-word;"></div>
+                        </div>
+                        <div style="flex: 1 1 180px; min-width: 150px; padding-right: 10px; box-sizing: border-box;">
+                            <label style="font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">Zip Code</label>
+                            <input class="group-zip input-text" value="${zip_code}" style="height: 42px; line-height: normal; width: 100%; box-sizing: border-box; padding: 0 14px; border-radius: 6px; border: 1px solid #d1d5db; font-size: 14px; color: #374151; font-weight: 500; outline: none; transition: border-color 0.2s; margin: 0;" placeholder="e.g. * or 110001">
+                        </div>
+                        <div style="padding-top: 24px; box-sizing: border-box; flex-shrink: 0; display: flex; gap: 8px;">
+                            <button type="button" class="btn-toggle-group" style="height: 42px; width: 42px; border: 1px solid #d1d5db; background: #ffffff; color: #4b5563; border-radius: 6px; cursor: pointer; transition: all 0.2s; outline: none; display: flex; align-items: center; justify-content: center; margin: 0;" title="Toggle Tiers">
+                                <i class="fas fa-chevron-up"></i>
+                            </button>
+                            <button type="button" class="btn-remove-group" style="height: 42px; padding: 0 16px; border: 1px solid #fecaca; background: #fff1f2; color: #e11d48; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s; outline: none; display: flex; align-items: center; gap: 6px; white-space: nowrap; margin: 0;" title="Remove Region Group">
+                                <i class="fas fa-trash-alt"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                    <div class="group-body" style="padding: 0 24px 24px 24px;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left; margin-top: 20px;">
+                            <thead>
+                                <tr>
+                                    <th style="padding-bottom: 12px; font-size: 13px; color: #4b5563; border-bottom: 2px solid #f3f4f6; font-weight: 600;">Weight Range (Kg)</th>
+                                    <th style="padding-bottom: 12px; font-size: 13px; color: #4b5563; border-bottom: 2px solid #f3f4f6; width: 180px; font-weight: 600;">Price</th>
+                                    <th style="padding-bottom: 12px; font-size: 13px; color: #4b5563; border-bottom: 2px solid #f3f4f6; width: 120px; text-align: right; font-weight: 600;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="group-tiers-body">
+                                <!-- Tiers go here -->
+                            </tbody>
+                        </table>
+                        <div style="margin-top: 20px;">
+                            <button type="button" class="btn-add-tier" style="cursor: pointer; background: transparent; border: 1px dashed #6366f1; padding: 8px 16px; border-radius: 6px; font-size: 13px; color: #4f46e5; font-weight: 600; transition: all 0.2s; outline: none; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-plus"></i> Add Price Tier
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('#manual-rates-groups-container').append(groupHtml);
+            var $group = $('#group-' + currentGroupId);
+
+            // Sync group header to hidden inputs
+            function syncInputs() {
+                var c = $group.find('.group-country').val();
+                var r = $group.find('.group-region').val();
+                var z = $group.find('.group-zip').val();
+                $group.find('.group-tiers-body tr').each(function() {
+                    $(this).find('.hidden-country').val(c);
+                    $(this).find('.hidden-region').val(r);
+                    $(this).find('.hidden-zip').val(z);
+                });
+                var rName = regionsMap[r] || '';
+                $group.find('.group-region-label').text(rName);
+            }
+
+            $group.find('.group-country, .group-region, .group-zip').on('input change', syncInputs);
+            syncInputs();
+
+            $group.find('.btn-remove-group').click(function() {
+                if (confirm('Are you sure you want to delete this region and all its price tiers?')) {
+                    $group.remove();
+                }
+            });
+
+            $group.find('.btn-toggle-group').click(function() {
+                var $icon = $(this).find('i');
+                $group.find('.group-body').slideToggle(200, function() {
+                    if ($(this).is(':visible')) {
+                        $icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
+                    } else {
+                        $icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+                    }
+                });
+            });
+
+            function addTier(tData) {
+                var c = $group.find('.group-country').val();
+                var r = $group.find('.group-region').val();
+                var z = $group.find('.group-zip').val();
+
+                var tHtml = `
+                    <tr id="rate-row-${rateIndex}" style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="display: none;">
+                            <input type="hidden" name="rates[${rateIndex}][country_id]" class="hidden-country" value="${c}">
+                            <input type="hidden" name="rates[${rateIndex}][region_id]" class="hidden-region" value="${r}">
+                            <input type="hidden" name="rates[${rateIndex}][zip_code]" class="hidden-zip" value="${z}">
+                        </td>
+                        
+                        <td style="padding: 16px 0;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <input type="text" name="rates[${rateIndex}][weight_from]" value="${tData.weight_from || '0.0000'}" style="width: 100px; text-align: center; border: 1px solid #d1d5db; padding: 8px 12px; border-radius: 6px; font-size: 14px; color: #111827; outline: none;" placeholder="Min" />
+                                <span style="color: #9ca3af; font-size: 13px; font-weight: 500;">to</span>
+                                <input type="text" name="rates[${rateIndex}][weight_to]" value="${tData.weight_to || '10.0000'}" style="width: 100px; text-align: center; border: 1px solid #d1d5db; padding: 8px 12px; border-radius: 6px; font-size: 14px; color: #111827; outline: none;" placeholder="Max" />
+                            </div>
+                        </td>
+                        <td style="padding: 16px 0;">
+                            <div style="position: relative; display: inline-block;">
+                                <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6b7280; font-weight: 600; font-size: 14px;">₹</span>
+                                <input type="text" name="rates[${rateIndex}][price]" value="${tData.price || '0.00'}" style="width: 130px; border: 1px solid #d1d5db; padding: 8px 12px 8px 28px; border-radius: 6px; font-weight: 600; font-size: 14px; color: #111827; outline: none;" placeholder="0.00" />
+                            </div>
+                        </td>
+                        <td style="padding: 16px 0; text-align: right;">
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                <button type="button" class="btn-tier-clone" style="background: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 12px; cursor: pointer; color: #4b5563; outline: none; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" title="Clone Tier">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button type="button" class="btn-tier-delete" style="background: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 12px; cursor: pointer; color: #e11d48; outline: none; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" title="Delete Tier">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                $group.find('.group-tiers-body').append(tHtml);
+                
+                var $newRow = $('#rate-row-' + rateIndex);
+                $newRow.find('.btn-tier-delete').click(function() {
+                    $newRow.remove();
+                });
+                
+                $newRow.find('.btn-tier-clone').click(function() {
+                    var w_to = $newRow.find('input[name$="[weight_to]"]').val();
+                    addTier({
+                        weight_from: w_to,
+                        weight_to: String(parseFloat(w_to || 0) + 10),
+                        price: $newRow.find('input[name$="[price]"]').val()
+                    });
+                });
+
+                rateIndex++;
+            }
+
+            $group.find('.btn-add-tier').click(function() {
+                addTier({});
+            });
+
+            if (tiersData && tiersData.length > 0) {
+                $.each(tiersData, function(i, trData) {
+                    addTier(trData);
+                });
+            } else {
+                addTier({}); // empty initial tier
+            }
+
+            syncInputs();
+            return $group;
+        }
+
+        // Initialize from initialRates
+        var processedGroups = {};
+        if (initialRates.length > 0) {
+            $.each(initialRates, function(i, rate) {
+                var key = rate.country_id + '_' + rate.region_id + '_' + rate.zip_code;
+                if (!processedGroups[key]) processedGroups[key] = [];
+                processedGroups[key].push(rate);
+            });
+            $.each(processedGroups, function(key, tiers) {
+                addRegionGroup(tiers[0].country_id, tiers[0].region_id, tiers[0].zip_code, tiers);
+            });
+        }
+
+        $('#add-region-group-btn').click(function () {
+            addRegionGroup('IN', '', '*', []);
+        });
+
+        $('#prefill-india-btn').click(function () {
+            if (!confirm('This will create new grouped cards for all India regions. Continue?')) return;
+            $.each(indiaRegions, function (i, region) {
+                addRegionGroup('IN', region.id, '*', []);
+            });
+        });
+    });
+</script>

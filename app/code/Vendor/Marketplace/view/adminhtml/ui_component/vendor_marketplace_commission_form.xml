@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">vendor_marketplace_commission_form.vendor_marketplace_commission_form_data_source</item>
+        </item>
+        <item name="label" xsi:type="string" translate="true">Commission Information</item>
+        <item name="template" xsi:type="string">templates/form/collapsible</item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="save" class="Vendor\Marketplace\Block\Adminhtml\Commission\Edit\SaveButton"/>
+            <button name="delete" class="Vendor\Marketplace\Block\Adminhtml\Commission\Edit\DeleteButton"/>
+            <button name="back" class="Magento\Customer\Block\Adminhtml\Edit\BackButton"/>
+        </buttons>
+        <namespace>vendor_marketplace_commission_form</namespace>
+        <dataScope>data</dataScope>
+        <deps>
+            <dep>vendor_marketplace_commission_form.vendor_marketplace_commission_form_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="vendor_marketplace_commission_form_data_source">
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
+            </item>
+        </argument>
+        <settings>
+            <submitUrl path="*/*/save"/>
+        </settings>
+        <dataProvider class="Vendor\Marketplace\Model\Commission\DataProvider\DataProvider" name="vendor_marketplace_commission_form_data_source">
+            <settings>
+                <requestFieldName>entity_id</requestFieldName>
+                <primaryFieldName>entity_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <fieldset name="general">
+        <argument name="data" xsi:type="array">
+            <item name="config" xsi:type="array">
+                <item name="label" xsi:type="string" translate="true">Commission Rule</item>
+            </item>
+        </argument>
+        <field name="entity_id" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="visible" xsi:type="boolean">false</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">commission</item>
+                </item>
+            </argument>
+        </field>
+        <field name="category_id" formElement="select">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filterOptions" xsi:type="boolean">true</item>
+                    <item name="multiple" xsi:type="boolean">false</item>
+                    <item name="showCheckbox" xsi:type="boolean">true</item>
+                    <item name="disableLabel" xsi:type="boolean">true</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/form/element/ui-select</item>
+                    <item name="elementTmpl" xsi:type="string">ui/grid/filters/elements/ui-select</item>
+                </item>
+            </argument>
+            <settings>
+                <required>false</required>
+                <dataType>int</dataType>
+                <label translate="true">Category</label>
+                <dataScope>category_id</dataScope>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Magento\Catalog\Ui\Component\Product\Form\Categories\Options"/>
+                        <caption translate="true">-- Select Category --</caption>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+        <dynamicRows name="price_ranges">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dndConfig" xsi:type="array">
+                        <item name="enabled" xsi:type="boolean">true</item>
+                    </item>
+                </item>
+            </argument>
+            <settings>
+                <addButtonLabel translate="true">Add Price Range</addButtonLabel>
+                <additionalClasses>
+                    <class name="admin__field-wide">true</class>
+                </additionalClasses>
+                <componentType>dynamicRows</componentType>
+                <recordTemplate>record</recordTemplate>
+                <addButton>true</addButton>
+                <deleteProperty>is_delete</deleteProperty>
+                <deleteValue>1</deleteValue>
+                <dataScope>price_ranges</dataScope>
+                <identificationProperty>entity_id</identificationProperty>
+            </settings>
+            <container name="record" component="Magento_Ui/js/dynamic-rows/record">
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="isTemplate" xsi:type="boolean">true</item>
+                        <item name="is_collection" xsi:type="boolean">true</item>
+                        <item name="componentType" xsi:type="string">container</item>
+                        <item name="positionProvider" xsi:type="string">position</item>
+                    </item>
+                </argument>
+                <field name="entity_id" formElement="hidden">
+                    <settings>
+                        <dataType>text</dataType>
+                        <dataScope>entity_id</dataScope>
+                    </settings>
+                </field>
+                <field name="position" formElement="hidden">
+                    <settings>
+                        <dataType>text</dataType>
+                        <visible>false</visible>
+                        <dataScope>position</dataScope>
+                    </settings>
+                </field>
+                <field name="min_price" formElement="input">
+                    <argument name="data" xsi:type="array">
+                        <item name="config" xsi:type="array">
+                            <item name="additionalClasses" xsi:type="string">col-sm-3</item>
+                        </item>
+                    </argument>
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Min Price</label>
+                        <dataScope>min_price</dataScope>
+                        <validation>
+                            <rule name="required-entry" xsi:type="boolean">true</rule>
+                            <rule name="validate-number" xsi:type="boolean">true</rule>
+                        </validation>
+                    </settings>
+                </field>
+                <field name="max_price" formElement="input">
+                    <argument name="data" xsi:type="array">
+                        <item name="config" xsi:type="array">
+                            <item name="additionalClasses" xsi:type="string">col-sm-3</item>
+                        </item>
+                    </argument>
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Max Price</label>
+                        <dataScope>max_price</dataScope>
+                        <validation>
+                            <rule name="validate-number" xsi:type="boolean">true</rule>
+                        </validation>
+                        <notice translate="true">Leave empty for infinite (Example: &gt; 1000)</notice>
+                    </settings>
+                </field>
+                <field name="commission_percent" formElement="input">
+                    <argument name="data" xsi:type="array">
+                        <item name="config" xsi:type="array">
+                            <item name="additionalClasses" xsi:type="string">col-sm-3</item>
+                        </item>
+                    </argument>
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Referral Fee (%)</label>
+                        <dataScope>commission_percent</dataScope>
+                        <validation>
+                            <rule name="required-entry" xsi:type="boolean">true</rule>
+                            <rule name="validate-number" xsi:type="boolean">true</rule>
+                        </validation>
+                        <notice translate="true">Category based fee (e.g., 4.5 for Books)</notice>
+                    </settings>
+                </field>
+                <actionDelete name="actionDelete">
+                    <settings>
+                        <componentType>actionDelete</componentType>
+                        <dataType>text</dataType>
+                        <label translate="true">Actions</label>
+                    </settings>
+                </actionDelete>
+            </container>
+        </dynamicRows>
+    </fieldset>
+</form>

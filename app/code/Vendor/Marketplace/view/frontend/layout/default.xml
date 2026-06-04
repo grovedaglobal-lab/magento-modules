@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="header.links">
+            <block class="Vendor\Marketplace\Block\Page\Html\Header\VendorLink" name="vendor.login.link" before="-">
+                <arguments>
+                    <argument name="label" xsi:type="string" translate="true">Vendor Login</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+    </body>
+</page>

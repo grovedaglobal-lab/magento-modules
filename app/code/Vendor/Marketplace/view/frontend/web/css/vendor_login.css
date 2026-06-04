@@ -1,0 +1,163 @@
+/* Vendor Login Styling */
+
+/* Page Background */
+body.vendor-marketplace-account-login {
+    background-color: #f4f6f8;
+}
+.page-title-wrapper {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* Center Page Title */
+body.vendor-marketplace-account-login .page-title {
+    text-align: center;
+}
+
+/* Center Page Title for Forgot Password */
+body.vendor-marketplace-account-forgotpassword .page-title {
+    text-align: center;
+}
+
+.vendor-login-container {
+    max-width: 450px;
+    margin: 50px auto;
+    background: #fff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e1e1e1;
+}
+
+.vendor-login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.vendor-login-header h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.vendor-login-header p {
+    color: #777;
+    font-size: 14px;
+}
+
+.vendor-login-container .fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.vendor-login-container .field {
+    margin-bottom: 16px;
+}
+
+.vendor-login-container .field.note {
+    color: #555;
+    margin-bottom: 14px;
+    line-height: 1.5;
+}
+
+.vendor-login-container .label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.vendor-login-container .label span {
+    display: inline;
+}
+
+.vendor-login-container .control {
+    width: 100%;
+}
+
+.vendor-login-container .input-text,
+.vendor-login-container input[type="email"],
+.vendor-login-container input[type="password"],
+.vendor-login-container input[type="text"],
+.vendor-login-container select,
+.vendor-login-container textarea {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 10px 12px;
+    box-sizing: border-box;
+    background: #fff;
+    font-size: 14px;
+}
+
+.vendor-login-container .input-text:focus,
+.vendor-login-container input[type="email"]:focus,
+.vendor-login-container input[type="password"]:focus,
+.vendor-login-container input[type="text"]:focus,
+.vendor-login-container select:focus,
+.vendor-login-container textarea:focus {
+    outline: none;
+    border-color: #007bdb;
+    box-shadow: 0 0 0 2px rgba(0, 123, 219, 0.12);
+}
+
+.actions-toolbar {
+    margin-top: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.actions-toolbar .primary .action.login {
+    background-color: #007bdb;
+    border-color: #007bdb;
+    color: #fff;
+    padding: 10px 30px;
+    font-size: 16px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.actions-toolbar .primary .action.login:hover {
+    background-color: #0056b3;
+}
+
+.actions-toolbar .primary .action.submit {
+    background-color: #007bdb;
+    border: 1px solid #007bdb;
+    color: #fff;
+    padding: 10px 22px;
+    font-size: 16px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.actions-toolbar .primary .action.submit:hover {
+    background-color: #0056b3;
+}
+
+.actions-toolbar .secondary .action {
+    color: #007bdb;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.actions-toolbar .secondary .action:hover {
+    text-decoration: underline;
+}
+
+.vendor-register-link {
+    margin-top: 30px;
+    text-align: center;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+    font-size: 14px;
+}
+
+.vendor-register-link a {
+    font-weight: 600;
+    color: #007bdb;
+}

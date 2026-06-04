@@ -1,0 +1,165 @@
+{
+    "tax_indiangst_vendor_profile": {
+        "column": {
+            "entity_id": true,
+            "vendor_code": true,
+            "gstin": true,
+            "pan_number": true,
+            "business_name": true,
+            "region_id": true,
+            "postcode": true,
+            "is_registered": true,
+            "turnover": true,
+            "created_at": true,
+            "updated_at": true,
+            "signature": true,
+            "authorized_name": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "TAX_INDIANGST_VENDOR_PROFILE_VENDOR_CODE": true
+        }
+    },
+    "tax_indiangst_rates": {
+        "column": {
+            "rate_id": true,
+            "tax_class_id": true,
+            "cgst_percent": true,
+            "sgst_percent": true,
+            "igst_percent": true,
+            "cess_percent": true,
+            "hsn_code": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "tax_indiangst_order_breakup": {
+        "column": {
+            "entity_id": true,
+            "order_id": true,
+            "order_item_id": true,
+            "vendor_id": true,
+            "hsn_code": true,
+            "tax_type": true,
+            "taxable_amount": true,
+            "cgst_amount": true,
+            "sgst_amount": true,
+            "igst_amount": true,
+            "total_tax_amount": true
+        },
+        "index": {
+            "TAX_INDIANGST_ORDER_BREAKUP_ORDER_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "tax_indiangst_vendor_commission": {
+        "column": {
+            "entity_id": true,
+            "order_id": true,
+            "vendor_id": true,
+            "commission_amount": true,
+            "cgst_amount": true,
+            "sgst_amount": true,
+            "igst_amount": true,
+            "total_tax": true,
+            "sac_code": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "quote_address": {
+        "column": {
+            "indiangst_amount": true,
+            "indiangst_base_amount": true,
+            "indiangst_cgst": true,
+            "indiangst_sgst": true,
+            "indiangst_igst": true
+        }
+    },
+    "sales_order": {
+        "column": {
+            "indiangst_amount": true,
+            "indiangst_base_amount": true,
+            "indiangst_cgst": true,
+            "indiangst_sgst": true,
+            "indiangst_igst": true
+        }
+    },
+    "sales_order_item": {
+        "column": {
+            "indiangst_cgst_amount": true,
+            "indiangst_sgst_amount": true,
+            "indiangst_igst_amount": true,
+            "indiangst_percent": true
+        }
+    },
+    "quote_item": {
+        "column": {
+            "indiangst_cgst_amount": true,
+            "indiangst_sgst_amount": true,
+            "indiangst_igst_amount": true,
+            "indiangst_percent": true
+        }
+    },
+    "sales_invoice": {
+        "column": {
+            "indiangst_amount": true,
+            "indiangst_base_amount": true,
+            "indiangst_cgst": true,
+            "indiangst_sgst": true,
+            "indiangst_igst": true
+        }
+    },
+    "sales_invoice_item": {
+        "column": {
+            "indiangst_cgst_amount": true,
+            "indiangst_sgst_amount": true,
+            "indiangst_igst_amount": true,
+            "indiangst_percent": true
+        }
+    },
+    "sales_creditmemo": {
+        "column": {
+            "indiangst_amount": true,
+            "indiangst_base_amount": true,
+            "indiangst_cgst": true,
+            "indiangst_sgst": true,
+            "indiangst_igst": true
+        }
+    },
+    "sales_creditmemo_item": {
+        "column": {
+            "indiangst_cgst_amount": true,
+            "indiangst_sgst_amount": true,
+            "indiangst_igst_amount": true,
+            "indiangst_percent": true
+        }
+    },
+    "tax_indiangst_rate": {
+        "column": {
+            "rate_id": true,
+            "tax_code": true,
+            "tax_name": true,
+            "cgst_rate": true,
+            "sgst_rate": true,
+            "igst_rate": true,
+            "cess_rate": true,
+            "total_rate": true,
+            "description": true,
+            "is_active": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "TAX_INDIANGST_RATE_IS_ACTIVE": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "TAX_INDIANGST_RATE_TAX_CODE": true
+        }
+    }
+}

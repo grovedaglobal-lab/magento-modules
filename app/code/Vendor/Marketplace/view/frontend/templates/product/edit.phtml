@@ -1,0 +1,1740 @@
+<?php
+/** @var \Vendor\Marketplace\Block\Product\Edit $block */
+
+// Check parameters to decide mode: Selection vs Edit
+$id = $block->getRequest()->getParam('id');
+$type = $block->getRequest()->getParam('type');
+$set = $block->getRequest()->getParam('set');
+$product = $block->getProduct();
+
+// If it's a new product (no ID) and type/set are missing, show Selection Form
+if (!$id && (!$type || !$set)):
+    ?>
+    <div class="product-type-selection">
+        <h1 class="page-title">
+            <span class="base"><?= __('Add New Product') ?></span>
+        </h1>
+
+        <form action="<?= $block->getUrl('*/*/*') ?>" method="get" id="product-type-form"
+            data-mage-init='{"validation":{}}'>
+            <fieldset class="fieldset">
+                <div class="field required">
+                    <label class="label"><span><?= __('Attribute Set') ?></span></label>
+                    <div class="control">
+                        <select name="set" class="select required-entry">
+                            <?php foreach ($block->getAttributeSets() as $attributeSet): ?>
+                                <option value="<?= $attributeSet->getId() ?>"
+                                    <?= $attributeSet->getId() == $block->getDefaultAttributeSetId() ? 'selected' : '' ?>>
+                                    <?= $block->escapeHtml($attributeSet->getAttributeSetName()) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field required">
+                    <label class="label"><span><?= __('Product Type') ?></span></label>
+                    <div class="control">
+                        <select name="type" class="select required-entry">
+                            <?php foreach ($block->getProductTypes() as $code => $label): ?>
+                                <option value="<?= $code ?>"><?= $block->escapeHtml($label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="actions-toolbar">
+                <button type="submit" class="action primary"><span><?= __('Continue') ?></span></button>
+                <a href="<?= $block->getUrl('marketplace/product/index') ?>"
+                    class="action secondary"><span><?= __('Back') ?></span></a>
+            </div>
+        </form>
+    </div>
+
+<?php else:
+    // Render the Actual Edit Form
+    // Retrieve grouped attributes instead of flat list
+    $groupedAttributes = $block->getGroupedAttributes();
+    ?>
+
+    <div class="product-edit-form">
+        <div class="page-title-wrapper">
+            <h1 class="page-title">
+                <span class="base">
+                    <?= $product->getId() ? __('Edit Product') : __('New Product') ?>
+                </span>
+            </h1>
+        </div>
+
+        <form action="<?= $block->getSaveUrl() ?>" method="post" id="product-edit-form" enctype="multipart/form-data"
+            data-mage-init='{"validation":{}}'>
+            <input type="hidden" name="id" value="<?= $product->getId() ?>" />
+            <input type="hidden" name="set" value="<?= $product->getAttributeSetId() ?>" />
+            <input type="hidden" name="type" value="<?= $product->getTypeId() ?>" />
+
+            <div class="actions-toolbar">
+                <a href="<?= $block->getUrl('marketplace/product/index') ?>" class="action secondary">
+                    <span><?= __('Back') ?></span>
+                </a>
+                <button type="submit" class="action primary" title="<?= __('Save') ?>">
+                    <span><?= __('Save Product') ?></span>
+                </button>
+            </div>
+
+            <div class="product-info-accordion">
+                <?php if ($product->getTypeId() === 'configurable'): ?>
+                    <!-- Configurable Product Wizard Workflow -->
+                    <div class="accordion-group">
+                        <div class="accordion-title active" onclick="toggleAccordion(this)">
+                            <span><?= __('Product Configurations') ?></span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="accordion-content" style="display: block;">
+                            <div class="message notice" style="margin-bottom:15px;">
+                                <span><?= __('For configurable products, price and quantity are managed per variation.') ?></span>
+                            </div>
+                            <script>
+                                // Global helper for variations weight parsing
+                                window.parseWeightFromLabel = function (label) {
+                                    if (!label) return 1.0;
+                                    var cleanLabel = label.toLowerCase();
+                                    var weightMatch = cleanLabel.match(/(\d+(?:\.\d+)?)\s*(g|kg|gm|gram|lb|lbs|oz)/);
+                                    if (weightMatch) {
+                                        var value = parseFloat(weightMatch[1]);
+                                        var unit = weightMatch[2];
+                                        if (unit === 'g' || unit === 'gm' || unit === 'gram') {
+                                            return value / 1000;
+                                        }
+                                        return value;
+                                    }
+                                    // Just numbers
+                                    var numMatch = cleanLabel.match(/^(\d+(?:\.\d+)?)$/);
+                                    if (numMatch) return parseFloat(numMatch[1]);
+                                    return 1.0;
+                                };
+                            </script>
+
+                            <!-- Existing Variations Logic -->
+                            <?php
+                            $existingVariations = [];
+                            if ($product->getTypeId() === 'configurable') {
+                                $children = $product->getTypeInstance()->getUsedProducts($product);
+                                $attributes = $product->getTypeInstance()->getConfigurableAttributes($product);
+
+                                foreach ($children as $child) {
+                                    // Get attributes string
+                                    $attrStr = [];
+                                    foreach ($attributes as $attribute) {
+                                        $pAttr = $attribute->getProductAttribute();
+                                        $code = $pAttr->getAttributeCode();
+                                        $label = $pAttr->getStoreLabel();
+                                        $valueId = $child->getData($code);
+                                        $optionText = $pAttr->getSource()->getOptionText($valueId);
+                                        if ($optionText) {
+                                            $attrStr[] = "<strong>$label</strong>: $optionText";
+                                        }
+                                    }
+
+                                    $qty = $block->getVendorProductQty($child->getSku());
+
+                                    $existingVariations[] = [
+                                        'id' => $child->getId(),
+                                        'name' => $child->getName(),
+                                        'sku' => $child->getSku(),
+                                        'price' => (float) $child->getPrice(),
+                                        'weight' => (float) $child->getWeight(),
+                                        'qty' => (float) $qty,
+                                        'hsn_code' => $child->getData('hsn_code'),
+                                        'gst_rate' => $child->getData('gst_rate'),
+                                        'status' => $child->getStatus() == 1 ? __('Enabled') : __('Disabled'),
+                                        'attributes' => implode(', ', $attrStr),
+                                        'image_url' => ($child->getImage() && $child->getImage() !== 'no_selection') ? \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Store\Model\StoreManagerInterface::class)->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $child->getImage() : null
+                                    ];
+                                }
+                            }
+                            ?>
+
+                            <?php if (!empty($existingVariations)): ?>
+                                <div class="current-variations-wrapper"
+                                    style="margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px;">
+                                    <div
+                                        style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                                        <h3 style="margin:0; font-size:18px; color:#333;"><?= __('Current Variations') ?></h3>
+                                        <div style="display:flex; gap:10px; align-items:center;">
+                                            <button type="button" class="action secondary" onclick="enableCurrentVariations()">
+                                                <span><?= __('Enable Editing') ?></span>
+                                            </button>
+                                            <button type="button" class="action secondary" onclick="openConfigurationWizard()">
+                                                <span><?= __('Add / Generate Configurations') ?></span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="admin__data-grid-wrap">
+                                        <table class="data-grid current-variations-grid" id="current-variations-grid">
+                                            <thead>
+                                                <tr>
+                                                    <th class="data-grid-th col-image"><?= __('Image') ?></th>
+                                                    <th class="data-grid-th col-name"><?= __('Name') ?></th>
+                                                    <th class="data-grid-th col-sku"><?= __('SKU') ?></th>
+                                                    <th class="data-grid-th col-price"><?= __('Price') ?></th>
+                                                    <th class="data-grid-th col-weight"><?= __('Weight') ?></th>
+                                                    <th class="data-grid-th col-qty"><?= __('Qty') ?></th>
+                                                    <th class="data-grid-th col-attributes"><?= __('Attributes') ?></th>
+                                                    <th class="data-grid-th col-status"><?= __('Status') ?></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Populated by JS -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div style="margin-top:10px; font-size:13px; color:#666;">
+                                        <?= __('Make changes above and click "Save Product" to update.') ?>
+                                    </div>
+                                </div>
+
+                                <script>
+                                    var currentVariations = <?= json_encode($existingVariations) ?>;
+                                    require(['jquery'], function ($) {
+                                        var tbody = $('#current-variations-grid tbody');
+
+                                        currentVariations.forEach(function (item) {
+                                            var row = $('<tr>').attr('data-product-id', item.id);
+
+                                            // Image (for current variations)
+                                            var imgHtml = '<div class="current-variation-image-cell">';
+                                            imgHtml += '<div class="placeholder-img current-variation-thumb" style="width:56px; height:56px; background:#eee; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; cursor:not-allowed; opacity:0.75;">' + (item.image_url ? '<img src="' + item.image_url + '" style="max-width:100%;max-height:100%;">' : '<span><i class="fas fa-camera"></i></span>') + '</div>';
+                                            imgHtml += '<input type="file" name="variation_image_current_' + item.id + '" class="edit-image current-variation-file" style="display:none;" disabled />';
+                                            imgHtml += '</div>';
+                                            row.append($('<td>').html(imgHtml));
+
+                                            // Name
+                                            row.append($('<td>').append(
+                                                $('<input>').attr({ type: 'text', class: 'input-text edit-name', value: item.name, readonly: true }).css('width', '100%').css('background', '#f8f8f8').css('cursor', 'not-allowed')
+                                            ));
+
+                                            // SKU
+                                            row.append($('<td>').append(
+                                                $('<input>').attr({ type: 'text', class: 'input-text edit-sku', value: item.sku, readonly: true }).css('width', '100%').css('background', '#f8f8f8').css('cursor', 'not-allowed')
+                                            ));
+
+                                            // Price
+                                            row.append($('<td>').append(
+                                                $('<input>').attr({ type: 'number', class: 'input-text edit-price', value: item.price, step: '0.01', readonly: true }).css('width', '80px').css('background', '#f8f8f8').css('cursor', 'not-allowed')
+                                            ));
+
+
+                                            // Weight
+                                            var displayedWeight = item.weight;
+                                            if (displayedWeight == 1.0 && item.attributes) {
+                                                // Try to guess a better weight from attribute labels
+                                                var guessed = parseWeightFromLabel(item.attributes);
+                                                if (guessed != 1.0) displayedWeight = guessed;
+                                            }
+
+                                            row.append($('<td>').append(
+                                                $('<input>').attr({ type: 'number', class: 'input-text edit-weight', value: displayedWeight, step: '0.01', readonly: true }).css('width', '80px').css('background', '#f8f8f8').css('cursor', 'not-allowed')
+                                            ));
+
+                                            // Qty
+                                            row.append($('<td>').append(
+                                                $('<input>').attr({ type: 'number', class: 'input-text edit-qty', value: item.qty, readonly: true }).css('width', '80px').css('background', '#f8f8f8').css('cursor', 'not-allowed')
+                                            ));
+
+                                            // Attributes (Text)
+                                            row.append($('<td>').html(item.attributes));
+
+                                            // Status
+                                            row.append($('<td>').text(item.status));
+
+                                            tbody.append(row);
+                                        });
+
+                                        // Initially hide wizard if variations exist
+                                        if (currentVariations.length > 0) {
+                                            $('#configurable-product-wizard').hide();
+                                        }
+                                    });
+                                </script>
+                            <?php endif; ?>
+
+                            <!-- Wizard Container -->
+                            <div class="wizard-container" id="configurable-product-wizard">
+
+                                <!-- Step Indicators -->
+                                <ul class="wizard-steps">
+                                    <li class="step active" data-step="1">
+                                        <span class="step-icon">1</span>
+                                        <span class="step-label"><?= __('Select Attribute') ?></span>
+                                    </li>
+                                    <li class="step" data-step="2">
+                                        <span class="step-icon">2</span>
+                                        <span class="step-label"><?= __('Attribute Values') ?></span>
+                                    </li>
+                                    <li class="step" data-step="3">
+                                        <span class="step-icon">3</span>
+                                        <span class="step-label"><?= __('Bulk Images & Price') ?></span>
+                                    </li>
+                                    <li class="step" data-step="4">
+                                        <span class="step-icon">4</span>
+                                        <span class="step-label"><?= __('Summary') ?></span>
+                                    </li>
+                                </ul>
+
+                                <!-- Step 1: Attribute Selection -->
+                                <div class="wizard-step-content active" id="step-1">
+                                    <div class="field required">
+                                        <label
+                                            class="label"><span><?= __('Vary Products By (Select Attribute)') ?></span></label>
+                                        <div class="control">
+                                            <select id="config-variation-attribute" name="configurable_attribute"
+                                                class="select">
+                                                <option value=""><?= __('-- Select Attribute --') ?></option>
+                                                <?php foreach ($block->getConfigurableAttributes() as $attr): ?>
+                                                    <option value="<?= $attr->getAttributeId() ?>"
+                                                        data-code="<?= $attr->getAttributeCode() ?>"
+                                                        data-label="<?= $block->escapeHtml($attr->getFrontendLabel()) ?>">
+                                                        <?= $block->escapeHtml($attr->getFrontendLabel()) ?>
+                                                        (<?= $attr->getAttributeCode() ?>)
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <p class="note">
+                                            <?= __('Choose the attribute that makes your products unique (e.g., Color, Size).') ?>
+                                        </p>
+                                    </div>
+                                    <div class="wizard-actions">
+                                        <button type="button" class="action primary next-step"
+                                            onclick="goToStep(2)"><?= __('Next') ?></button>
+                                    </div>
+                                </div>
+
+                                <!-- Step 2: Value Selection -->
+                                <div class="wizard-step-content" id="step-2">
+                                    <div class="field">
+                                        <label class="label"><span><?= __('Select Values') ?></span></label>
+                                        <div class="control">
+                                            <div id="attribute-values-container" class="values-grid">
+                                                <!-- Populated via AJAX -->
+                                                <div class="loader" style="display:none; text-align:center; padding:20px;">
+                                                    <i class="fas fa-spinner fa-spin"
+                                                        style="font-size:24px; color:#007bdb;"></i>
+                                                    <p><?= __('Loading values...') ?></p>
+                                                </div>
+                                                <div class="no-values-msg" style="display:none; color:#666;">
+                                                    <?= __('Please select an attribute in Step 1.') ?>
+                                                </div>
+                                            </div>
+                                            <div class="actions-toolbar" style="margin-top:10px;">
+                                                <button type="button" class="action secondary"
+                                                    onclick="selectAllValues()"><?= __('Select All') ?></button>
+                                                <button type="button" class="action secondary"
+                                                    onclick="deselectAllValues()"><?= __('Deselect All') ?></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="wizard-actions">
+                                        <button type="button" class="action secondary back-step"
+                                            onclick="goToStep(1)"><?= __('Back') ?></button>
+                                        <button type="button" class="action primary next-step"
+                                            onclick="goToStep(3)"><?= __('Next') ?></button>
+                                    </div>
+                                </div>
+
+                                <!-- Step 3: Bulk Config -->
+                                <div class="wizard-step-content" id="step-3">
+                                    <h3><?= __('Bulk Images, Price and Quantity') ?></h3>
+                                    <p class="note">
+                                        <?= __('Based on your selections new products will be created. Use this step to customize images and price for your new products.') ?>
+                                    </p>
+
+                                    <div class="field">
+                                        <label class="label"><span><?= __('Images') ?></span></label>
+                                        <div class="control">
+                                            <div class="admin__field-option">
+                                                <input type="radio" name="image_option" value="skip" checked id="img_skip"
+                                                    class="admin__control-radio">
+                                                <label class="admin__field-label"
+                                                    for="img_skip"><?= __('Skip image uploading at this time') ?></label>
+                                            </div>
+                                            <!-- Future: Add image upload here if needed -->
+                                        </div>
+                                    </div>
+
+                                    <div class="field">
+                                        <label class="label"><span><?= __('Price') ?></span></label>
+                                        <div class="control">
+                                            <div class="admin__field-option" style="display:none;">
+                                                <input type="radio" name="price_option" value="single" checked id="price_single"
+                                                    class="admin__control-radio">
+                                                <label class="admin__field-label"
+                                                    for="price_single"><?= __('Apply single price to all SKUs') ?></label>
+                                            </div>
+                                            <div class="control" style="margin-top:5px; margin-left: 20px; display:none;">
+                                                <input type="number" id="bulk-price" class="input-text"
+                                                    placeholder="<?= __('Price') ?>" />
+                                            </div>
+                                            <div class="admin__field-option" style="margin-top:10px;">
+                                                <input type="radio" name="price_option" value="unique" id="price_unique" checked
+                                                    class="admin__control-radio">
+                                                <label class="admin__field-label"
+                                                    for="price_unique"><?= __('Apply unique prices by attribute to each SKU') ?></label>
+                                            </div>
+                                            <div class="admin__field-option" style="margin-top:10px; display:none;">
+                                                <input type="radio" name="price_option" value="skip" id="price_skip"
+                                                    class="admin__control-radio">
+                                                <label class="admin__field-label"
+                                                    for="price_skip"><?= __('Skip price at this time') ?></label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="field">
+                                        <label class="label"><span><?= __('Quantity') ?></span></label>
+                                        <div class="control">
+                                            <div class="admin__field-option" style="display:none;">
+                                                <input type="radio" name="qty_option" value="single" checked id="qty_single"
+                                                    class="admin__control-radio">
+                                                <label class="admin__field-label"
+                                                    for="qty_single"><?= __('Apply single quantity to each SKUs') ?></label>
+                                            </div>
+                                            <div class="control" style="margin-top:5px; margin-left: 20px; display:none;">
+                                                <input type="number" id="bulk-qty" class="input-text"
+                                                    placeholder="<?= __('Quantity') ?>" />
+                                            </div>
+                                            <div class="admin__field-option" style="margin-top:10px;">
+                                                <input type="radio" name="qty_option" value="unique" id="qty_unique" checked
+                                                    class="admin__control-radio">
+                                                <label class="admin__field-label"
+                                                    for="qty_unique"><?= __('Apply unique quantity by attribute to each SKU') ?></label>
+                                            </div>
+                                            <div class="admin__field-option" style="margin-top:10px; display:none;">
+                                                <input type="radio" name="qty_option" value="skip" id="qty_skip"
+                                                    class="admin__control-radio">
+                                                <label class="admin__field-label"
+                                                    for="qty_skip"><?= __('Skip quantity at this time') ?></label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="wizard-actions">
+                                        <button type="button" class="action secondary back-step"
+                                            onclick="goToStep(2)"><?= __('Back') ?></button>
+                                        <button type="button" class="action primary next-step"
+                                            onclick="generateVariations()"><?= __('Generate Products') ?></button>
+                                    </div>
+                                </div>
+
+                                <!-- Step 4: Edit Variations -->
+                                <div class="wizard-step-content" id="step-4">
+                                    <h4><?= __('Edit Variations') ?></h4>
+                                    <p><?= __('Review and edit the details for each variation before saving.') ?></p>
+                                    <div class="table-wrapper" style="overflow-x: auto;">
+                                        <table class="data table" id="generated-products-grid" style="min-width: 100%;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 80px;"><?= __('Image') ?></th>
+                                                    <th style="width: 200px;"><?= __('Name') ?> <span
+                                                            style="color:red;">*</span></th>
+                                                    <th style="width: 150px;"><?= __('SKU') ?> <span style="color:red;">*</span>
+                                                    </th>
+                                                    <th style="width: 120px;"><?= __('Price') ?></th>
+                                                    <th style="width: 100px;"><?= __('Weight') ?></th>
+                                                    <th style="width: 100px;"><?= __('Quantity') ?></th>
+                                                    <th style="width: 150px;"><?= __('Attribute') ?></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Populated via JS -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="wizard-actions" style="margin-top: 20px;">
+                                        <button type="button" class="action secondary back-step"
+                                            onclick="goToStep(3)"><?= __('Back') ?></button>
+                                        <button type="button" class="action primary"
+                                            onclick="saveAllVariations()"><?= __('Save All Variations') ?></button>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- Hidden Fields -->
+                            <input type="hidden" name="configurable_products_data" id="configurable_products_data" />
+
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <?php
+                // Standard attributes loop follows
+                ?>
+
+                <?php foreach ($groupedAttributes as $index => $group): ?>
+                    <?php
+                    // Open the first group by default
+                    $isOpen = ($index === 0) ? 'active' : '';
+                    $style = ($index === 0) ? 'display: block;' : 'display: none;';
+                    ?>
+                    <div class="accordion-group">
+                        <div class="accordion-title <?= $isOpen ?>" onclick="toggleAccordion(this)">
+                            <span><?= $block->escapeHtml(__($group['name'])) ?></span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="accordion-content" style="<?= $style ?>">
+                            <?php foreach ($group['attributes'] as $attribute): ?>
+                                <?= $block->renderAttributeInput($attribute) ?>
+                            <?php endforeach; ?>
+
+                            <?php
+                            $groupName = strtolower($group['name']);
+                            if (strpos($groupName, 'image') !== false || strpos($groupName, 'video') !== false): ?>
+                                <div class="images-and-videos-container">
+                                    <div class="media-header"
+                                        style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                        <h3 style="margin:0; font-size:18px; font-weight:600; color:#333;">
+                                            <?= __('Images And Videos') ?>
+                                        </h3>
+                                        <div class="video-actions">
+                                            <button type="button" class="action-add-video" onclick="addVideoLink()">
+                                                <span><?= __('Add Video') ?></span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="image-upload-grid"
+                                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px;">
+                                        <?php for ($i = 1; $i <= 7; $i++):
+                                            $fieldName = ($i === 1) ? 'image' : 'image_' . $i;
+                                            // For now we only show existing main image, others would need gallery loop
+                                            // Debug: Show what we're getting
+                                            if ($i === 1) {
+                                                $imageValue = $product->getImage();
+                                                // Uncomment to debug: echo "<!-- DEBUG: Image value: " . ($imageValue ?: 'NULL') . " -->";
+                                            }
+                                            $existingImage = ($i === 1 && $product->getImage() && $product->getImage() != 'no_selection')
+                                                ? \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Store\Model\StoreManagerInterface::class)->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage()
+                                                : null;
+                                            ?>
+                                            <div class="media-slot" data-index="<?= $i ?>" style="position:relative;">
+                                                <div class="image-placeholder-box slot-box" id="slot-<?= $i ?>"
+                                                    onclick="document.getElementById('input-<?= $i ?>').click()"
+                                                    style="width:100%; height:130px; border:1px solid #ccc; background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden;">
+                                                    <?php if ($existingImage): ?>
+                                                        <img src="<?= $existingImage ?>"
+                                                            style="max-width:100%; max-height:100%; object-fit:cover;" />
+                                                    <?php else: ?>
+                                                        <div class="box-content" style="text-align:center; padding:10px;">
+                                                            <i class="fas fa-camera"
+                                                                style="font-size:24px; color:#ccc; display:block; margin-bottom:5px;"></i>
+                                                            <span class="text"
+                                                                style="font-size:10px; color:#007bdb;"><?= $i == 1 ? __('Main Image') : __('Image ') . $i ?></span>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <input type="file" name="<?= $fieldName ?>" id="input-<?= $i ?>" style="display:none;"
+                                                    onchange="previewSlotImage(this, <?= $i ?>)" />
+                                                <button type="button" class="remove-slot-img" onclick="removeSlotImage(<?= $i ?>)"
+                                                    style="position:absolute; top:-5px; right:-5px; background:#fff; border:1px solid #ccc; border-radius:50%; width:20px; height:20px; display:<?= $existingImage ? 'flex' : 'none' ?>; align-items:center; justify-content:center; cursor:pointer; z-index:10;">&times;</button>
+                                            </div>
+                                        <?php endfor; ?>
+                                    </div>
+
+                                    <!-- Video Slot (Limited to 1) -->
+                                    <div id="video-slot-container" style="margin-top:20px; display:none;">
+                                        <div class="field video-url">
+                                            <label class="label"><span><?= __('Video URL') ?></span></label>
+                                            <div class="control" style="display:flex; gap:10px;">
+                                                <input type="text" name="product[video_url]"
+                                                    placeholder="https://www.youtube.com/watch?v=..." class="input-text"
+                                                    style="flex:1;" />
+                                                <button type="button" class="action-remove-video" onclick="removeVideoSlot()"
+                                                    style="background:#e02b27; color:#fff; border:none; padding:0 15px; border-radius:3px; cursor:pointer;">&times;</button>
+                                            </div>
+                                            <p class="note" style="font-size:12px; color:#666; margin-top:5px;">
+                                                <?= __('Maximum 1 video allowed.') ?>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <script>
+                                    function previewSlotImage(input, index) {
+                                        if (input.files && input.files[0]) {
+                                            var reader = new FileReader();
+                                            var slot = document.getElementById('slot-' + index);
+                                            var removeBtn = slot.parentElement.querySelector('.remove-slot-img');
+
+                                            reader.onload = function (e) {
+                                                slot.innerHTML = '<img src="' + e.target.result + '" style="max-width:100%; max-height:100%; object-fit:cover;" />';
+                                                removeBtn.style.display = 'flex';
+                                            }
+                                            reader.readAsDataURL(input.files[0]);
+                                        }
+                                    }
+                                    function removeSlotImage(index) {
+                                        var input = document.getElementById('input-' + index);
+                                        var slot = document.getElementById('slot-' + index);
+                                        var removeBtn = slot.parentElement.querySelector('.remove-slot-img');
+
+                                        input.value = '';
+                                        slot.innerHTML = '<div class="box-content" style="text-align:center; padding:10px;"><i class="fas fa-camera" style="font-size:24px; color:#ccc; display:block; margin-bottom:5px;"></i><span class="text" style="font-size:10px; color:#007bdb;">' + (index == 1 ? '<?= __('Main Image') ?>' : '<?= __('Image ') ?>' + index) + '</span></div>';
+                                        removeBtn.style.display = 'none';
+                                    }
+                                    function addVideoLink() {
+                                        document.getElementById('video-slot-container').style.display = 'block';
+                                        document.querySelector('.action-add-video').disabled = true;
+                                        document.querySelector('.action-add-video').style.opacity = '0.5';
+                                    }
+                                    function removeVideoSlot() {
+                                        document.getElementById('video-slot-container').style.display = 'none';
+                                        document.getElementsByName('product[video_url]')[0].value = '';
+                                        document.querySelector('.action-add-video').disabled = false;
+                                        document.querySelector('.action-add-video').style.opacity = '1';
+                                    }
+                                </script>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+
+                <!-- Fallback for Images if no "Image" group exists (e.g. Default set might not group them nicely) -->
+                <!-- For now assuming getting sorted attributes covers most needs. -->
+            </div>
+
+        </form>
+    </div>
+<?php endif; ?>
+
+<script>
+    require([
+        'jquery',
+        'mage/validation'
+    ], function ($) {
+        'use strict';
+
+        console.log("Vendor Marketplace: Wizard Script Initializing...");
+
+        var dataForm = $('#product-edit-form');
+        var loadedOptions = [];
+        var step3OriginalHtml = null;
+
+        // Wizard Navigation
+        window.goToStep = function (step) {
+            // Validation before moving
+            if (step === 2) {
+                if (!$('#config-variation-attribute').val()) {
+                    alert('<?= __('Please select an attribute.') ?>');
+                    return;
+                }
+                // Hide Step 1 immediately to prevent stacking
+                $('#step-1').removeClass('active');
+
+                loadAttributeValues($('#config-variation-attribute').val());
+            }
+            if (step === 3) {
+                if ($('#attribute-values-container input:checked').length === 0) {
+                    alert('<?= __('Please select at least one value.') ?>');
+                    return;
+                }
+            }
+
+            // UI Update
+            $('.wizard-step-content').removeClass('active').hide(); // Force hide
+            $('#step-' + step).addClass('active').show(); // Force show
+
+            $('.wizard-steps .step').removeClass('active');
+            $('.wizard-steps .step[data-step="' + step + '"]').addClass('active');
+        };
+
+        // Load Values AJAX
+        function loadAttributeValues(attributeId) {
+            var container = $('#attribute-values-container');
+            var loader = container.find('.loader');
+            var msg = container.find('.no-values-msg');
+
+            // Clear previous (except loader/msg)
+            container.find('.value-item').remove();
+            loader.show();
+            msg.hide();
+
+            $.ajax({
+                url: '<?= $block->getUrl("marketplace/product/attributeOptions") ?>',
+                type: 'GET',
+                data: { attribute_id: attributeId },
+                dataType: 'json',
+                success: function (response) {
+                    loader.hide();
+                    if (response.success && response.options.length > 0) {
+                        loadedOptions = response.options;
+                        var html = '';
+                        $.each(response.options, function (i, opt) {
+                            html += '<div class="value-item" style="padding:5px; border-bottom:1px solid #eee;">';
+                            html += '<label style="cursor:pointer; display:flex; align-items:center;">';
+                            html += '<input type="checkbox" name="selected_values[]" value="' + opt.value + '" data-label="' + opt.label + '" style="margin-right:10px;">';
+                            html += '<span>' + opt.label + '</span>';
+                            html += '</label></div>';
+                        });
+                        container.append(html);
+                    } else {
+                        container.append('<div class="value-item">' + (response.message || '<?= __('No values found.') ?>') + '</div>');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    loader.hide();
+                    console.error("AJAX Error:", status, error);
+                    alert('Error loading values: ' + error + ' (Status: ' + xhr.status + ')');
+                    container.append('<div class="value-item"><?= __('Error loading values.') ?></div>');
+                }
+            });
+        }
+
+        window.selectAllValues = function () {
+            $('#attribute-values-container input[type="checkbox"]').prop('checked', true);
+        };
+        window.deselectAllValues = function () {
+            $('#attribute-values-container input[type="checkbox"]').prop('checked', false);
+        };
+
+        // Generate Variations AJAX
+        window.generateVariations = function () {
+            var attributeId = $('#config-variation-attribute').val();
+            var optionSelected = $('#config-variation-attribute option:selected');
+            var attributeLabel = optionSelected.data('label');
+            var attributeCode = optionSelected.data('code');
+
+            var selectedValues = [];
+            $('#attribute-values-container input:checked').each(function () {
+                selectedValues.push({
+                    value: $(this).val(),
+                    label: $(this).data('label')
+                });
+            });
+
+            if (selectedValues.length === 0) {
+                alert('<?= __('Please select at least one attribute value.') ?>');
+                return;
+            }
+
+            var baseName = $('input[name="product[name]"]').val();
+            var baseSku = $('input[name="product[sku]"]').val();
+
+            if (!baseName || !baseSku) {
+                alert('<?= __('Please enter Product Name and SKU in the main form first.') ?>');
+                return;
+            }
+
+            // Check if unique pricing/quantity is selected
+            var priceOption = $('input[name="price_option"]:checked').val();
+            var qtyOption = $('input[name="qty_option"]:checked').val();
+
+            if (priceOption === 'unique' || qtyOption === 'unique') {
+                // Show individual input fields for each attribute value
+                showUniqueInputs(selectedValues, priceOption, qtyOption, attributeId, attributeCode, baseName, baseSku);
+            } else {
+                // Proceed with bulk generation
+                var bulkPrice = $('#bulk-price').val();
+                var bulkQty = $('#bulk-qty').val();
+                proceedWithGeneration(attributeId, attributeCode, selectedValues, bulkPrice, bulkQty, baseName, baseSku);
+            }
+        };
+
+        // Show unique input fields for each attribute value
+        function showUniqueInputs(selectedValues, priceOption, qtyOption, attributeId, attributeCode, baseName, baseSku) {
+            if (step3OriginalHtml === null) {
+                step3OriginalHtml = $('#step-3').html();
+            }
+
+            var html = '<h4><?= __('Set Individual Prices and Quantities') ?></h4>';
+            html += '<p><?= __('Enter price and quantity for each variation:') ?></p>';
+            html += '<div class="unique-inputs-container" style="max-height:400px; overflow-y:auto;">';
+            html += '<table class="data table" style="width:100%;">';
+            html += '<thead><tr>';
+            html += '<th><?= __('Attribute Value') ?></th>';
+            if (priceOption === 'unique') html += '<th><?= __('Price') ?></th>';
+            if (qtyOption === 'unique') html += '<th><?= __('Quantity') ?></th>';
+            html += '</tr></thead><tbody>';
+
+            $.each(selectedValues, function (i, opt) {
+                html += '<tr>';
+                html += '<td><strong>' + opt.label + '</strong></td>';
+                if (priceOption === 'unique') {
+                    html += '<td><input type="number" class="input-text unique-price" data-value="' + opt.value + '" placeholder="<?= __('Price') ?>" style="width:100%;"/></td>';
+                }
+                if (qtyOption === 'unique') {
+                    html += '<td><input type="number" class="input-text unique-qty" data-value="' + opt.value + '" placeholder="<?= __('Quantity') ?>" style="width:100%;"/></td>';
+                }
+                html += '</tr>';
+            });
+
+            html += '</tbody></table></div>';
+            html += '<div class="note" style="margin-top:10px; color:#666;">';
+            if (priceOption === 'unique' && qtyOption !== 'unique') {
+                html += '<?= __('Only unique price is enabled for this step.') ?>';
+            } else if (qtyOption === 'unique' && priceOption !== 'unique') {
+                html += '<?= __('Only unique quantity is enabled for this step.') ?>';
+            }
+            html += '</div>';
+            html += '<div class="wizard-actions" style="margin-top:20px;">';
+            html += '<button type="button" class="action secondary" onclick="restoreStep3AndGoBack()"><?= __('Back') ?></button>';
+            html += '<button type="button" class="action primary" id="confirm-unique-generation"><?= __('Generate Products') ?></button>';
+            html += '</div>';
+
+            // Replace Step 3 content temporarily
+            $('#step-3').html(html);
+
+            // Bind click event for confirmation
+            $('#confirm-unique-generation').on('click', function () {
+                var uniquePrices = {};
+                var uniqueQtys = {};
+                var hasValidationErrors = false;
+
+                // Collect unique prices
+                if (priceOption === 'unique') {
+                    $('.unique-price').each(function () {
+                        var val = $(this).data('value');
+                        var price = $(this).val();
+                        if (!price || price <= 0) {
+                            alert('<?= __('Please enter a valid price for all variations.') ?>');
+                            hasValidationErrors = true;
+                            return false;
+                        }
+                        uniquePrices[val] = price;
+                    });
+                }
+
+                // Collect unique quantities
+                if (qtyOption === 'unique') {
+                    $('.unique-qty').each(function () {
+                        var val = $(this).data('value');
+                        var qty = $(this).val();
+                        if (!qty || qty < 0) {
+                            alert('<?= __('Please enter a valid quantity for all variations.') ?>');
+                            hasValidationErrors = true;
+                            return false;
+                        }
+                        uniqueQtys[val] = qty;
+                    });
+                }
+
+                if (hasValidationErrors) {
+                    return;
+                }
+
+                // Proceed with generation using unique values
+                proceedWithUniqueGeneration(attributeId, attributeCode, selectedValues, uniquePrices, uniqueQtys, baseName, baseSku, priceOption, qtyOption);
+            });
+        }
+
+        window.restoreStep3AndGoBack = function () {
+            if (step3OriginalHtml !== null) {
+                $('#step-3').html(step3OriginalHtml);
+            }
+            goToStep(3);
+        };
+
+        window.enableCurrentVariations = function () {
+            if (typeof jQuery === 'undefined') {
+                return;
+            }
+
+            var grid = jQuery('#current-variations-grid tbody');
+            if (!grid.length) {
+                return;
+            }
+
+            grid.find('tr').each(function () {
+                var row = jQuery(this);
+                var imageCell = row.children('td').eq(0);
+                var imageBox = imageCell.find('.placeholder-img');
+                var imageInput = imageCell.find('input[type="file"]');
+
+                imageBox.css({ 'cursor': 'pointer', 'opacity': '1' }).attr('onclick', 'this.nextElementSibling.click()');
+                imageInput.prop('disabled', false).show();
+
+                row.find('.edit-name, .edit-sku, .edit-price, .edit-weight, .edit-qty')
+                    .prop('readonly', false)
+                    .css({ 'background': '', 'cursor': '' });
+            });
+        };
+
+        // Proceed with bulk generation
+        function proceedWithGeneration(attributeId, attributeCode, selectedValues, bulkPrice, bulkQty, baseName, baseSku) {
+            // Show loading or disable button
+            $('#step-3 .next-step').text('<?= __('Generating...') ?>').attr('disabled', true);
+
+            $.ajax({
+                url: '<?= $block->getUrl("marketplace/product/variationGenerate") ?>',
+                type: 'POST',
+                data: {
+                    attribute_id: attributeId,
+                    attribute_code: attributeCode,
+                    options: selectedValues,
+                    bulk_price: bulkPrice,
+                    bulk_qty: bulkQty,
+                    name: baseName,
+                    sku: baseSku,
+                    set_id: $('input[name="set"]').val()
+                },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        // Populate Grid
+                        var tbody = $('#generated-products-grid tbody');
+                        tbody.empty();
+
+                        var linkedProducts = [];
+
+                        $.each(response.products, function (i, prod) {
+                            var row = '<tr data-product-id="' + (prod.id || '') + '" data-attribute-id="' + prod.attribute_id + '" data-option-id="' + prod.option_id + '">';
+                            // Image placeholder with file input
+                            row += '<td><div class="placeholder-img" style="width:50px; height:50px; background:#eee; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="this.nextElementSibling.click()"><span><i class="fas fa-camera"></i></span></div>';
+                            row += '<input type="file" name="variation_image_new_' + i + '" class="edit-image" style="display:none;" onchange="previewVariationImage(this)" /></td>';
+                            // Editable Name
+                            row += '<td><input type="text" class="input-text edit-name" value="' + prod.name + '" style="width:100%;" required /></td>';
+                            // Editable SKU
+                            row += '<td><input type="text" class="input-text edit-sku" value="' + prod.sku + '" style="width:100%;" required /></td>';
+                            var priceVal = prod.price || '0.00';
+                            row += '<td><input type="number" class="input-text edit-price" value="' + priceVal + '" placeholder="0.00" step="0.01" min="0" style="width:100%;" /></td>';
+                            // Editable Weight
+                            var weightVal = prod.weight || parseWeightFromLabel(prod.attribute_value);
+                            row += '<td><input type="number" class="input-text edit-weight" value="' + weightVal + '" placeholder="1.00" step="0.01" min="0" style="width:100%;" /></td>';
+                            // Editable Quantity
+                            var qtyVal = (prod.qty !== null && prod.qty !== undefined && prod.qty !== '') ? prod.qty : '';
+                            row += '<td><input type="number" class="input-text edit-qty" value="' + qtyVal + '" placeholder="0" min="0" style="width:100%;" /></td>';
+                            // Attribute (read-only)
+                            row += '<td>' + prod.attribute_value + '</td>';
+                            row += '</tr>';
+                            tbody.append(row);
+
+                            linkedProducts.push({
+                                product_id: prod.id,
+                                sku: prod.sku,
+                                name: prod.name,
+                                price: prod.price,
+                                qty: prod.qty,
+                                attributes: [
+                                    {
+                                        attribute_id: prod.attribute_id,
+                                        value: prod.option_id
+                                    }
+                                ]
+                            });
+                        });
+
+                        // Set Hidden Field for Save
+                        var configData = {
+                            'attribute_id': attributeId,
+                            'linked_products': linkedProducts
+                        };
+                        $('#configurable_products_data').val(JSON.stringify(configData));
+
+                        goToStep(4);
+                    } else {
+                        alert(response.message || '<?= __('Error generating variations.') ?>');
+                        $('#step-3 .next-step').text('<?= __('Generate Products') ?>').attr('disabled', false);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('<?= __('System error generating variations.') ?>: ' + error);
+                    $('#step-3 .next-step').text('<?= __('Generate Products') ?>').attr('disabled', false);
+                }
+            });
+        }
+
+        // Proceed with unique generation
+        function proceedWithUniqueGeneration(attributeId, attributeCode, selectedValues, uniquePrices, uniqueQtys, baseName, baseSku, priceOption, qtyOption) {
+            // Show loading
+            $('#confirm-unique-generation').text('<?= __('Generating...') ?>').attr('disabled', true);
+
+            // Prepare options with unique prices/quantities
+            var optionsWithPricing = [];
+            $.each(selectedValues, function (i, opt) {
+                optionsWithPricing.push({
+                    value: opt.value,
+                    label: opt.label,
+                    price: priceOption === 'unique' ? uniquePrices[opt.value] : null,
+                    qty: qtyOption === 'unique' ? uniqueQtys[opt.value] : null
+                });
+            });
+
+            $.ajax({
+                url: '<?= $block->getUrl("marketplace/product/variationGenerate") ?>',
+                type: 'POST',
+                data: {
+                    attribute_id: attributeId,
+                    attribute_code: attributeCode,
+                    options: optionsWithPricing,
+                    unique_pricing: priceOption === 'unique',
+                    unique_qty: qtyOption === 'unique',
+                    name: baseName,
+                    sku: baseSku,
+                    set_id: $('input[name="set"]').val()
+                },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        // Populate Grid
+                        var tbody = $('#generated-products-grid tbody');
+                        tbody.empty();
+
+                        var linkedProducts = [];
+
+                        $.each(response.products, function (i, prod) {
+                            var row = '<tr data-product-id="' + (prod.id || '') + '" data-attribute-id="' + attributeId + '" data-option-id="' + prod.option_id + '">';
+                            row += '<td><div class="placeholder-img" style="width:50px; height:50px; background:#eee; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="this.nextElementSibling.click()"><span><i class="fas fa-camera"></i></span></div>';
+                            row += '<input type="file" name="variation_image_new_' + i + '" class="edit-image" style="display:none;" onchange="previewVariationImage(this)" /></td>';
+                            row += '<td><input type="text" class="input-text edit-name" value="' + prod.name + '" style="width:100%;" required /></td>';
+                            row += '<td>' + prod.sku + '</td>';
+                            row += '<td>' + prod.price + '</td>';
+                            row += '<td>' + ((prod.weight !== null && prod.weight !== undefined) ? prod.weight : parseWeightFromLabel(prod.attribute_value)) + '</td>';
+                            row += '<td>' + ((prod.qty !== null && prod.qty !== undefined) ? prod.qty : '') + '</td>';
+                            row += '<td>' + prod.attribute_value + '</td>';
+                            row += '</tr>';
+                            tbody.append(row);
+
+                            linkedProducts.push({
+                                product_id: prod.id,
+                                sku: prod.sku
+                            });
+                        });
+
+                        // Set Hidden Field for Save
+                        var configData = {
+                            'attribute_id': attributeId,
+                            'linked_products': linkedProducts
+                        };
+                        $('#configurable_products_data').val(JSON.stringify(configData));
+
+                        goToStep(4);
+                    } else {
+                        alert(response.message || '<?= __('Error generating variations.') ?>');
+                        $('#confirm-unique-generation').text('<?= __('Generate Products') ?>').attr('disabled', false);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('<?= __('System error generating variations.') ?>: ' + error);
+                    $('#confirm-unique-generation').text('<?= __('Generate Products') ?>').attr('disabled', false);
+                }
+            });
+        }
+
+
+        // Check if product actually has children (variations)
+        <?php
+        $hasChildren = false;
+        if ($product->getTypeId() === 'configurable') {
+            $children = $product->getTypeInstance()->getUsedProducts($product);
+            if (count($children) > 0) {
+                $hasChildren = true;
+            }
+        }
+        ?>
+        var hasChildren = <?= $hasChildren ? 'true' : 'false' ?>;
+
+        // Form Submit Handler
+        dataForm.on('submit', function () {
+            if ($('#product-edit-form input[name="type"]').val() === 'configurable') {
+
+                // Auto-save grid variations if they exist (Step 4 or Current)
+                if ($('#generated-products-grid tbody tr').length > 0 || $('#current-variations-grid tbody tr').length > 0) {
+                    saveAllVariations(true); // pass true to suppress alerts
+                }
+
+                var configData = $('#configurable_products_data').val();
+
+                // Require wizard if:
+                // 1. It's a NEW product (no ID) OR
+                // 2. It's an EXISTING product but has NO children (e.g. failed creation)
+                // AND
+                // 3. No new config data has been generated yet
+                if ((!hasChildren) && !configData) {
+                    alert('<?= __('This Configurable Product has no variations. Please use the wizard to generate them before saving.') ?>');
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        // Initialize Validation
+        dataForm.mage('validation', {
+            ignore: ':hidden:not(.accordion-content .required-entry, .accordion-content .validate-number, .accordion-content .validate-code, .accordion-content select, .accordion-content textarea, .accordion-content input)',
+            errorPlacement: function (error, element) {
+                error.insertAfter(element);
+                var accordion = $(element).closest('.accordion-content');
+                if (accordion.length) {
+                    var title = accordion.prev('.accordion-title');
+                    if (!title.hasClass('active')) {
+                        title.addClass('active');
+                        accordion.slideDown();
+                    }
+                }
+            }
+        });
+
+        // Save all edited variations
+        function saveAllVariations(suppressAlerts = false) {
+            var generatedRows = $('#generated-products-grid tbody tr');
+            var currentRows = $('#current-variations-grid tbody tr');
+            var updates = [];
+            var hasErrors = false;
+
+            // Helper to collect data from a row
+            function collectRowData(row) {
+                var productId = row.data('product-id');
+                var imageCell = row.children('td').eq(0);
+                var imageInput = row.find('input[type="file"]');
+                var nameInput = row.find('.edit-name');
+                var skuInput = row.find('.edit-sku');
+                var priceInput = row.find('.edit-price');
+                var weightInput = row.find('.edit-weight');
+                var qtyInput = row.find('.edit-qty');
+
+                // Support both input-based rows and read-only text-cell rows.
+                var name = nameInput.length ? (nameInput.val() ? nameInput.val().trim() : '') : $.trim(row.children('td').eq(1).text());
+                var sku = skuInput.length ? (skuInput.val() ? skuInput.val().trim() : '') : $.trim(row.children('td').eq(2).text());
+                var price = priceInput.length ? priceInput.val() : $.trim(row.children('td').eq(3).text());
+                var weight = weightInput.length ? weightInput.val() : $.trim(row.children('td').eq(4).text());
+                var qty = qtyInput.length ? qtyInput.val() : $.trim(row.children('td').eq(5).text());
+                var hasImage = imageCell.find('img').length > 0 || (imageInput.length && imageInput[0].files && imageInput[0].files.length > 0);
+
+                // Validate required fields
+                if (!name || !sku) {
+                    hasErrors = true;
+                    if (!name && nameInput.length) {
+                        nameInput.css('border', '2px solid red');
+                    }
+                    if (!sku && skuInput.length) {
+                        skuInput.css('border', '2px solid red');
+                    }
+                    return null;
+                }
+
+                if (!hasImage) {
+                    hasErrors = true;
+                    imageCell.css('outline', '2px solid red');
+                    return null;
+                }
+
+                // Reset borders
+                if (nameInput.length) {
+                    nameInput.css('border', '');
+                }
+                if (skuInput.length) {
+                    skuInput.css('border', '');
+                }
+                imageCell.css('outline', '');
+
+                var attrId = row.data('attribute-id');
+                var optId = row.data('option-id');
+
+                var fileInput = row.find('input[type="file"]');
+                var fileKey = fileInput.length ? fileInput.attr('name') : null;
+
+                var data = {
+                    name: name,
+                    sku: sku,
+                    price: price || 0,
+                    weight: weight || 0,
+                    qty: qty || 0,
+                    file_key: fileKey
+                };
+
+                if (productId) {
+                    data.product_id = productId;
+                }
+
+                if (attrId && optId) {
+                    data.attributes = [
+                        {
+                            attribute_id: attrId,
+                            value: optId
+                        }
+                    ];
+                }
+
+                if (weight !== undefined) {
+                    data.weight = weight;
+                }
+
+                return data;
+            }
+
+            // Collect from Generated Grid
+            generatedRows.each(function () {
+                var data = collectRowData($(this));
+                if (data) updates.push(data);
+            });
+
+            // Collect from Current Variations Grid
+            currentRows.each(function () {
+                var data = collectRowData($(this));
+                if (data) updates.push(data);
+            });
+
+            if (hasErrors) {
+                if (!suppressAlerts) alert('<?= __('Please fill in all required fields (Name and SKU).') ?>');
+                return;
+            }
+
+            // Update Hidden Field with Edited Data
+            var currentConfigData = $('#configurable_products_data').val();
+            if (currentConfigData) {
+                try {
+                    var configJson = JSON.parse(currentConfigData);
+                    // Merge or replace? We should probably just append or replace linked_products
+                    // But wait, if we have existing data in configJson, we want to update it.
+                    // Ideally, we just send a flat list of all variations to be processed by Save.php
+                    configJson.linked_products = updates;
+                    $('#configurable_products_data').val(JSON.stringify(configJson));
+                } catch (e) {
+                    $('#configurable_products_data').val(JSON.stringify({
+                        linked_products: updates
+                    }));
+                }
+            } else {
+                $('#configurable_products_data').val(JSON.stringify({
+                    linked_products: updates
+                }));
+            }
+
+            // Visual feedback
+            if (!suppressAlerts) {
+                // Update button text for both grids if they exist
+                $('#step-4 .action.primary').text('<?= __('Saved! Click "Save Product" below') ?>');
+                $('#step-4 .action.primary').css('background', '#28a745').css('border-color', '#28a745');
+
+                alert('<?= __('Variations data updated! Please click "Save Product" at the top or bottom of the page to persist changes to the database.') ?>');
+
+                setTimeout(function () {
+                    if (!suppressAlerts) {
+                        $('#step-4 .action.primary').text('<?= __('Save All Variations') ?>').css('background', '').css('border-color', '');
+                    }
+                }, 5000);
+            }
+        }
+
+        // Auto-save variations on form submit to ensure all grid edits are captured
+        require(['jquery'], function ($) {
+            $('#product-edit-form').on('submit', function (e) {
+                // Image Validation: Ensure at least 1 image is uploaded or already exists
+                var hasMainImage = false;
+                $('.media-slot').each(function () {
+                    var img = $(this).find('img');
+                    var input = $(this).find('input[type="file"]')[0];
+                    if (img.length > 0 || (input && input.files && input.files.length > 0)) {
+                        hasMainImage = true;
+                        return false; // Break the each loop
+                    }
+                });
+
+                if (!hasMainImage) {
+                    alert('<?= __('Please upload at least one image for the product before saving.') ?>');
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    return false;
+                }
+
+                if ($('#generated-products-grid').length || $('#current-variations-grid').length) {
+                    saveAllVariations(true); // Suppress alerts
+                }
+            });
+        });
+
+        // Make saveAllVariations available globally for onclick
+        window.saveAllVariations = saveAllVariations;
+
+        window.previewVariationImage = function (input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var placeholder = input.previousElementSibling;
+                    if (placeholder && placeholder.classList.contains('placeholder-img')) {
+                        placeholder.innerHTML = '<img src="' + e.target.result + '" style="max-width:100%;max-height:100%;">';
+                    } else if (typeof jQuery !== 'undefined') {
+                        jQuery(input).prev('.placeholder-img').html('<img src="' + e.target.result + '" style="max-width:100%;max-height:100%;">');
+                    }
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        };
+
+        // Accordion toggle function
+        window.toggleAccordion = function (element) {
+            if (typeof jQuery !== 'undefined') {
+                jQuery(element).toggleClass('active');
+                jQuery(element).next('.accordion-content').slideToggle();
+            }
+        };
+
+        // Open the configuration wizard and reset to Step 1
+        window.openConfigurationWizard = function () {
+            if (typeof jQuery !== 'undefined') {
+                var wizard = jQuery('#configurable-product-wizard');
+                wizard.stop(true, true).slideDown();
+                jQuery('.wizard-step-content').hide();
+                jQuery('#step-1').show().addClass('active');
+                jQuery('.wizard-steps .step').removeClass('active');
+                jQuery('.wizard-steps .step[data-step="1"]').addClass('active');
+
+                if (wizard.length && wizard[0].scrollIntoView) {
+                    wizard[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        };
+
+        // Backward compatibility if any old calls still exist
+        window.toggleWizard = window.openConfigurationWizard;
+
+        console.log("Vendor Marketplace: Wizard Script Initialization Complete");
+
+        // Initial State Fix
+        $('.wizard-step-content').hide();
+        $('#step-1').show();
+    });
+</script>
+
+<style>
+    /* Shared Premium Styles */
+    .product-type-selection,
+    .product-edit-form {
+        max-width: 900px;
+        margin: 40px auto;
+        background: #fff;
+        padding: 40px;
+        border: 1px solid #e3e3e3;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+        font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    /* Accordion Styles */
+    .accordion-group {
+        border-bottom: 1px solid #eee;
+        margin-bottom: 10px;
+    }
+
+    .accordion-group:last-child {
+        border-bottom: none;
+    }
+
+    .accordion-title {
+        background: #fdfdfd;
+        padding: 15px 10px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+
+    .accordion-title:hover {
+        background: #f5f5f5;
+    }
+
+    .accordion-title.active {
+        background: #eef5fa;
+        color: #007bdb;
+    }
+
+    .accordion-title .toggle-icon {
+        transition: transform 0.3s ease;
+        font-size: 12px;
+    }
+
+    .accordion-title.active .toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    .accordion-content {
+        padding: 20px 10px;
+        background: #fff;
+    }
+
+    /* Selection Step Specifics */
+    .product-type-selection {
+        max-width: 600px;
+    }
+
+    /* Page Title */
+    .product-edit-form .page-title-wrapper,
+    .product-type-selection .page-title {
+        border-bottom: 1px solid #f0f0f0;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        margin-top: 0;
+    }
+
+    .page-title {
+        font-size: 26px;
+        font-weight: 300;
+        color: #333;
+        margin: 0;
+    }
+
+    /* Attribute Scopes and Suffixes */
+    .attribute-scope {
+        font-size: 11px;
+        color: #888;
+        font-weight: 400;
+        display: block;
+        margin-top: 2px;
+    }
+
+    .input-with-suffix {
+        position: relative;
+    }
+
+    .input-suffix {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #999;
+        font-size: 13px;
+        pointer-events: none;
+    }
+
+    .weight-wrapper {
+        margin-top: 5px;
+    }
+
+    /* Form Fields */
+    .fieldset {
+        border: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .field {
+        margin-bottom: 25px;
+    }
+
+    .field .label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #555;
+        font-size: 14px;
+        text-align: left;
+    }
+
+    .field.required .label span::after {
+        content: '*';
+        color: #e02b27;
+        font-size: 1.2em;
+        margin-left: 5px;
+    }
+
+    /* Inputs */
+    .control input[type="text"],
+    .control input[type="password"],
+    .control input[type="email"],
+    .control input[type="number"],
+    .control input[type="date"],
+    .control textarea,
+    .control .select,
+    .product-type-selection .select {
+        width: 100%;
+        max-width: 100%;
+        padding: 10px 15px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        background: #fff;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
+        height: 42px;
+        /* Uniform height */
+    }
+
+    .control textarea {
+        height: auto;
+        min-height: 120px;
+        line-height: 1.5;
+    }
+
+    .control input:focus,
+    .control textarea:focus,
+    .control .select:focus {
+        border-color: #007bdb;
+        box-shadow: 0 0 0 3px rgba(0, 123, 219, 0.15);
+        outline: none;
+    }
+
+    /* Image & Video Premium Section */
+    .images-and-videos-container {
+        padding: 10px 0;
+    }
+
+    .video-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+    }
+
+    .action-add-video {
+        background: #514943;
+        color: #fff;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 3px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.2s;
+    }
+
+    .action-add-video:hover {
+        background: #3e3732;
+    }
+
+    .image-upload-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .image-placeholder-box {
+        width: 150px;
+        height: 150px;
+        border: 1px solid #ccc;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        text-align: center;
+        padding: 10px;
+        transition: border-color 0.2s, background 0.2s;
+    }
+
+    .image-placeholder-box:hover {
+        border-color: #007bdb;
+        background: #f9f9f9;
+    }
+
+    .image-placeholder-box .box-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .image-placeholder-box i {
+        font-size: 40px;
+        color: #ccc;
+    }
+
+    .image-placeholder-box .text {
+        font-size: 12px;
+        color: #007bdb;
+        line-height: 1.4;
+    }
+
+    .image-preview-item {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        border: 1px solid #eee;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .image-preview-item img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: cover;
+    }
+
+    .image-preview-item .remove-img {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid #ccc;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 14px;
+        color: #666;
+    }
+
+    /* Current Variations Table */
+    #current-variations-grid {
+        width: 100%;
+        table-layout: auto;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    #current-variations-grid th,
+    #current-variations-grid td {
+        vertical-align: middle;
+        padding: 14px 12px;
+    }
+
+    #current-variations-grid th.col-image,
+    #current-variations-grid td:first-child {
+        width: 85px;
+    }
+
+    #current-variations-grid th.col-name,
+    #current-variations-grid td:nth-child(2) {
+        width: 170px;
+    }
+
+    #current-variations-grid th.col-sku,
+    #current-variations-grid td:nth-child(3) {
+        width: 140px;
+    }
+
+    #current-variations-grid th.col-price,
+    #current-variations-grid td:nth-child(4),
+    #current-variations-grid th.col-weight,
+    #current-variations-grid td:nth-child(5),
+    #current-variations-grid th.col-qty,
+    #current-variations-grid td:nth-child(6) {
+        width: 140px;
+    }
+
+    #current-variations-grid th.col-attributes,
+    #current-variations-grid td:nth-child(7) {
+        width: 130px;
+    }
+
+    #current-variations-grid th.col-status,
+    #current-variations-grid td:nth-child(8) {
+        width: 120px;
+    }
+
+    #current-variations-grid .current-variation-image-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #current-variations-grid .current-variation-thumb {
+        flex-shrink: 0;
+    }
+
+    #current-variations-grid .current-variation-file {
+        width: 100%;
+        max-width: 90px;
+        font-size: 11px;
+    }
+
+    #current-variations-grid .edit-name,
+    #current-variations-grid .edit-sku {
+        width: 100% !important;
+        max-width: 180px;
+        box-sizing: border-box;
+    }
+
+    #current-variations-grid .edit-price,
+    #current-variations-grid .edit-weight,
+    #current-variations-grid .edit-qty {
+        width: 100% !important;
+        max-width: 110px;
+        box-sizing: border-box;
+    }
+
+    /* Image Upload Styles (Legacy - Keeping for compatibility if needed) */
+    .field.image .control {
+        border: 1px dashed #ccc;
+        padding: 20px;
+        background: #fafafa;
+        text-align: center;
+        border-radius: 4px;
+    }
+
+    .current-image {
+        margin-top: 15px;
+        padding: 5px;
+        background: #fff;
+        border: 1px solid #ddd;
+        display: inline-block;
+    }
+
+    /* Actions Toolbar */
+    .actions-toolbar {
+        display: flex;
+        justify-content: flex-end;
+        /* Right align primary actions */
+        align-items: center;
+        gap: 15px;
+        margin-top: 20px;
+        margin-bottom: 30px;
+        /* Space before form starts */
+    }
+
+    /* Buttons */
+    .action.primary {
+        background: #eb5202;
+        color: #fff;
+        border: 1px solid #eb5202;
+        padding: 10px 30px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 3px;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: normal;
+    }
+
+    .action.primary:hover {
+        background: #d44900;
+        border-color: #d44900;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .action.secondary {
+        color: #007bdb;
+        background: transparent;
+        border: none;
+        padding: 10px 15px;
+        font-size: 14px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .action.secondary:hover {
+        color: #005a9e;
+        text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+
+        .product-edit-form,
+        .product-type-selection {
+            padding: 20px;
+            margin: 20px 10px;
+        }
+    }
+    /* Responsive */
+    @media (max-width: 1200px) {
+        #current-variations-grid { font-size: 13px; }
+        #current-variations-grid th, #current-variations-grid td { padding: 10px 6px; }
+    }
+</style>

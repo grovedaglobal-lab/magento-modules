@@ -1,0 +1,45 @@
+type Query {
+    getSellerTickets(vendor_id: Int!): [SellerTicket] @resolver(class: "Ticketing\\SellerTicket\\Model\\Resolver\\GetTickets") @doc(description: "Get a list of tickets for a specific vendor.")
+    getMyTickets: [SellerTicket] @resolver(class: "Ticketing\\SellerTicket\\Model\\Resolver\\GetMyTickets") @doc(description: "Get tickets for the currently authenticated customer.") @cache(cacheable: false)
+    getSellerTicketMessages(ticket_id: Int!): [SellerTicketMessage] @resolver(class: "Ticketing\\SellerTicket\\Model\\Resolver\\GetMessages") @doc(description: "Get a list of messages for a specific ticket.")
+}
+
+type Mutation {
+    createSellerTicket(input: CreateSellerTicketInput!): SellerTicket @resolver(class: "Ticketing\\SellerTicket\\Model\\Resolver\\CreateTicket") @doc(description: "Create a new seller ticket.")
+    addSellerTicketMessage(input: AddSellerTicketMessageInput!): SellerTicketMessage @resolver(class: "Ticketing\\SellerTicket\\Model\\Resolver\\AddMessage") @doc(description: "Add a message to an existing ticket.")
+}
+
+input CreateSellerTicketInput {
+    vendor_id: Int
+    subject: String!
+    category: String!
+    priority: String!
+    message: String!
+}
+
+input AddSellerTicketMessageInput {
+    ticket_id: Int!
+    sender_type: String!
+    sender_name: String!
+    message: String!
+}
+
+type SellerTicket {
+    entity_id: Int!
+    vendor_id: Int!
+    subject: String!
+    category: String!
+    status: String!
+    priority: String!
+    created_at: String!
+    updated_at: String!
+}
+
+type SellerTicketMessage {
+    message_id: Int!
+    ticket_id: Int!
+    sender_type: String!
+    sender_name: String!
+    message: String!
+    created_at: String!
+}

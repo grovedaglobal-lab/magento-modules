@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <title>Order Details</title>
+    </head>
+
+    
+    <update handle="marketplace_vendor_dashboard_layout"/>
+    <body>
+        <block class="Magento\Framework\View\Element\Template" name="vendor.order.view.cache.disable" template="Vendor_Marketplace::dummy.phtml" cacheable="false" />
+
+
+        <referenceBlock name="vendor.portal.wrapper">
+             <block class="Vendor\Marketplace\Block\Order\View" name="vendor_order_view" template="Vendor_Marketplace::order/view.phtml" as="main_content">
+                 <block class="Vendor\Marketplace\Block\Order\View" name="vendor_order_actions" template="Vendor_Marketplace::order/actions.phtml" as="vendor_order_actions"/>
+
+                <block class="Vendor\Marketplace\Block\Order\Items" name="vendor_order_items" as="order_items" template="Vendor_Marketplace::order/items.phtml">
+                    <!-- The sales_order_item_renderers handle above creates sales.order.items.renderers block -->
+                    <!-- We don't need to do anything here - the parent Items class will find it automatically -->
+                    
+                    <block class="Magento\Sales\Block\Order\Totals" name="vendor_order_totals" as="order_totals" template="Magento_Sales::order/totals.phtml">
+                        <arguments>
+                            <argument name="label_properties" xsi:type="string">colspan="9" class="mark"</argument>
+                            <argument name="value_properties" xsi:type="string">class="amount"</argument>
+                        </arguments>
+                        <block class="Magento\Tax\Block\Sales\Order\Tax" name="tax" template="Magento_Tax::order/tax.phtml"/>
+                    </block>
+                </block>
+
+                <block class="Vendor\Marketplace\Block\Order\Info" name="vendor_order_info" template="Vendor_Marketplace::order/info.phtml"/>
+            </block>
+        </referenceBlock>
+        
+    </body>
+</page>

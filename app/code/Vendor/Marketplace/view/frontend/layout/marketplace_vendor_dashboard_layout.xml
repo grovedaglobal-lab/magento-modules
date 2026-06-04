@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Vendor_Marketplace::css/dashboard.css"/>
+        <css src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" src_type="url"/>
+    </head>
+    
+    <body>
+        <!-- Disable FPC for all vendor pages sharing this layout -->
+        <block class="Magento\Framework\View\Element\Template" name="vendor.dashboard.cache.disable" template="Vendor_Marketplace::dummy.phtml" cacheable="false" />
+
+        <!-- Aggressively remove all standard theme containers -->
+        <referenceBlock name="header.container" remove="true"/>
+        <referenceBlock name="header-wrapper" remove="true"/>
+        <referenceBlock name="panel.header" remove="true"/>
+        <referenceBlock name="top.search" remove="true"/>
+        <referenceBlock name="catalog.topnav" remove="true"/>
+        <referenceBlock name="page.top" remove="true"/>
+        <referenceBlock name="nav-sections" remove="true"/>
+        <referenceBlock name="footer-container" remove="true"/>
+        <referenceBlock name="copyright" remove="true"/>
+        <referenceBlock name="breadcrumbs" remove="true"/>
+        <referenceBlock name="page.main.title" remove="true"/>
+        <referenceContainer name="header.panel" remove="true"/>
+        <referenceContainer name="header.container" remove="true"/>
+        <referenceContainer name="footer-container" remove="true"/>
+        <referenceContainer name="sidebar.main" remove="true"/>
+        <referenceContainer name="sidebar.additional" remove="true"/>
+
+        <!-- Sm Ego specific removals -->
+        <referenceBlock name="theme_header" remove="true"/>
+        <referenceBlock name="footer_block" remove="true"/>
+        <referenceBlock name="theme.config" remove="true"/>
+        <referenceContainer name="search-header" remove="true"/>
+
+        <referenceContainer name="content">
+            <block class="Vendor\Marketplace\Block\Seller\Dashboard" name="vendor.portal.wrapper" template="Vendor_Marketplace::seller/dashboard/wrapper.phtml">
+                 <!-- Navigation Sidebar -->
+                 <block class="Vendor\Marketplace\Block\Seller\Navigation" name="vendor.marketplace.navigation.inner" template="Vendor_Marketplace::seller/navigation.phtml"/>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

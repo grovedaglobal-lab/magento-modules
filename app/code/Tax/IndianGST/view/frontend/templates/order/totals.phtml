@@ -1,0 +1,65 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+/**
+ * @var $block \Magento\Sales\Block\Order\Totals
+ * @see \Magento\Sales\Block\Order\Totals
+ */
+?>
+<?php foreach ($block->getTotals() as $_code => $_total): ?>
+    <?php if ($_total->getBlockName()): ?>
+        <?= $block->getChildHtml($_total->getBlockName(), false) ?>
+    <?php else: ?>
+        <?php if ($_code == 'grand_total'): ?>
+            <?php
+            // Rounding Logic
+            $source = $block->getSource(); // Invoice or Order
+            $calculatedTotal = $_total->getValue();
+
+            $targetTotal = round($calculatedTotal);
+            $roundOff = round($targetTotal - $calculatedTotal, 2);
+
+            // Adjust Grand Total Value to be proper integer
+            $_total->setValue($targetTotal);
+            $_total->setBaseValue($targetTotal); // Assuming base currency matches for simplicity in this display context
+            ?>
+            <?php if (abs($roundOff) >= 0.01): ?>
+                <tr class="round-off">
+                    <th <?= /* @noEscape */ $block->getLabelProperties() ?> scope="row">
+                        <strong><?= $block->escapeHtml(__('Round Off')) ?></strong>
+                    </th>
+                    <td <?= /* @noEscape */ $block->getValueProperties() ?> data-th="<?= $block->escapeHtmlAttr(__('Round Off')) ?>">
+                        <strong><?= /* @noEscape */ $source->formatPrice($roundOff) ?></strong>
+                    </td>
+                </tr>
+            <?php endif; ?>
+        <?php endif; ?>
+
+        <tr class="<?= $block->escapeHtmlAttr($_code) ?>">
+            <th <?= /* @noEscape */ $block->getLabelProperties() ?> scope="row">
+                <?php if ($_total->getStrong()): ?>
+                    <strong><?= $block->escapeHtml($_total->getLabel()) ?></strong>
+                <?php else: ?>
+                    <?= $block->escapeHtml($_total->getLabel()) ?>
+                <?php endif ?>
+            </th>
+            <td <?= /* @noEscape */ $block->getValueProperties() ?> data-th="<?= $block->escapeHtmlAttr($_total->getLabel()) ?>">
+                <?php if ($_total->getStrong()): ?>
+                    <strong><?= /* @noEscape */ $block->formatValue($_total) ?></strong>
+                <?php else: ?>
+                    <?= /* @noEscape */ $block->formatValue($_total) ?>
+                <?php endif ?>
+            </td>
+        </tr>
+    <?php endif; ?>
+<?php endforeach ?>
+
+<!-- Compliance Note -->
+<tr>
+    <td colspan="2" style="font-size: 9px; font-style: italic; text-align: right; color: #858796; padding-top: 10px;">
+        <?= $block->escapeHtml(__('* Rounding off is applicable as per Section 170 of CGST Act, 2017.')) ?>
+    </td>
+</tr>

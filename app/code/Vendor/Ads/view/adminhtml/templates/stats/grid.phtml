@@ -1,0 +1,43 @@
+<?php
+/** @var \Vendor\Ads\Block\Adminhtml\Stats\Grid $block */
+$stats = $block->getStatsData();
+?>
+<div class="vendor-ads-admin">
+    <h2><?= __('Analytics Report - All Vendors') ?></h2>
+    <p style="color:#666;"><?= __('Consolidated performance data for all vendors, grouped by bid and date.') ?></p>
+
+    <?php if (empty($stats)): ?>
+        <div class="message message-notice"><span><?= __('No analytics data yet.') ?></span></div>
+    <?php else: ?>
+    <table class="data-grid admin__table-primary">
+        <thead>
+            <tr>
+                <th><?= __('Date') ?></th>
+                <th><?= __('Vendor') ?></th>
+                <th><?= __('Keyword') ?></th>
+                <th><?= __('Bid ID') ?></th>
+                <th><?= __('CPC Bid') ?></th>
+                <th><?= __('Impressions') ?></th>
+                <th><?= __('Clicks') ?></th>
+                <th><?= __('CTR') ?></th>
+                <th><?= __('Conversions') ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($stats as $row): ?>
+            <tr>
+                <td><?= $block->escapeHtml($row['date']) ?></td>
+                <td><strong><?= $block->escapeHtml($row['vendor_name'] ?? 'N/A') ?></strong></td>
+                <td><code><?= $block->escapeHtml($row['keyword'] ?? '-') ?></code></td>
+                <td><?= (int)$row['bid_id'] ?></td>
+                <td><?= number_format($row['bid_amount'], 4) ?></td>
+                <td><?= (int)$row['impressions'] ?></td>
+                <td><?= (int)$row['clicks'] ?></td>
+                <td><?= number_format((float)$row['ctr'], 2) ?>%</td>
+                <td><?= (int)$row['conversions'] ?></td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php endif; ?>
+</div>

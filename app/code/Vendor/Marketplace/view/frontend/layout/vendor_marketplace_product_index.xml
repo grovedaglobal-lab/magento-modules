@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="marketplace_vendor_dashboard_layout"/>
+    <body>
+        
+        <!-- Ensure conflicting dashboard home is gone -->
+        <referenceBlock name="vendor.marketplace.dashboard.home" remove="true"/>
+
+        <referenceBlock name="vendor.portal.wrapper">
+             <!-- Main Content: Product List -->
+             <block class="Vendor\Marketplace\Block\Product\ListProduct" name="vendor.product.list.custom" template="Vendor_Marketplace::product/list.phtml" as="main_content" cacheable="false">
+                 <block class="Magento\Theme\Block\Html\Pager" name="vendor.product.list.pager"/>
+             </block>
+        </referenceBlock>
+    </body>
+</page>

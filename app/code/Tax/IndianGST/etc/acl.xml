@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Tax_IndianGST::root" title="Indian GST" sortOrder="20">
+                    <resource id="Tax_IndianGST::vendors" title="Manage Vendors" sortOrder="10"/>
+                    <resource id="Tax_IndianGST::rates" title="GST Rates" sortOrder="20"/>
+                    <resource id="Tax_IndianGST::config" title="Configuration" sortOrder="30"/>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

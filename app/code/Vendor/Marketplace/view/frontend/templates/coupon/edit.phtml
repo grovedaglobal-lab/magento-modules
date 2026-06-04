@@ -1,0 +1,175 @@
+<?php
+/** @var $block \Vendor\Marketplace\Block\Coupon\Edit */
+$rule = $block->getRule();
+$saveUrl = $block->getSaveUrl();
+$backUrl = $block->getBackUrl();
+
+if ($rule === false) {
+    echo '<div class="message error"><span>' . __('You do not have permission to view this coupon.') . '</span></div>';
+    return;
+}
+?>
+
+<div class="row">
+    <div class="col-md-12">
+        <form class="form-horizontal" action="<?= $saveUrl ?>" method="post" id="coupon-form"
+            data-mage-init='{"validation":{}}'>
+            <input type="hidden" name="rule_id" value="<?= $rule->getId() ?: '' ?>" />
+
+            <fieldset class="fieldset">
+                <legend class="legend"><span>
+                        <?= __('Coupon Information') ?>
+                    </span></legend>
+                <div class="field required">
+                    <label class="label" for="name"><span>
+                            <?= __('Rule Name') ?>
+                        </span></label>
+                    <div class="control">
+                        <input name="name" id="name" title="<?= __('Rule Name') ?>"
+                            value="<?= $block->escapeHtml($rule->getName()) ?>" class="input-text" type="text"
+                            data-validate="{required:true}" />
+                    </div>
+                </div>
+
+                <div class="field required">
+                    <label class="label" for="code"><span>
+                            <?= __('Coupon Code') ?>
+                        </span></label>
+                    <div class="control">
+                        <input name="code" id="code" title="<?= __('Coupon Code') ?>"
+                            value="<?= $block->escapeHtml($rule->getCouponCode()) ?>" class="input-text" type="text"
+                            data-validate="{required:true}" />
+                    </div>
+                </div>
+
+                <div class="field required">
+                    <label class="label" for="discount_amount"><span>
+                            <?= __('Discount Amount') ?>
+                        </span></label>
+                    <div class="control">
+                        <input name="discount_amount" id="discount_amount" title="<?= __('Discount Amount') ?>"
+                            value="<?= (float) $rule->getDiscountAmount() ?>" class="input-text" type="text"
+                            data-validate="{required:true, 'validate-number':true}" />
+                        <div class="note">
+                            <?= __('Enter percentage or fixed amount.') ?>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field required">
+                    <label class="label" for="simple_action"><span>
+                            <?= __('Discount Type') ?>
+                        </span></label>
+                    <div class="control">
+                        <select name="simple_action" id="simple_action" class="select">
+                            <option value="by_percent" <?= $rule->getSimpleAction() == 'by_percent' ? 'selected' : '' ?>>
+                                <?= __('Percent of product price discount') ?>
+                            </option>
+                            <option value="by_fixed" <?= $rule->getSimpleAction() == 'by_fixed' ? 'selected' : '' ?>>
+                                <?= __('Fixed Amount (Per Product)') ?>
+                            </option>
+                            <option value="cart_fixed" <?= $rule->getSimpleAction() == 'cart_fixed' ? 'selected' : '' ?>>
+                                <?= __('Fixed Amount (Whole Cart)') ?>
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label" for="from_date"><span>
+                            <?= __('From Date') ?>
+                        </span></label>
+                    <div class="control">
+                        <input name="from_date" id="from_date" title="<?= __('From Date') ?>"
+                            value="<?= $rule->getFromDate() ?>" class="input-text" type="date" />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label" for="to_date"><span>
+                            <?= __('To Date') ?>
+                        </span></label>
+                    <div class="control">
+                        <input name="to_date" id="to_date" title="<?= __('To Date') ?>"
+                            value="<?= $rule->getToDate() ?>" class="input-text" type="date" />
+                    </div>
+                </div>
+
+                <!-- Conditions Block Removed per Request -->
+
+                <div class="field">
+                    <?= $block->getLayout()->createBlock(\Vendor\Marketplace\Block\Coupon\ProductList::class)
+                        ->setTemplate('Vendor_Marketplace::coupon/product_selector.phtml')
+                        ->toHtml() ?>
+                </div>
+
+                <div class="field">
+                    <label class="label" for="uses_per_coupon"><span>
+                            <?= __('Uses per Coupon') ?>
+                        </span></label>
+                    <div class="control">
+                        <input name="uses_per_coupon" id="uses_per_coupon" title="<?= __('Uses per Coupon') ?>"
+                            value="<?= (int) $rule->getUsesPerCoupon() ?>" class="input-text" type="text"
+                            data-validate="{'validate-number':true}" />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label" for="uses_per_customer"><span>
+                            <?= __('Uses per Customer') ?>
+                        </span></label>
+                    <div class="control">
+                        <input name="uses_per_customer" id="uses_per_customer" title="<?= __('Uses per Customer') ?>"
+                            value="<?= (int) $rule->getUsesPerCustomer() ?>" class="input-text" type="text"
+                            data-validate="{'validate-number':true}" />
+                        <div class="note">
+                            <?= __('Usage limit enforced for logged in customers only.') ?>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label" for="is_active"><span>
+                            <?= __('Active') ?>
+                        </span></label>
+                    <div class="control">
+                        <select name="is_active" id="is_active" class="select">
+                            <option value="1" <?= $rule->getIsActive() == 1 ? 'selected' : '' ?>>
+                                <?= __('Yes') ?>
+                            </option>
+                            <option value="0" <?= $rule->getIsActive() == 0 ? 'selected' : '' ?>>
+                                <?= __('No') ?>
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+            </fieldset>
+
+            <div class="actions-toolbar">
+                <div class="primary">
+                    <button type="submit" class="action save primary" title="<?= __('Save Coupon') ?>">
+                        <span>
+                            <?= __('Save Coupon') ?>
+                        </span>
+                    </button>
+                </div>
+                <div class="secondary">
+                    <a href="<?= $backUrl ?>" class="action back">
+                        <span>
+                            <?= __('Back') ?>
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    require([
+        'Magento_Rule/rules',
+        'prototype'
+    ], function () {
+        // VarienRulesForm is loaded
+    });
+</script>

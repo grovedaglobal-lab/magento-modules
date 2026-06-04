@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Vendor\Marketplace\Api\Data\ShippingRateInterface" type="Vendor\Marketplace\Model\ShippingRate" />
+
+    <!-- Repository Preferences -->
+    <preference for="Vendor\Marketplace\Api\VendorRepositoryInterface" type="Vendor\Marketplace\Model\VendorRepository" />
+    <preference for="Vendor\Marketplace\Api\Data\VendorInterface" type="Vendor\Marketplace\Model\Vendor" />
+    <preference for="Vendor\Marketplace\Api\Data\VendorProfileInterface" type="Vendor\Marketplace\Model\VendorProfile" />
+    <preference for="Vendor\Marketplace\Api\Data\VendorDocumentInterface" type="Vendor\Marketplace\Model\VendorDocument" />
+    <preference for="Vendor\Marketplace\Api\Data\VendorOrderInterface" type="Vendor\Marketplace\Model\VendorOrder" />
+    <preference for="Vendor\Marketplace\Api\Data\VendorPayoutInterface" type="Vendor\Marketplace\Model\VendorPayout" />
+    <preference for="Vendor\Marketplace\Api\Data\VendorCategoryPermissionInterface" type="Vendor\Marketplace\Model\VendorCategoryPermission" />
+    <preference for="Vendor\Marketplace\Api\Data\VendorSearchResultsInterface" type="Magento\Framework\Api\SearchResults" />
+    <preference for="Vendor\Marketplace\Api\Data\VendorOrderSearchResultsInterface" type="Magento\Framework\Api\SearchResults" />
+
+    <!-- Management Preferences -->
+    <preference for="Vendor\Marketplace\Api\VendorManagementInterface" type="Vendor\Marketplace\Model\VendorManagement" />
+    <preference for="Vendor\Marketplace\Api\VendorProductManagementInterface" type="Vendor\Marketplace\Model\VendorProductManagement" />
+    <preference for="Vendor\Marketplace\Api\VendorOrderManagementInterface" type="Vendor\Marketplace\Model\VendorOrderManagement" />
+    <preference for="Vendor\Marketplace\Api\VendorPayoutManagementInterface" type="Vendor\Marketplace\Model\VendorPayoutManagement" />
+    <preference for="Vendor\Marketplace\Api\VendorDocumentManagementInterface" type="Vendor\Marketplace\Model\VendorDocumentManagement" />
+    <preference for="Vendor\Marketplace\Api\VendorCategoryPermissionManagementInterface" type="Vendor\Marketplace\Model\VendorCategoryPermissionManagement" />
+
+    <!-- Add WebP support for image uploads -->
+    <type name="Magento\Framework\File\Mime">
+        <arguments>
+            <argument name="mimeTypes" xsi:type="array">
+                <item name="webp" xsi:type="string">image/webp</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Add WebP to allowed image types -->
+    <type name="Magento\Catalog\Model\Product\Attribute\Backend\Media\ImageEntryConverter">
+        <arguments>
+            <argument name="allowedMimeTypes" xsi:type="array">
+                <item name="image/webp" xsi:type="string">image/webp</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Configurable Product Service for Vendor Marketplace -->
+    <!-- Handles configurable product creation following Magento 2 standard structure -->
+    <type name="Vendor\Marketplace\Model\Product\ConfigurableProductService">
+        <arguments>
+            <argument name="productRepository" xsi:type="object">Magento\Catalog\Api\ProductRepositoryInterface</argument>
+            <argument name="configurableType" xsi:type="object">Magento\ConfigurableProduct\Model\Product\Type\Configurable</argument>
+            <argument name="optionFactory" xsi:type="object">Magento\ConfigurableProduct\Api\Data\OptionInterfaceFactory</argument>
+            <argument name="optionValueFactory" xsi:type="object">Magento\ConfigurableProduct\Api\Data\OptionValueInterfaceFactory</argument>
+            <argument name="productExtensionFactory" xsi:type="object">Magento\Catalog\Api\Data\ProductExtensionInterfaceFactory</argument>
+            <argument name="eavConfig" xsi:type="object">Magento\Eav\Model\Config</argument>
+        </arguments>
+    </type>
+
+    <!-- CLI Commands -->
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="vendor_add_attribute_option" xsi:type="object">Vendor\Marketplace\Console\Command\AddAttributeOptionCommand</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Plugin to hide Free Shipping if Vendor Shipping is available -->
+    <type name="Magento\Shipping\Model\Shipping">
+        <plugin name="vendor_marketplace_hide_freeshipping" type="Vendor\Marketplace\Plugin\Shipping\HideFreeShippingPlugin" sortOrder="10" />
+    </type>
+    <type name="Magento\Customer\Model\EmailNotification">
+        <plugin name="vendor_marketplace_password_reset_email_url" type="Vendor\Marketplace\Plugin\Customer\PasswordResetEmailUrlPlugin" sortOrder="5"/>
+        <plugin name="vendor_marketplace_forgot_password_email" type="Vendor\Marketplace\Plugin\Customer\VendorForgotPasswordEmailPlugin" sortOrder="10"/>
+    </type>
+    <type name="Magento\Customer\Controller\Account\CreatePassword">
+        <plugin name="vendor_marketplace_createpassword_redirect" type="Vendor\Marketplace\Plugin\Customer\CreatePasswordRedirectPlugin" sortOrder="10"/>
+    </type>
+    <type name="Magento\Customer\Controller\Account\Logout">
+        <plugin name="vendor_marketplace_logout_redirect" type="Vendor\Marketplace\Plugin\Customer\VendorLogoutRedirectPlugin" sortOrder="10"/>
+    </type>
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="vendor_marketplace_vendor_listing_data_source" xsi:type="string">Vendor\Marketplace\Model\ResourceModel\Vendor\Grid\Collection</item>
+                <item name="vendor_marketplace_commission_listing_data_source" xsi:type="string">Vendor\Marketplace\Model\ResourceModel\VendorCommission\Grid\Collection</item>
+                <item name="vendor_marketplace_document_listing_data_source" xsi:type="string">Vendor\Marketplace\Model\ResourceModel\VendorDocument\Grid\Collection</item>
+                <item name="vendor_marketplace_coadocument_listing_data_source" xsi:type="string">Vendor\Marketplace\Model\ResourceModel\VendorCoadocument\Grid\Collection</item>
+                <item name="vendor_marketplace_organicdocument_listing_data_source" xsi:type="string">Vendor\Marketplace\Model\ResourceModel\VendorOrganicdocument\Grid\Collection</item>
+                <item name="vendor_marketplace_news_listing_data_source" xsi:type="string">Vendor\Marketplace\Model\ResourceModel\News\Grid\Collection</item>
+                <item name="vendor_marketplace_transaction_listing_data_source" xsi:type="string">Vendor\Marketplace\Model\ResourceModel\VendorOrder\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+
+</config>

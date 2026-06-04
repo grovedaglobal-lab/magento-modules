@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- Add GST totals to the Marketplace Order Totals block -->
+        <referenceBlock name="vendor_order_totals">
+             <block class="Tax\IndianGST\Block\Order\Totals\Gst" name="indiangst.vendor.order.totals" after="tax"/>
+        </referenceBlock>
+        
+        <!-- Override core renderer to use GST-aware template -->
+        <referenceBlock name="vendor.order.items.renderers.default">
+            <action method="setTemplate">
+                <argument name="template" xsi:type="string">Tax_IndianGST::order/items/renderer/default.phtml</argument>
+            </action>
+        </referenceBlock>
+    </body>
+</page>

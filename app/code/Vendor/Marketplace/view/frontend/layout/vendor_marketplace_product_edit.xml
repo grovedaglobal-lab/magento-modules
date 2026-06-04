@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="marketplace_vendor_dashboard_layout"/>
+    <body>
+        <referenceBlock name="vendor.portal.wrapper">
+             <!-- Main Content: Product Edit/New Form -->
+             <block class="Vendor\Marketplace\Block\Product\Edit" name="vendor.product.edit.block" template="Vendor_Marketplace::product/edit.phtml" as="vendor.product.edit"/>
+        </referenceBlock>
+    </body>
+</page>

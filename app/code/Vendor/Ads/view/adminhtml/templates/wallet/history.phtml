@@ -1,0 +1,38 @@
+<?php
+/** @var \Vendor\Ads\Block\Adminhtml\Wallet\History $block */
+$rechargeHistory = $block->getRechargeHistory();
+?>
+<div class="vendor-ads-admin">
+    <h2><?= __('Wallet Recharge History') ?></h2>
+
+    <?php if (empty($rechargeHistory)): ?>
+        <div class="message message-notice"><span><?= __('No recharge history records found.') ?></span></div>
+    <?php else: ?>
+        <table class="data-grid admin__table-primary" style="margin-top:12px;">
+            <thead>
+            <tr>
+                <th><?= __('Date') ?></th>
+                <th><?= __('Vendor ID') ?></th>
+                <th><?= __('Vendor Name') ?></th>
+                <th><?= __('Source') ?></th>
+                <th><?= __('Amount') ?></th>
+                <th><?= __('Balance Before') ?></th>
+                <th><?= __('Balance After') ?></th>
+            </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($rechargeHistory as $entry): ?>
+                <tr>
+                    <td><?= $block->escapeHtml($entry['created_at']) ?></td>
+                    <td><?= (int)$entry['vendor_id'] ?></td>
+                    <td><?= $block->escapeHtml($entry['vendor_name'] ?? 'N/A') ?></td>
+                    <td><?= $block->escapeHtml(ucfirst((string)$entry['source'])) ?></td>
+                    <td><?= $block->escapeHtml(number_format((float)$entry['amount'], 4)) ?></td>
+                    <td><?= $block->escapeHtml(number_format((float)$entry['balance_before'], 4)) ?></td>
+                    <td><?= $block->escapeHtml(number_format((float)$entry['balance_after'], 4)) ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php endif; ?>
+</div>

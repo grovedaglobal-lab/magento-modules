@@ -1,0 +1,67 @@
+extend type Cart {
+    indiangst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\GstResolver")
+    indiangst_cgst: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\GstResolver")
+    indiangst_sgst: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\GstResolver")
+    indiangst_igst: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\GstResolver")
+}
+
+extend type CartPrices {
+    indiangst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\GstResolver")
+    indiangst_cgst: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\GstResolver")
+    indiangst_sgst: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\GstResolver")
+    indiangst_igst: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\GstResolver")
+}
+
+extend type CartItemInterface {
+    indiangst_percent: Float @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+}
+
+extend type OrderTotal {
+    indiangst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\GstResolver")
+    indiangst_cgst: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\GstResolver")
+    indiangst_sgst: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\GstResolver")
+    indiangst_igst: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\GstResolver")
+}
+
+extend interface OrderItemInterface {
+    indiangst_percent: Float @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_cgst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_sgst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_igst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+}
+
+extend interface InvoiceItemInterface {
+    indiangst_percent: Float @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_cgst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_sgst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_igst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+}
+
+extend interface CreditMemoItemInterface {
+    indiangst_percent: Float @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_cgst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_sgst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_igst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+}
+
+extend type OrderItem {
+    indiangst_percent: Float @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_cgst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_sgst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_igst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+}
+
+extend type InvoiceItem {
+    indiangst_percent: Float @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_cgst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_sgst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_igst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+}
+
+extend type CreditMemoItem {
+    indiangst_percent: Float @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_cgst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_sgst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+    indiangst_igst_amount: Money @resolver(class: "Tax\\IndianGST\\Model\\Resolver\\ItemGstResolver")
+}

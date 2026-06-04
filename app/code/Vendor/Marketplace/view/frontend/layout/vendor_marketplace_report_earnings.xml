@@ -1,0 +1,9 @@
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="marketplace_vendor_dashboard_layout"/>
+    <body>
+
+        <referenceBlock name="vendor.portal.wrapper">
+             <block class="Vendor\Marketplace\Block\Report\Earnings" name="vendor_report_earnings" template="Vendor_Marketplace::report/earnings.phtml" as="main_content"/>
+        </referenceBlock>
+    </body>
+</page>

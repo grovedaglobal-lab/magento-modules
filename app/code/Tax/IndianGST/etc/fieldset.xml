@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:DataObject/etc/fieldset.xsd">
+    <scope id="global">
+        <fieldset id="sales_convert_quote_item">
+            <field name="indiangst_breakup">
+                <aspect name="to_order_item" />
+            </field>
+            <field name="indiangst_cgst_amount">
+                <aspect name="to_order_item" />
+            </field>
+            <field name="indiangst_sgst_amount">
+                <aspect name="to_order_item" />
+            </field>
+            <field name="indiangst_igst_amount">
+                <aspect name="to_order_item" />
+            </field>
+            <field name="indiangst_percent">
+                <aspect name="to_order_item" />
+            </field>
+        </fieldset>
+        <fieldset id="sales_convert_quote_address">
+            <field name="indiangst_amount">
+                <aspect name="to_order" />
+            </field>
+            <field name="indiangst_base_amount">
+                <aspect name="to_order" />
+            </field>
+            <field name="indiangst_cgst">
+                <aspect name="to_order" />
+            </field>
+            <field name="indiangst_sgst">
+                <aspect name="to_order" />
+            </field>
+            <field name="indiangst_igst">
+                <aspect name="to_order" />
+            </field>
+        </fieldset>
+        <fieldset id="sales_convert_order_item">
+             <field name="indiangst_cgst_amount">
+                <aspect name="to_invoice_item" />
+                <aspect name="to_cm_item" />
+            </field>
+            <field name="indiangst_sgst_amount">
+                <aspect name="to_invoice_item" />
+                <aspect name="to_cm_item" />
+            </field>
+            <field name="indiangst_igst_amount">
+                <aspect name="to_invoice_item" />
+                <aspect name="to_cm_item" />
+            </field>
+            <field name="indiangst_percent">
+                <aspect name="to_invoice_item" />
+                <aspect name="to_cm_item" />
+            </field>
+        </fieldset>
+        <fieldset id="sales_convert_order">
+            <field name="indiangst_amount">
+                <aspect name="to_invoice" />
+                <aspect name="to_cm" />
+            </field>
+            <field name="indiangst_base_amount">
+                <aspect name="to_invoice" />
+                <aspect name="to_cm" />
+            </field>
+            <field name="indiangst_cgst">
+                <aspect name="to_invoice" />
+                <aspect name="to_cm" />
+            </field>
+            <field name="indiangst_sgst">
+                <aspect name="to_invoice" />
+                <aspect name="to_cm" />
+            </field>
+            <field name="indiangst_igst">
+                <aspect name="to_invoice" />
+                <aspect name="to_cm" />
+            </field>
+        </fieldset>
+    </scope>
+</config>

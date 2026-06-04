@@ -1,0 +1,358 @@
+<?php
+/** @var $block \Vendor\Ads\Block\Vendor\Report */
+$totals    = $block->getSummaryTotals();
+$rows      = $block->getReportRows();
+$campaigns = $block->getCampaigns();
+$chartJson = $block->getChartDataJson();
+$insights  = $block->getSmartInsights();
+$dateFrom  = $block->getFilterDateFrom();
+$dateTo    = $block->getFilterDateTo();
+$campId    = $block->getFilterCampaignId();
+$filterUrl = $block->getUrl('vendor_ads/vendor/report');
+?>
+<div class="ads-analytics-wrap">
+
+    <!-- ── FILTER BAR ── -->
+    <form method="GET" action="<?= $block->escapeUrl($filterUrl) ?>" class="analytics-filter-bar" id="analyticsFilterForm">
+
+        <!-- Quick-range buttons -->
+        <div class="filter-quick-ranges">
+            <button type="button" class="btn-range" data-days="7"><?= $block->escapeHtml(__('Last 7 days')) ?></button>
+            <button type="button" class="btn-range" data-days="30"><?= $block->escapeHtml(__('Last 30 days')) ?></button>
+            <button type="button" class="btn-range" data-days="90"><?= $block->escapeHtml(__('Last 90 days')) ?></button>
+        </div>
+
+        <div class="filter-group">
+            <label><?= $block->escapeHtml(__('From')) ?></label>
+            <input type="date" name="date_from" id="filterDateFrom" value="<?= $block->escapeHtmlAttr($dateFrom) ?>">
+        </div>
+        <div class="filter-group">
+            <label><?= $block->escapeHtml(__('To')) ?></label>
+            <input type="date" name="date_to" id="filterDateTo" value="<?= $block->escapeHtmlAttr($dateTo) ?>">
+        </div>
+        <div class="filter-group">
+            <label><?= $block->escapeHtml(__('Campaign')) ?></label>
+            <select name="campaign_id">
+                <option value=""><?= $block->escapeHtml(__('All Campaigns')) ?></option>
+                <?php foreach ($campaigns as $c): ?>
+                    <option value="<?= $block->escapeHtmlAttr($c['campaign_id']) ?>" <?= $campId == $c['campaign_id'] ? 'selected' : '' ?>>
+                        <?= $block->escapeHtml($c['name']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <button type="submit" class="btn-apply"><?= $block->escapeHtml(__('Apply')) ?></button>
+        <a href="<?= $block->escapeUrl($filterUrl) ?>" class="btn-reset"><?= $block->escapeHtml(__('Reset')) ?></a>
+    </form>
+
+    <!-- ── KPI SUMMARY CARDS ── -->
+    <div class="kpi-cards">
+        <div class="kpi-card">
+            <div class="kpi-icon">💰</div>
+            <div class="kpi-label"><?= $block->escapeHtml(__('Total Spend')) ?></div>
+            <div class="kpi-value">₹<?= number_format($totals['spend'], 2) ?></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon">👁</div>
+            <div class="kpi-label"><?= $block->escapeHtml(__('Impressions')) ?></div>
+            <div class="kpi-value"><?= number_format($totals['impressions']) ?></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon">🖱</div>
+            <div class="kpi-label"><?= $block->escapeHtml(__('Clicks')) ?></div>
+            <div class="kpi-value"><?= number_format($totals['clicks']) ?></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon">📊</div>
+            <div class="kpi-label"><?= $block->escapeHtml(__('CTR')) ?></div>
+            <div class="kpi-value"><?= number_format($totals['ctr'], 2) ?>%</div>
+        </div>
+    </div>
+
+    <?php if (!empty($insights)): ?>
+    <!-- ── SMART INSIGHTS ── -->
+    <div class="insights-panel">
+        <div class="insights-title">💡 <?= $block->escapeHtml(__('Performance Insights')) ?></div>
+        <div class="insights-list">
+            <?php foreach ($insights as $insight): ?>
+                <div class="insight-item insight-<?= $block->escapeHtmlAttr($insight['type']) ?>">
+                    <?= $block->escapeHtml($insight['message']) ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!empty($rows)): ?>
+
+    <!-- ── CHARTS ── -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <div class="chart-title"><?= $block->escapeHtml(__('Clicks & Impressions — Continuous Timeline')) ?>
+                <span class="chart-legend-marker">⚡<?= $block->escapeHtml(__('Ad Updated')) ?></span>
+            </div>
+            <div class="chart-canvas-wrap"><canvas id="lineChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title"><?= $block->escapeHtml(__('Daily Spend (₹)')) ?></div>
+            <div class="chart-canvas-wrap"><canvas id="barChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- ── DATA TABLE ── -->
+    <div class="analytics-table-wrap">
+        <table class="analytics-table">
+            <thead>
+                <tr>
+                    <th><?= $block->escapeHtml(__('Date')) ?></th>
+                    <th><?= $block->escapeHtml(__('Campaign')) ?></th>
+                    <th><?= $block->escapeHtml(__('Impressions')) ?></th>
+                    <th><?= $block->escapeHtml(__('Clicks')) ?></th>
+                    <th><?= $block->escapeHtml(__('Spend')) ?></th>
+                    <th><?= $block->escapeHtml(__('CTR')) ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($rows as $row): ?>
+                    <tr>
+                        <td>
+                            <?= $block->escapeHtml(date('M d, Y', strtotime($row['date']))) ?>
+                            <?php if (!empty($row['has_change_event'])): ?>
+                                <span class="change-badge" title="<?= $block->escapeHtmlAttr(__('Ad updated on this date')) ?>">⚡</span>
+                            <?php endif; ?>
+                        </td>
+                        <td><?= $block->escapeHtml($row['campaign_name'] ?: __('—')) ?></td>
+                        <td><?= number_format((int)$row['impressions']) ?></td>
+                        <td><?= number_format((int)$row['clicks']) ?></td>
+                        <td>₹<?= number_format((float)$row['spend'], 2) ?></td>
+                        <td><?= number_format((float)$row['ctr'], 2) ?>%</td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <?php else: ?>
+    <!-- ── EMPTY STATE ── -->
+    <div class="ads-empty-state">
+        <div class="empty-icon">📈</div>
+        <h3><?= $block->escapeHtml(__('No data yet')) ?></h3>
+        <p><?= $block->escapeHtml(__('Performance data appears here after your first impressions. Data is aggregated every 15 minutes.')) ?></p>
+    </div>
+    <?php endif; ?>
+
+</div>
+
+<!-- ── CHART.JS: stash RequireJS define to prevent anonymous define() conflict ── -->
+<script>window.__requireDefine = window.define; window.define = undefined;</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<script>window.define = window.__requireDefine; window.__requireDefine = undefined;</script>
+<script>
+(function () {
+    'use strict';
+    var Chart = window.Chart;
+    var chartjsPluginAnnotation = window.chartjsPluginAnnotation;
+
+    if (!Chart) { return; }
+    if (chartjsPluginAnnotation) { Chart.register(chartjsPluginAnnotation); }
+
+    const chartData     = <?= /* @noEscape */ $chartJson ?>;
+    const changeMarkers = chartData.changeMarkers || [];
+
+    // ── Quick Range Buttons ──
+    document.querySelectorAll('.btn-range').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const days = parseInt(this.getAttribute('data-days'), 10);
+            const to   = new Date();
+            const from = new Date();
+            from.setDate(from.getDate() - days);
+
+            const fmt = d => d.toISOString().split('T')[0];
+            document.getElementById('filterDateFrom').value = fmt(from);
+            document.getElementById('filterDateTo').value   = fmt(to);
+            document.getElementById('analyticsFilterForm').submit();
+        });
+    });
+
+    if (!chartData.labels || chartData.labels.length === 0) return;
+
+    // Build annotation objects for ⚡ change marker vertical lines
+    const annotations = {};
+    changeMarkers.forEach(function (label, i) {
+        const idx = chartData.labels.indexOf(label);
+        if (idx === -1) return;
+        annotations['change_' + i] = {
+            type: 'line',
+            xMin: idx,
+            xMax: idx,
+            borderColor: 'rgba(255, 153, 0, 0.85)',
+            borderWidth: 2,
+            borderDash: [6, 3],
+            label: {
+                content: '⚡ Updated',
+                display: true,
+                position: 'start',
+                backgroundColor: 'rgba(255,153,0,0.15)',
+                color: '#c07000',
+                font: { size: 11, weight: 'bold' },
+                padding: 4,
+                yAdjust: -10
+            }
+        };
+    });
+
+    // ── Line Chart: Impressions vs Clicks (continuous timeline) ──
+    const lineCtx = document.getElementById('lineChart');
+    if (lineCtx) {
+        new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.labels,
+                datasets: [
+                    {
+                        label: 'Impressions',
+                        data: chartData.impressions,
+                        borderColor: '#007185',
+                        backgroundColor: 'rgba(0,113,133,0.08)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Clicks',
+                        data: chartData.clicks,
+                        borderColor: '#ff9900',
+                        backgroundColor: 'rgba(255,153,0,0.08)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top' },
+                    annotation: { annotations: annotations }
+                },
+                scales: {
+                    y:  { title: { display: true, text: 'Impressions' }, beginAtZero: true },
+                    y1: { position: 'right', title: { display: true, text: 'Clicks' }, beginAtZero: true, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+
+    // ── Bar Chart: Spend per day ──
+    const barCtx = document.getElementById('barChart');
+    if (barCtx) {
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'Spend (₹)',
+                    data: chartData.spend,
+                    backgroundColor: 'rgba(0,113,133,0.75)',
+                    borderColor: '#007185',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: '₹ Spend' } }
+                }
+            }
+        });
+    }
+}());
+</script>
+
+<style>
+/* ── Amazon Analytics Dashboard ── */
+:root {
+    --amz-blue: #007185;
+    --amz-blue-hover: #005f6d;
+    --amz-orange: #ff9900;
+    --amz-green: #008a00;
+    --amz-border: #ddd;
+    --amz-bg: #fafafa;
+    --amz-text: #111;
+    --amz-muted: #666;
+}
+
+.ads-analytics-wrap { background: #fff; min-height: 80vh; font-family: "Amazon Ember", Arial, sans-serif; color: var(--amz-text); overflow-x: hidden; }
+
+/* Filter Bar */
+.analytics-filter-bar { display: flex; gap: 12px; align-items: flex-end; padding: 14px 20px; background: var(--amz-bg); border-bottom: 1px solid var(--amz-border); flex-wrap: wrap; }
+.filter-quick-ranges { display: flex; gap: 6px; align-items: flex-end; }
+.btn-range { background: #fff; border: 1px solid var(--amz-border); border-radius: 20px; padding: 5px 14px; font-size: 12px; cursor: pointer; color: var(--amz-blue); font-weight: 600; white-space: nowrap; transition: all .15s; }
+.btn-range:hover { background: var(--amz-blue); color: #fff; border-color: var(--amz-blue); }
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-group label { font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.04em; }
+.filter-group input, .filter-group select { border: 1px solid #bbb; border-radius: 4px; padding: 6px 10px; font-size: 13px; background: #fff; }
+.btn-apply { background: var(--amz-blue); color: #fff; border: none; border-radius: 20px; padding: 8px 20px; font-weight: 700; font-size: 13px; cursor: pointer; align-self: flex-end; transition: background .15s; }
+.btn-apply:hover { background: var(--amz-blue-hover); }
+.btn-reset { color: var(--amz-blue); font-size: 12px; text-decoration: underline; align-self: flex-end; padding-bottom: 3px; }
+
+/* KPI Cards */
+.kpi-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 20px; }
+.kpi-card { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 22px 16px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.06); transition: transform .15s, box-shadow .15s; }
+.kpi-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,.1); }
+.kpi-icon { font-size: 28px; margin-bottom: 8px; }
+.kpi-label { font-size: 11px; text-transform: uppercase; color: var(--amz-muted); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 6px; }
+.kpi-value { font-size: 26px; font-weight: 700; color: var(--amz-blue); }
+
+/* Smart Insights */
+.insights-panel { margin: 0 20px 20px; background: linear-gradient(135deg, #f0f8fa 0%, #fff9f0 100%); border: 1px solid #e0eeef; border-radius: 10px; padding: 16px 20px; }
+.insights-title { font-size: 14px; font-weight: 700; color: #333; margin-bottom: 10px; }
+.insights-list { display: flex; flex-direction: column; gap: 8px; }
+.insight-item { font-size: 13px; padding: 10px 14px; border-radius: 6px; line-height: 1.5; }
+.insight-positive { background: rgba(0,138,0,0.08); color: #005500; border-left: 3px solid var(--amz-green); }
+.insight-warning  { background: rgba(192,0,0,0.07); color: #8b0000; border-left: 3px solid #c00; }
+.insight-neutral  { background: rgba(0,113,133,0.07); color: #004a58; border-left: 3px solid var(--amz-blue); }
+
+/* Charts */
+.charts-grid { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 0 20px 20px; }
+.chart-card { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.chart-canvas-wrap { position: relative; height: 320px; width: 100%; overflow: hidden; }
+.chart-canvas-wrap canvas { max-width: 100%; }
+.chart-title { font-size: 12px; font-weight: 700; color: #333; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; gap: 10px; }
+.chart-legend-marker { font-size: 11px; color: #c07000; background: rgba(255,153,0,0.12); padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+
+/* Table */
+.analytics-table-wrap { padding: 0 20px 20px; overflow-x: auto; }
+.analytics-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.analytics-table th { text-align: left; padding: 10px 12px; background: #f5f5f5; border-bottom: 2px solid var(--amz-border); font-weight: 700; font-size: 11px; text-transform: uppercase; color: var(--amz-muted); letter-spacing: 0.04em; }
+.analytics-table tr:nth-child(even) { background: #fafafa; }
+.analytics-table tr:hover { background: #f0f8fa; }
+.analytics-table td { padding: 10px 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
+
+/* Change Event Badge */
+.change-badge { display: inline-block; margin-left: 6px; font-size: 12px; background: rgba(255,153,0,0.15); color: #c07000; padding: 1px 6px; border-radius: 10px; font-weight: 700; cursor: help; }
+
+/* Empty State */
+.ads-empty-state { text-align: center; padding: 80px 40px; color: #888; }
+.ads-empty-state .empty-icon { font-size: 56px; margin-bottom: 16px; }
+.ads-empty-state h3 { font-size: 20px; color: #333; margin-bottom: 8px; }
+.ads-empty-state p { font-size: 14px; max-width: 400px; margin: 0 auto; color: var(--amz-muted); }
+
+@media (max-width: 900px) {
+    .kpi-cards { grid-template-columns: 1fr 1fr; }
+    .charts-grid { grid-template-columns: 1fr; }
+    .chart-card-wide { grid-column: 1; }
+}
+@media (max-width: 480px) {
+    .kpi-cards { grid-template-columns: 1fr 1fr; }
+}
+</style>

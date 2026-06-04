@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Sales:etc/sales.xsd">
+    <section name="quote">
+        <group name="totals">
+            <!-- Native Tax Collectors (Handled via Plugin for India Skip) -->
+            <item name="tax_subtotal" instance="Magento\Tax\Model\Sales\Total\Quote\Subtotal" sort_order="201"/>
+            <item name="tax_shipping" instance="Magento\Tax\Model\Sales\Total\Quote\Shipping" sort_order="350"/>
+            <item name="tax" instance="Magento\Tax\Model\Sales\Total\Quote\Tax" sort_order="500"/>
+
+            <!-- Custom GST Collector -->
+            <item name="tax_indiangst" instance="Tax\IndianGST\Model\Total\Quote\Gst" sort_order="510">
+                <renderer name="adminhtml" instance="Magento\Sales\Block\Adminhtml\Order\Create\Totals\Tax"/>
+                <renderer name="frontend" instance="Magento\Tax\Block\Checkout\Tax"/>
+            </item>
+        </group>
+    </section>
+    <section name="order_invoice">
+        <group name="totals">
+            <item name="tax" instance="Magento\Sales\Model\Order\Invoice\Total\Tax" sort_order="490"/>
+            <item name="tax_indiangst" instance="Tax\IndianGST\Model\Total\Invoice\Gst" sort_order="500"/>
+        </group>
+    </section>
+    <section name="order_creditmemo">
+        <group name="totals">
+            <item name="tax" instance="Magento\Sales\Model\Order\Creditmemo\Total\Tax" sort_order="490"/>
+            <item name="tax_indiangst" instance="Tax\IndianGST\Model\Total\Creditmemo\Gst" sort_order="500"/>
+        </group>
+    </section>
+</config>

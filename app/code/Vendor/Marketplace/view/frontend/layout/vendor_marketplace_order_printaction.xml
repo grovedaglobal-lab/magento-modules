@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="empty" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="sales_order_item_renderers"/>
+    <update handle="sales_order_item_price"/>
+    <head>
+        <css src="Vendor_Marketplace::css/dashboard.css"/>
+    </head>
+    <update handle="print"/>
+    <body>
+        <referenceContainer name="content">
+            <block class="Vendor\Marketplace\Block\Order\View" name="vendor.order.print" template="Vendor_Marketplace::order/print/invoice.phtml">
+                <!-- Use referenceBlock if handle already added it, or just use unique name -->
+                <block class="Magento\Framework\View\Element\RendererList" name="vendor.order.print.renderers" as="renderer.list"/>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

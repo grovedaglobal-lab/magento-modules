@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">vendor_ads_keyword_listing.vendor_ads_keyword_listing_data_source</item>
+        </item>
+    </argument>
+    <settings>
+        <spinner>vendor_ads_keyword_columns</spinner>
+        <deps>
+            <dep>vendor_ads_keyword_listing.vendor_ads_keyword_listing_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="vendor_ads_keyword_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">query_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Vendor_Ads::ads_keywords</aclResource>
+        <dataProvider class="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider" name="vendor_ads_keyword_listing_data_source">
+            <settings>
+                <requestFieldName>id</requestFieldName>
+                <primaryFieldName>query_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filters name="listing_filters"/>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+    <columns name="vendor_ads_keyword_columns">
+        <column name="query_id">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Query ID</label>
+            </settings>
+        </column>
+        <column name="query_text">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Keyword</label>
+            </settings>
+        </column>
+        <column name="popularity">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Search Uses</label>
+            </settings>
+        </column>
+        <column name="num_results">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Results Count</label>
+            </settings>
+        </column>
+        <column name="is_ads_enabled" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <options class="Magento\Config\Model\Config\Source\Yesno"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Ads Enabled</label>
+            </settings>
+        </column>
+        <column name="total_bids">
+            <settings>
+                <label translate="true">Total Bids</label>
+            </settings>
+        </column>
+        <column name="top_bid_amount" class="Magento\Sales\Ui\Component\Listing\Column\Price">
+            <settings>
+                <label translate="true">Top Bid Amount</label>
+            </settings>
+        </column>
+        <actionsColumn name="actions" class="Vendor\Ads\Ui\Component\Listing\Column\KeywordActions">
+            <settings>
+                <indexField>query_id</indexField>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>

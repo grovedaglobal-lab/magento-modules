@@ -1,0 +1,262 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/db_schema.xsd">
+    <!-- Vendor Entity Table -->
+    <table name="vendor_entity" resource="default" engine="innodb" comment="Vendor Entity Table">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="int" name="customer_id" padding="10" unsigned="true" nullable="false" comment="Linked Customer ID"/>
+        <column xsi:type="varchar" name="shop_url" nullable="false" length="255" comment="Shop URL Key"/>
+        <column xsi:type="smallint" name="status" padding="6" unsigned="true" nullable="false" default="0" comment="Status: 0=Pending, 1=Approved, 2=Rejected"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Creation Time"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Update Time"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="VENDOR_ENTITY_CUSTOMER_ID">
+            <column name="customer_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="VENDOR_ENTITY_SHOP_URL">
+            <column name="shop_url"/>
+        </constraint>
+    </table>
+
+    <!-- Vendor Profile Table (EAV like or extension attributes, keeping separate for cleanliness) -->
+    <table name="vendor_profile" resource="default" engine="innodb" comment="Vendor Profile Data">
+        <column xsi:type="int" name="profile_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Profile ID"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="varchar" name="shop_name" nullable="false" length="255" comment="Shop Name"/>
+        <column xsi:type="varchar" name="company_name" nullable="true" length="255" comment="Company Name"/>
+        <column xsi:type="varchar" name="email" nullable="true" length="255" comment="Email Address"/>
+        <column xsi:type="varchar" name="phone" nullable="true" length="50" comment="Phone Number"/>
+        <column xsi:type="varchar" name="website" nullable="true" length="255" comment="Website URL"/>
+        <column xsi:type="text" name="description" nullable="true" comment="Shop Description"/>
+        <column xsi:type="text" name="address" nullable="true" comment="Street Address"/>
+        <column xsi:type="varchar" name="city" nullable="true" length="100" comment="City"/>
+        <column xsi:type="varchar" name="state" nullable="true" length="100" comment="State/Province"/>
+        <column xsi:type="varchar" name="zip_code" nullable="true" length="20" comment="ZIP/Postal Code"/>
+        <column xsi:type="varchar" name="country" nullable="true" length="100" comment="Country"/>
+        <column xsi:type="varchar" name="business_license" nullable="true" length="100" comment="Business License Number"/>
+        <column xsi:type="varchar" name="tax_id" nullable="true" length="100" comment="Tax ID / VAT Number"/>
+        <column xsi:type="varchar" name="business_license_document" nullable="true" length="255" comment="Business License Document Path"/>
+        <column xsi:type="varchar" name="tax_certificate_document" nullable="true" length="255" comment="Tax Certificate Document Path"/>
+        <column xsi:type="varchar" name="logo" nullable="true" length="255" comment="Logo Path"/>
+        <column xsi:type="varchar" name="banner" nullable="true" length="255" comment="Banner Path"/>
+        
+        <column xsi:type="varchar" name="twitter_id" nullable="true" length="255" comment="Twitter ID"/>
+        <column xsi:type="smallint" name="twitter_active" padding="6" unsigned="true" nullable="false" default="0" comment="Twitter Active"/>
+        <column xsi:type="varchar" name="facebook_id" nullable="true" length="255" comment="Facebook ID"/>
+        <column xsi:type="smallint" name="facebook_active" padding="6" unsigned="true" nullable="false" default="0" comment="Facebook Active"/>
+        <column xsi:type="varchar" name="instagram_id" nullable="true" length="255" comment="Instagram ID"/>
+        <column xsi:type="smallint" name="instagram_active" padding="6" unsigned="true" nullable="false" default="0" comment="Instagram Active"/>
+        <column xsi:type="varchar" name="youtube_id" nullable="true" length="255" comment="Youtube ID"/>
+        <column xsi:type="smallint" name="youtube_active" padding="6" unsigned="true" nullable="false" default="0" comment="Youtube Active"/>
+        <column xsi:type="varchar" name="vimeo_id" nullable="true" length="255" comment="Vimeo ID"/>
+        <column xsi:type="smallint" name="vimeo_active" padding="6" unsigned="true" nullable="false" default="0" comment="Vimeo Active"/>
+        <column xsi:type="varchar" name="pinterest_id" nullable="true" length="255" comment="Pinterest ID"/>
+        <column xsi:type="smallint" name="pinterest_active" padding="6" unsigned="true" nullable="false" default="0" comment="Pinterest Active"/>
+        
+        <column xsi:type="text" name="return_policy" nullable="true" comment="Return Policy"/>
+        <column xsi:type="text" name="shipping_policy" nullable="true" comment="Shipping Policy"/>
+        
+        <column xsi:type="text" name="meta_keywords" nullable="true" comment="Meta Keywords"/>
+        <column xsi:type="text" name="meta_description" nullable="true" comment="Meta Description"/>
+        <column xsi:type="text" name="payment_history" nullable="true" comment="Payment Information (User renamed this to payment_details or similar)"/>
+        <column xsi:type="varchar" name="payment_info" nullable="true" length="255" comment="Payment Details"/>
+        <column xsi:type="varchar" name="payment_document" nullable="true" length="255" comment="Payment Document Path"/>
+        
+        <column xsi:type="varchar" name="google_analytics_id" nullable="true" length="100" comment="Google Analytics ID"/>
+        <column xsi:type="decimal" name="min_order_amount" scale="4" precision="20" nullable="false" default="0.0000" comment="Minimum Order Amount"/>
+        <column xsi:type="decimal" name="free_shipping_amount" scale="4" precision="20" nullable="true" comment="Free Shipping Threshold Amount"/>
+        <column xsi:type="varchar" name="shipping_source" nullable="false" length="32" default="self_ship" comment="self_ship or easy_ship"/>
+        <column xsi:type="int" name="shipping_tax_class" padding="10" unsigned="true" nullable="true" comment="Vendor Specific Shipping Tax Class"/>
+        <column xsi:type="varchar" name="allowed_shipping_sources" nullable="false" length="255" default="both" comment="self, easy, or both"/>
+        
+        <column xsi:type="int" name="low_stock_notification" padding="10" unsigned="true" nullable="true" comment="Low Stock Notification Quantity"/>
+        <column xsi:type="varchar" name="fulfillment_image" nullable="true" length="255" comment="Fulfillment Image Path"/>
+        <column xsi:type="varchar" name="fulfillment_label" nullable="true" length="255" comment="Fulfillment Label"/>
+        <column xsi:type="text" name="fulfillment_text" nullable="true" comment="Fulfillment Text"/>
+
+        <column xsi:type="text" name="pickup_address" nullable="true" comment="Pickup Street Address"/>
+        <column xsi:type="varchar" name="pickup_city" nullable="true" length="100" comment="Pickup City"/>
+        <column xsi:type="varchar" name="pickup_state" nullable="true" length="100" comment="Pickup State/Province"/>
+        <column xsi:type="varchar" name="pickup_zip_code" nullable="true" length="20" comment="Pickup ZIP/Postal Code"/>
+        <column xsi:type="varchar" name="pickup_country" nullable="true" length="100" comment="Pickup Country"/>
+        <column xsi:type="varchar" name="pickup_phone" nullable="true" length="50" comment="Pickup Phone"/>
+        <column xsi:type="varchar" name="pickup_email" nullable="true" length="255" comment="Pickup Email"/>
+
+        <column xsi:type="varchar" name="signature" nullable="true" length="255" comment="Vendor Signature Image Path"/>
+        <column xsi:type="varchar" name="authorized_name" nullable="true" length="255" comment="Authorized Signatory Name"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="profile_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="VENDOR_PROFILE_VENDOR_ID_VENDOR_ENTITY_ENTITY_ID" table="vendor_profile" column="vendor_id" referenceTable="vendor_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+    </table>
+
+    <!-- Vendor Order Table (Split Order Logic) -->
+    <table name="vendor_order" resource="default" engine="innodb" comment="Vendor Sub-Orders">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="int" name="order_id" padding="10" unsigned="true" nullable="false" comment="Original Magento Order ID"/>
+        <column xsi:type="decimal" name="subtotal" scale="4" precision="20" nullable="false" default="0.0000" comment="Vendor Subtotal"/>
+        <column xsi:type="decimal" name="shipping_amount" scale="4" precision="20" nullable="true" comment="Vendor Shipping Amount"/>
+        <column xsi:type="decimal" name="commission_amount" scale="4" precision="20" nullable="false" default="0.0000" comment="Commission"/>
+        <column xsi:type="decimal" name="vendor_earnings" scale="4" precision="20" nullable="false" default="0.0000" comment="Vendor Net Earnings"/>
+        <column xsi:type="decimal" name="discount_amount" scale="4" precision="20" nullable="false" default="0.0000" comment="Vendor Discount Amount"/>
+        <column xsi:type="decimal" name="commission_tax_amount" scale="4" precision="20" nullable="false" default="0.0000" comment="GST on Commission"/>
+        <column xsi:type="decimal" name="commission_cgst_amount" scale="4" precision="20" nullable="false" default="0.0000" comment="CGST on Commission"/>
+        <column xsi:type="decimal" name="commission_sgst_amount" scale="4" precision="20" nullable="false" default="0.0000" comment="SGST on Commission"/>
+        <column xsi:type="decimal" name="commission_igst_amount" scale="4" precision="20" nullable="false" default="0.0000" comment="IGST on Commission"/>
+        <column xsi:type="varchar" name="commission_sac_code" nullable="true" length="20" default="9983" comment="SAC Code for Commission"/>
+        <column xsi:type="varchar" name="category_name" nullable="true" length="255" comment="Category Name for Commission Rule"/>
+        <column xsi:type="decimal" name="commission_percentage" scale="2" precision="10" nullable="true" comment="Commission Rate Percentage"/>
+        <column xsi:type="varchar" name="status" nullable="false" length="32" default="pending" comment="Vendor Order Status"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Creation Time"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Update Time"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="FK_VENDOR_ORDER_VENDOR" table="vendor_order" column="vendor_id" referenceTable="vendor_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+    </table>
+
+    <!-- Commission Rules -->
+    <table name="vendor_commission" resource="default" engine="innodb" comment="Commission Rules">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true"/>
+        <column xsi:type="int" name="category_id" padding="10" unsigned="true" nullable="true" comment="Category ID"/>
+        <column xsi:type="decimal" name="min_price" scale="4" precision="20" nullable="false" default="0.0000" comment="Price Range Start"/>
+        <column xsi:type="decimal" name="max_price" scale="4" precision="20" nullable="true" comment="Price Range End (Null for infinite)"/>
+        <column xsi:type="decimal" name="commission_percent" scale="2" precision="10" nullable="false" default="0.00"/>
+        
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+    </table>
+    <!-- Vendor Payout Table -->
+    <table name="vendor_payout" resource="default" engine="innodb" comment="Vendor Payout Requests">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Payout ID"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="decimal" name="amount" scale="4" precision="20" nullable="false" default="0.0000" comment="Payout Amount"/>
+        <column xsi:type="varchar" name="status" nullable="false" length="32" default="pending" comment="Status: pending, approved, paid"/>
+        <column xsi:type="text" name="notes" nullable="true" comment="Admin Notes"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Creation Time"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Update Time"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="FK_VENDOR_PAYOUT_VENDOR" table="vendor_payout" column="vendor_id" referenceTable="vendor_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+    </table>
+
+    <!-- Vendor Category Permission Table -->
+    <table name="vendor_category_permission" resource="default" engine="innodb" comment="Vendor Category Permissions">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="int" name="category_id" padding="10" unsigned="true" nullable="false" comment="Category ID"/>
+        <column xsi:type="smallint" name="status" padding="6" unsigned="true" nullable="false" default="0" comment="0=Pending, 1=Approved, 2=Rejected"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="VENDOR_CAT_PERM_UNIQUE_VENDOR_CAT">
+            <column name="vendor_id"/>
+            <column name="category_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="FK_VENDOR_CAT_PERM_VENDOR" table="vendor_category_permission" column="vendor_id" referenceTable="vendor_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+    </table>
+
+    <!-- Vendor Document Table -->
+    <table name="vendor_document" resource="default" engine="innodb" comment="Vendor Verification Documents">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="varchar" name="document_type" length="50" nullable="false" comment="Type: id_proof, tax_doc, etc"/>
+        <column xsi:type="varchar" name="label" length="255" nullable="true" comment="Document Label"/>
+        <column xsi:type="varchar" name="file_path" length="255" nullable="false" comment="Relative path in pub/media"/>
+        <column xsi:type="smallint" name="status" padding="6" unsigned="true" nullable="false" default="0" comment="0=Pending, 1=Approved, 2=Rejected"/>
+        <column xsi:type="date" name="registration_date" nullable="true" comment="Registration Date"/>
+        <column xsi:type="date" name="expiry_date" nullable="true" comment="Expiry Date"/>
+        <column xsi:type="varchar" name="certificate_number" length="100" nullable="true" comment="Certificate Number"/>
+        <column xsi:type="varchar" name="issuer" length="255" nullable="true" comment="Issuing Authority"/>
+        <column xsi:type="varchar" name="product_name" length="255" nullable="true" comment="Product Name"/>
+        <column xsi:type="text" name="product_desc" nullable="true" comment="Product Description"/>
+        <column xsi:type="smallint" name="is_visible" padding="6" unsigned="true" nullable="false" default="1" comment="Show on frontend"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="FK_VENDOR_DOC_VENDOR" table="vendor_document" column="vendor_id" referenceTable="vendor_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+    </table>
+
+    <table name="vendor_shipping_rate" resource="default" engine="innodb" comment="Vendor Shipping Rates">
+        <column xsi:type="int" name="rate_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Rate ID"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="varchar" name="country_id" length="4" nullable="false" default="0" comment="Country ID"/>
+        <column xsi:type="int" name="region_id" padding="10" unsigned="true" nullable="false" default="0" comment="Region ID"/>
+        <column xsi:type="varchar" name="zip_code" length="10" nullable="true" default="*" comment="Zip Code"/>
+        <column xsi:type="decimal" name="weight_from" scale="4" precision="12" nullable="false" default="0.0000" comment="Weight From"/>
+        <column xsi:type="decimal" name="weight_to" scale="4" precision="12" nullable="false" default="100000.0000" comment="Weight To"/>
+        <column xsi:type="decimal" name="price" scale="4" precision="12" nullable="false" default="0.0000" comment="Shipping Price"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="rate_id"/>
+        </constraint>
+        <index referenceId="VENDOR_SHIPPING_RATE_VENDOR_ID" indexType="btree">
+            <column name="vendor_id"/>
+        </index>
+        <constraint xsi:type="foreign" referenceId="VENDOR_SHIPPING_RATE_VENDOR_ID_VENDOR_ENTITY_ENTITY_ID" table="vendor_shipping_rate" column="vendor_id" referenceTable="vendor_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+    </table>
+
+    <!-- Admin News Table -->
+    <table name="vendor_news" resource="default" engine="innodb" comment="Admin News Table">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="varchar" name="title" nullable="false" length="255" comment="News Title"/>
+        <column xsi:type="text" name="content" nullable="false" comment="News Content"/>
+        <column xsi:type="smallint" name="status" padding="6" unsigned="true" nullable="false" default="1" comment="Status: 0=Disabled, 1=Enabled"/>
+        <column xsi:type="varchar" name="target_type" nullable="false" length="32" default="all" comment="Target Type: all, specific"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Creation Time"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Update Time"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+    </table>
+
+    <!-- News to Seller Mapping Table -->
+    <table name="vendor_news_seller" resource="default" engine="innodb" comment="News to Seller Mapping">
+        <column xsi:type="int" name="news_id" padding="10" unsigned="true" nullable="false" comment="News ID"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="news_id"/>
+            <column name="vendor_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="FK_VNDR_NEWS_SLR_NEWS_ID" table="vendor_news_seller" column="news_id" referenceTable="vendor_news" referenceColumn="entity_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="FK_VNDR_NEWS_SLR_VENDOR_ID" table="vendor_news_seller" column="vendor_id" referenceTable="vendor_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+    </table>
+
+    <!-- Vendor Notification Table -->
+    <table name="vendor_notification" resource="default" engine="innodb" comment="Vendor Notifications">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="varchar" name="type" nullable="false" length="32" comment="Notification Type (new_order, new_review, etc)"/>
+        <column xsi:type="varchar" name="title" nullable="false" length="255" comment="Notification Title"/>
+        <column xsi:type="text" name="message" nullable="true" comment="Notification Message"/>
+        <column xsi:type="varchar" name="link" nullable="true" length="255" comment="Action Link"/>
+        <column xsi:type="smallint" name="is_read" padding="6" unsigned="true" nullable="false" default="0" comment="Is Read Status"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Creation Time"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="FK_VNDR_NOTIF_VENDOR_ID" table="vendor_notification" column="vendor_id" referenceTable="vendor_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+    </table>
+
+    <!-- Vendor Sales Rule Linking Table -->
+    <table name="vendor_sales_rule" resource="default" engine="innodb" comment="Links Sales Rules to Vendors">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="int" name="vendor_id" padding="10" unsigned="true" nullable="false" comment="Vendor ID"/>
+        <column xsi:type="int" name="rule_id" padding="10" unsigned="true" nullable="false" comment="Magento Sales Rule ID"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Creation Time"/>
+        
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="FK_VENDOR_SALES_RULE_VENDOR" table="vendor_sales_rule" column="vendor_id" referenceTable="vendor_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="FK_VENDOR_SALES_RULE_RULE" table="vendor_sales_rule" column="rule_id" referenceTable="salesrule" referenceColumn="rule_id" onDelete="CASCADE"/>
+    </table>
+
+</schema>

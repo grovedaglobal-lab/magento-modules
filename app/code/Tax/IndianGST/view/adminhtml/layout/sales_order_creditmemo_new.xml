@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="order_items">
+            <arguments>
+                <argument name="columns" xsi:type="array">
+                    <item name="indiangst_cgst" xsi:type="string" translate="true">CGST</item>
+                    <item name="indiangst_sgst" xsi:type="string" translate="true">SGST</item>
+                    <item name="indiangst_igst" xsi:type="string" translate="true">IGST</item>
+                </argument>
+            </arguments>
+            <block class="Tax\IndianGST\Block\Adminhtml\Order\Items\Column\Gst" name="column_indiangst_cgst" template="Tax_IndianGST::order/view/items/column/gst.phtml" group="column">
+                <arguments>
+                    <argument name="gst_type" xsi:type="string">cgst</argument>
+                </arguments>
+            </block>
+            <block class="Tax\IndianGST\Block\Adminhtml\Order\Items\Column\Gst" name="column_indiangst_sgst" template="Tax_IndianGST::order/view/items/column/gst.phtml" group="column">
+                <arguments>
+                    <argument name="gst_type" xsi:type="string">sgst</argument>
+                </arguments>
+            </block>
+            <block class="Tax\IndianGST\Block\Adminhtml\Order\Items\Column\Gst" name="column_indiangst_igst" template="Tax_IndianGST::order/view/items/column/gst.phtml" group="column">
+                <arguments>
+                    <argument name="gst_type" xsi:type="string">igst</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+
+        <referenceBlock name="creditmemo_totals">
+            <block class="Tax\IndianGST\Block\Adminhtml\Order\Totals\Gst" name="indiangst.creditmemo.totals"/>
+        </referenceBlock>
+    </body>
+</page>

@@ -1,0 +1,80 @@
+<?php
+/** @var \Magento\Customer\Block\Form\Login $block */
+?>
+<div class="vendor-login-container">
+    <div class="vendor-login-header">
+        <h2>
+            <?= $block->escapeHtml(__('Vendor Portal Login')) ?>
+        </h2>
+        <p>
+            <?= $block->escapeHtml(__('Access your seller dashboard')) ?>
+        </p>
+    </div>
+
+    <div class="block block-customer-login">
+        <div class="block-content" aria-labelledby="block-customer-login-heading">
+            <form class="form form-login"
+                action="<?= $block->escapeUrl($block->getUrl('marketplace/account/loginPost')) ?>" method="post"
+                id="login-form" data-mage-init='{"validation":{}}'>
+                <?= $block->getBlockHtml('formkey') ?>
+
+                <!-- IMPORTANT: Redirect to Vendor Dashboard after login -->
+                <!-- We trick Magento by setting the referer to the dashboard URL if not set -->
+                <input type="hidden" name="login[redirect_url]"
+                    value="<?= $block->escapeUrl($block->getUrl('marketplace/seller/dashboard')) ?>" />
+
+                <fieldset class="fieldset login"
+                    data-hasrequired="<?= $block->escapeHtmlAttr(__('* Required Fields')) ?>">
+                    <div class="field email required">
+                        <label class="label" for="email"><span>
+                                <?= $block->escapeHtml(__('Email')) ?>
+                            </span></label>
+                        <div class="control">
+                            <input name="login[username]" value="<?= $block->escapeHtmlAttr($block->getUsername()) ?>"
+                                autocomplete="email" id="email" type="email" class="input-text"
+                                title="<?= $block->escapeHtmlAttr(__('Email')) ?>"
+                                data-validate="{required:true, 'validate-email':true}">
+                        </div>
+                    </div>
+                    <div class="field password required">
+                        <label class="label" for="pass"><span>
+                                <?= $block->escapeHtml(__('Password')) ?>
+                            </span></label>
+                        <div class="control">
+                            <input name="login[password]" type="password" autocomplete="current-password" id="pass"
+                                class="input-text" title="<?= $block->escapeHtmlAttr(__('Password')) ?>"
+                                data-validate="{required:true}">
+                        </div>
+                    </div>
+
+                    <div class="actions-toolbar">
+                        <div class="primary">
+                            <button type="submit" class="action login primary" name="send" id="send2">
+                                <span>
+                                    <?= $block->escapeHtml(__('Sign In')) ?>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="secondary">
+                            <a class="action remind" href="<?= $block->escapeUrl($block->getUrl('marketplace/account/forgotpassword')) ?>">
+                                <span>
+                                    <?= $block->escapeHtml(__('Forgot Your Password?')) ?>
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="vendor-register-link">
+                        <p>
+                            <?= $block->escapeHtml(__("Don't have a vendor account?")) ?> <a
+                                href="<?= $block->escapeUrl($block->getUrl('marketplace/account/create')) ?>">
+                                <?= $block->escapeHtml(__('Register as a Vendor')) ?>
+                            </a>
+                        </p>
+                    </div>
+
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</div>

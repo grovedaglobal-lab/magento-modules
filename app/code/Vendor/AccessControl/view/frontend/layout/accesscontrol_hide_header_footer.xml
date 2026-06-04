@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <!-- Add CSS to hide header/footer visually -->
+        <css src="Vendor_AccessControl::css/hide-header-footer.css"/>
+    </head>
+    <body>
+        <!-- Don't remove header/footer - just hide them with CSS -->
+    </body>
+</page>

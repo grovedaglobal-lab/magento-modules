@@ -1,0 +1,725 @@
+<?php
+/**
+ * Vendor Marketplace Custom Invoice Print Template - Amazon Style (Optimized Compact)
+ */
+// @codingStandardsIgnoreFile
+?>
+<?php
+// Check for Mass Print Invoices first
+$_invoices = $block->getInvoices();
+if (empty($_invoices)) {
+    $_invoice = $block->getInvoice();
+    if ($_invoice) {
+        $_invoices = [$_invoice];
+    } elseif ($_order = $block->getOrder()) {
+        $_invoices = $_order->getInvoiceCollection();
+    } else {
+        $_invoices = [];
+    }
+}
+
+$marketplaceHelper = $this->helper(Vendor\Marketplace\Helper\Data::class);
+$gstHelper = $this->helper(Tax\IndianGST\Helper\Data::class);
+?>
+
+<style>
+    @page {
+        size: A4;
+        margin: 5mm;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .invoice-container {
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-size: 10px;
+        color: #000;
+        line-height: 1.25;
+        width: 190mm;
+        margin: 0 auto;
+        padding-top: 5px;
+    }
+
+    .header-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+
+    .logo-area {
+        width: 20%;
+    }
+
+    .title-area {
+        width: 60%;
+        text-align: right;
+    }
+
+    .invoice-title {
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .invoice-subtitle {
+        font-size: 11px;
+    }
+
+    .address-section {
+        display: flex;
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .col-left {
+        width: 48%;
+        padding-right: 2%;
+        vertical-align: top;
+    }
+
+    .col-right {
+        width: 48%;
+        padding-left: 2%;
+        text-align: right;
+        vertical-align: top;
+    }
+
+    .section-header {
+        font-weight: 700;
+        margin-bottom: 2px;
+        display: block;
+        font-size: 10px;
+        color: #333;
+    }
+
+    .address-block {
+        margin-bottom: 6px;
+    }
+
+    .order-details-band {
+        display: flex;
+        justify-content: space-between;
+        border-top: 1px solid #000;
+        border-bottom: 1px solid #000;
+        padding: 3px 0;
+        margin-bottom: 6px;
+        font-weight: 600;
+        font-size: 10px;
+    }
+
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 5px;
+        font-size: 9px;
+    }
+
+    .invoice-table th {
+        border: 1px solid #666;
+        padding: 3px;
+        background: #ddd;
+        text-align: left;
+        font-weight: bold;
+    }
+
+    .invoice-table td {
+        border: 1px solid #666;
+        padding: 2px;
+        vertical-align: top;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .footer-section {
+        border: 1px solid #000;
+        padding: 5px;
+        margin-top: 5px;
+    }
+
+    .amount-words-row {
+        margin-bottom: 10px;
+        font-weight: 800;
+        border-bottom: 2px solid #000;
+        padding-bottom: 4px;
+        font-size: 11px;
+    }
+
+    .signatory-block {
+        text-align: right;
+        margin-top: 15px;
+    }
+
+    .reverse-charge {
+        margin-top: 2px;
+        font-size: 9px;
+    }
+
+    /* Hide Magento theme header, page title, and nav toggle in print view */
+    header,
+    .header.container,
+    .page-header,
+    .page-title-wrapper,
+    .page-title,
+    .breadcrumbs,
+    .action.nav-toggle,
+    .logo {
+        display: none !important;
+    }
+
+    .invoice-container .logo-area img {
+        max-width: 70px !important;
+        width: auto !important;
+        height: auto !important;
+    }
+</style>
+
+<?php foreach ($_invoices as $_invoice): ?>
+    <?php $_order = $_invoice->getOrder(); ?>
+    <?php
+    // In Option 2, we assume 1 Invoice ID = 1 Vendor.
+    // We pick the vendor ID from the first item of this invoice.
+    $vendorId = null;
+    foreach ($_invoice->getAllItems() as $item) {
+        if ($item->getOrderItem()->getParentItem()) {
+            continue;
+        }
+        $p = $item->getOrderItem()->getProduct();
+        $vendorId = $p ? $p->getData('vendor_id') : null;
+        if ($vendorId)
+            break;
+    }
+    $isWalletRecharge = (bool)$_order->getData('is_wallet_recharge');
+
+    $vendorData = null;
+    $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+    
+    if ($isWalletRecharge) {
+        $scopeConfig = $objectManager->get(\Magento\Framework\App\Config\ScopeConfigInterface::class);
+        $adminName = $scopeConfig->getValue('general/store_information/name', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $adminStreet = $scopeConfig->getValue('general/store_information/street_line1', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $adminCity = $scopeConfig->getValue('general/store_information/city', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        
+        $regionId = $scopeConfig->getValue('general/store_information/region_id', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $adminState = '';
+        if ($regionId) {
+            $regionModel = $objectManager->create(\Magento\Directory\Model\Region::class)->load($regionId);
+            $adminState = $regionModel->getName();
+        }
+        
+        $adminZip = $scopeConfig->getValue('general/store_information/postcode', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $adminCountry = $scopeConfig->getValue('general/store_information/country_id', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $adminGst = $scopeConfig->getValue('tax_indiangst/general/gstin', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        if (!$adminGst || strlen(trim($adminGst)) < 15) {
+            $adminGst = $scopeConfig->getValue('general/store_information/merchant_vat_number', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        }
+        
+        $adminPan = '';
+        if ($adminGst && strlen(trim($adminGst)) >= 15) {
+            $adminPan = substr(trim($adminGst), 2, 10);
+        }
+        
+        $vendorData = [
+            'business_name' => $adminName ?: __('Marketplace Admin'),
+            'shop_name'     => $adminName ?: __('Marketplace Admin'),
+            'address'       => $adminStreet,
+            'city'          => $adminCity,
+            'state'         => $adminState,
+            'zip_code'      => $adminZip,
+            'country'       => $adminCountry,
+            'pan_number'    => $adminPan,
+            'gstin'         => $adminGst,
+            'signature'     => '',
+            'authorized_name' => $adminName ?: __('Marketplace Admin')
+        ];
+    } elseif ($vendorId) {
+        $resource = $objectManager->get(\Magento\Framework\App\ResourceConnection::class);
+        $connection = $resource->getConnection();
+        $tableName = $resource->getTableName('vendor_profile');
+        $gstTableName = $resource->getTableName('tax_indiangst_vendor_profile');
+        $profileColumns = $connection->describeTable($tableName);
+        $gstColumns = $connection->describeTable($gstTableName);
+        
+        $gstJoinConditions = [];
+        if (isset($gstColumns['vendor_code'])) {
+            $gstJoinConditions[] = 'vp.vendor_id = gst.vendor_code';
+        }
+        if (isset($gstColumns['vendor_id'])) {
+            $gstJoinConditions[] = 'vp.vendor_id = gst.vendor_id';
+        }
+
+        $gstSelectColumns = [];
+        foreach (['gstin', 'pan_number', 'business_name'] as $gstColumn) {
+            if (isset($gstColumns[$gstColumn])) {
+                $gstSelectColumns[$gstColumn] = $gstColumn;
+            }
+        }
+
+        // Build the GST join from the real table columns. Some installs only have gstin/pan fields here.
+        $select = $connection->select()
+            ->from(['vp' => $tableName]);
+
+        if ($gstJoinConditions && $gstSelectColumns) {
+            $select->joinLeft(
+                ['gst' => $gstTableName],
+                implode(' OR ', $gstJoinConditions),
+                $gstSelectColumns
+            );
+        }
+
+        $select->where('vp.vendor_id = ?', $vendorId);
+            
+        $vendorData = $connection->fetchRow($select);
+        
+        // Populate gstin from tax_id/vat_id if missing
+        if ($vendorData && empty($vendorData['gstin'])) {
+            $vendorData['gstin'] = ($vendorData['tax_id'] ?? null) ?: ($vendorData['vat_id'] ?? null);
+        }
+        
+        // fallback if no GST record found with join, just get from profile
+        if (!$vendorData) {
+            $vendorData = $connection->fetchRow(
+                $connection->select()->from($tableName)->where('vendor_id = ?', $vendorId)
+            );
+        }
+        
+        // Final fallback: check for some standard profile fields if gst join was empty
+        if ($vendorData && empty($vendorData['gstin'])) {
+            // Check if gstin exists in the main profile table directly (some versions)
+            if (isset($profileColumns['gstin'])) {
+                $select = $connection->select()->from($tableName, ['gstin'])->where('vendor_id = ?', $vendorId);
+                $gstVal = $connection->fetchOne($select);
+                $vendorData['gstin'] = $gstVal;
+            }
+        }
+    }
+    ?>
+    <div class="invoice-container">
+        <!-- HEADER -->
+        <div class="header-row">
+            <div class="logo-area">
+                <?php
+                $scopeConfig = $objectManager->get(\Magento\Framework\App\Config\ScopeConfigInterface::class);
+
+                // Render admin Indian GST logo first, fallback to store logo if needed
+                try {
+                    $logoUrl = null;
+                    $logoAlt = '';
+                    $logoWidth = null;
+                    $logoHeight = null;
+                    $adminLogo = $scopeConfig->getValue('tax_indiangst/general/admin_logo', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+
+                    if ($adminLogo) {
+                        $storeManager = $objectManager->get(\Magento\Store\Model\StoreManagerInterface::class);
+                        $mediaBaseUrl = $storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
+                        $logoPath = 'tax/indiangst/admin_logo/' . ltrim($adminLogo, '/');
+                        $logoUrl = $mediaBaseUrl . $logoPath;
+                        $logoAlt = __('Admin Invoice Logo');
+                    } else {
+                        $logoBlock = $this->getLayout()->createBlock(\Magento\Theme\Block\Html\Header\Logo::class);
+                        if ($logoBlock) {
+                            $logoSrc = $logoBlock->getLogoSrc();
+                            $logoAlt = $logoBlock->getLogoAlt();
+                            $logoWidth = $logoBlock->getLogoWidth();
+                            $logoHeight = $logoBlock->getLogoHeight();
+                            if ($logoSrc) {
+                                if (strpos($logoSrc, 'http') === 0) {
+                                    $logoUrl = $logoSrc;
+                                } else {
+                                    $base = method_exists($block, 'getBaseUrl') ? $block->getBaseUrl() : $this->getUrl('');
+                                    $logoUrl = rtrim($base, '/') . '/' . ltrim($logoSrc, '/');
+                                }
+                            }
+                        }
+                    }
+
+                    if ($logoUrl) {
+                        ?>
+                        <img src="<?= $block->escapeUrl($logoUrl) ?>"
+                             title="<?= $block->escapeHtmlAttr($logoAlt) ?>"
+                             alt="<?= $block->escapeHtmlAttr($logoAlt) ?>"
+                             <?= $logoWidth ? 'width="' . $block->escapeHtmlAttr($logoWidth) . '"' : '' ?>
+                             <?= $logoHeight ? 'height="' . $block->escapeHtmlAttr($logoHeight) . '"' : '' ?>
+                        />
+                    <?php }
+                } catch (\Exception $e) {
+                    // Fallback: nothing — invoice will show without logo if retrieval fails
+                }
+                ?>
+            </div>
+            <div class="title-area">
+                <div class="invoice-title"><?= __('Tax Invoice/Bill of Supply/Cash Memo') ?></div>
+                <div class="invoice-subtitle">(<?= __('Original for Recipient') ?>)</div>
+            </div>
+        </div>
+
+        <!-- ADDRESSES (2 Columns) -->
+        <div class="address-section" style="border-bottom: 1px solid #ddd; margin-bottom: 10px; padding-bottom: 5px;">
+            <div class="col-left">
+                <span class="section-header"><?= __('Sold By :') ?></span>
+                <?php if ($vendorData): ?>
+                    <div class="address-block">
+                        <strong><?= $block->escapeHtml($vendorData['business_name'] ?: $vendorData['shop_name']) ?></strong><br>
+                        <?= $block->escapeHtml($vendorData['address']) ?><br>
+                        <?= $block->escapeHtml($vendorData['city']) ?>, <?= $block->escapeHtml($vendorData['state']) ?> -
+                        <?= $block->escapeHtml($vendorData['zip_code']) ?><br>
+                        <?= $block->escapeHtml($vendorData['country'] ?: __('India')) ?>
+                    </div>
+                    <div class="tax-info">
+                        <?php if (!empty($vendorData['pan_number'])): ?>
+                            <strong><?= __('PAN No:') ?></strong> <?= $block->escapeHtml($vendorData['pan_number']) ?><br>
+                        <?php endif; ?>
+                        <?php if (!empty($vendorData['gstin'])): ?>
+                            <strong><?= __('GST Registration No:') ?></strong> <?= $block->escapeHtml($vendorData['gstin']) ?><br>
+                        <?php endif; ?>
+                    </div>
+                <?php else: ?>
+                    <strong><?= __('Default Seller / Admin') ?></strong>
+                <?php endif; ?>
+            </div>
+
+            <div class="col-right">
+                <div class="address-block">
+                    <span class="section-header"><?= __('Billing Address :') ?></span>
+                    <?php if ($isWalletRecharge): ?>
+                        <?php
+                        // For wallet recharges, the 'payer' is the vendor.
+                        // Fetch the vendor profile for the customer who placed the order.
+                        $payerCustomerId = $_order->getCustomerId();
+                        $payerCustomerEmail = $_order->getCustomerEmail();
+                        $payerVendorProfile = null;
+                        
+                        if ($payerCustomerId || $payerCustomerEmail) {
+                            $resource = $objectManager->get(\Magento\Framework\App\ResourceConnection::class);
+                            $connection = $resource->getConnection();
+                            $profileTable = $resource->getTableName('vendor_profile');
+                            $gstTable = $resource->getTableName('tax_indiangst_vendor_profile');
+                            $vendorTable = $resource->getTableName('vendor_entity');
+                            $profileColumns = $connection->describeTable($profileTable);
+                            $gstColumns = $connection->describeTable($gstTable);
+                            $vendorColumns = $connection->describeTable($vendorTable);
+                            
+                            // 1. Get vendor_id for this customer (by ID or Email)
+                            $profileSelectColumns = [];
+                            foreach (['vendor_id', 'business_name', 'shop_name', 'address', 'city', 'state', 'zip_code', 'country', 'vendor_name', 'gstin', 'tax_id', 'vat_id'] as $profileColumn) {
+                                if (isset($profileColumns[$profileColumn])) {
+                                    $profileSelectColumns[$profileColumn] = $profileColumn;
+                                }
+                            }
+
+                            $selectId = $connection->select()
+                                ->from(['vp' => $profileTable], $profileSelectColumns ?: ['vendor_id']);
+
+                            if ($payerCustomerId && isset($profileColumns['user_id'])) {
+                                $selectId->where('vp.user_id = ?', (int)$payerCustomerId);
+                            } elseif ($payerCustomerId && isset($vendorColumns['customer_id'])) {
+                                $selectId->joinLeft(
+                                    ['ve' => $vendorTable],
+                                    'vp.vendor_id = ve.entity_id',
+                                    []
+                                )->where('ve.customer_id = ?', (int)$payerCustomerId);
+                            }
+
+                            if ($payerCustomerEmail && isset($profileColumns['email'])) {
+                                $selectId->orWhere('vp.email = ?', $payerCustomerEmail);
+                            }
+                            
+                            $payerVendorProfile = $connection->fetchRow($selectId);
+                            
+                            if ($payerVendorProfile && !empty($payerVendorProfile['vendor_id'])) {
+                                // 2. Get GST details using the vendor_id
+                                $gstWhere = [];
+                                if (isset($gstColumns['vendor_code'])) {
+                                    $gstWhere[] = $connection->quoteInto('vendor_code = ?', $payerVendorProfile['vendor_id']);
+                                }
+                                if (isset($gstColumns['vendor_id'])) {
+                                    $gstWhere[] = $connection->quoteInto('vendor_id = ?', $payerVendorProfile['vendor_id']);
+                                }
+
+                                $gstData = null;
+                                if ($gstWhere) {
+                                    $selectGst = $connection->select()
+                                        ->from($gstTable)
+                                        ->where(implode(' OR ', $gstWhere));
+                                    $gstData = $connection->fetchRow($selectGst);
+                                }
+                                
+                                if ($gstData) {
+                                    $payerVendorProfile['gstin'] = ($gstData['gstin'] ?? null)
+                                        ?: (($gstData['vat_id'] ?? null) ?: ($gstData['tax_id'] ?? null));
+                                    $payerVendorProfile['pan_number'] = ($gstData['pan_number'] ?? null) ?: ($gstData['pan'] ?? null);
+                                    if (empty($payerVendorProfile['business_name'])) {
+                                        $payerVendorProfile['business_name'] = $gstData['business_name'] ?? null;
+                                    }
+                                }
+                            }
+                            
+                            // 3. Fallback to customer account attributes if still missing gstin
+                            if ($payerVendorProfile && empty($payerVendorProfile['gstin'])) {
+                                try {
+                                    $customerRepository = $objectManager->get(\Magento\Customer\Api\CustomerRepositoryInterface::class);
+                                    $customer = null;
+                                    if ($payerCustomerId) {
+                                        $customer = $customerRepository->getById($payerCustomerId);
+                                    } elseif ($payerCustomerEmail) {
+                                        $customer = $customerRepository->getForCustomer($payerCustomerEmail);
+                                    }
+                                    
+                                    if ($customer) {
+                                        $custGst = $customer->getCustomAttribute('gstin') ?: ($customer->getCustomAttribute('tax_id') ?: $customer->getCustomAttribute('vat_id'));
+                                        if ($custGst) {
+                                            $payerVendorProfile['gstin'] = $custGst->getValue();
+                                        }
+                                    }
+                                } catch (\Exception $e) {}
+                            }
+                            
+                            // 4. Final fallback to order billing vat_id
+                            if ($payerVendorProfile && empty($payerVendorProfile['gstin'])) {
+                                $payerVendorProfile['gstin'] = $_order->getBillingAddress()->getVatId();
+                            }
+                        }
+                        ?>
+                        <?php if ($payerVendorProfile): ?>
+                            <div class="address-block">
+                                <strong><?= $block->escapeHtml($payerVendorProfile['business_name'] ?: ($payerVendorProfile['shop_name'] ?: $payerVendorProfile['vendor_name'])) ?></strong><br>
+                                <?= $block->escapeHtml($payerVendorProfile['address']) ?><br>
+                                <?= $block->escapeHtml($payerVendorProfile['city']) ?>, <?= $block->escapeHtml($payerVendorProfile['state']) ?> -
+                                <?= $block->escapeHtml($payerVendorProfile['zip_code']) ?><br>
+                                <?= $block->escapeHtml($payerVendorProfile['country'] ?: __('India')) ?><br>
+                                <?php if (!empty($payerVendorProfile['gstin'])): ?>
+                                    <strong><?= __('GSTIN:') ?></strong> <?= $block->escapeHtml($payerVendorProfile['gstin']) ?><br>
+                                <?php endif; ?>
+                                <?php if (!empty($payerVendorProfile['pan_number'])): ?>
+                                    <strong><?= __('PAN:') ?></strong> <?= $block->escapeHtml($payerVendorProfile['pan_number']) ?>
+                                <?php endif; ?>
+                            </div>
+                        <?php else: ?>
+                            <address>
+                                <?= /* @noEscape */ $block->formatAddress($_order->getBillingAddress(), 'html') ?>
+                                <?php if ($_order->getBillingAddress()->getVatId()): ?>
+                                    <br><strong><?= __('GSTIN:') ?></strong> <?= $block->escapeHtml($_order->getBillingAddress()->getVatId()) ?>
+                                <?php endif; ?>
+                            </address>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <?php $_billing = $_order->getBillingAddress() ?>
+                        <address><?= /* @noEscape */ $block->formatAddress($_billing, 'html') ?></address>
+                        <strong><?= __('State/UT Code:') ?></strong> <?= $_billing->getRegionId() ?>
+                        <?php if ($_billing->getVatId()): ?>
+                            <br><strong><?= __('GSTIN:') ?></strong> <?= $block->escapeHtml($_billing->getVatId()) ?>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
+                <div class="address-block">
+                    <span class="section-header"><?= __('Shipping Address :') ?></span>
+                    <?php if (!$_order->getIsVirtual()): ?>
+                        <?php $_shipping = $_invoice->getShippingAddress() ?>
+                        <address><?= /* @noEscape */ $block->formatAddress($_shipping, 'html') ?></address>
+                        <strong><?= __('Place of supply:') ?></strong> <?= $_shipping->getRegion() ?><br>
+                        <strong><?= __('Place of delivery:') ?></strong> <?= $_shipping->getRegion() ?>
+                    <?php else: ?>
+                        <?= __('N/A') ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- ORDER DETAILS BAND -->
+        <div class="order-details-band">
+            <div>
+                <strong><?= __('Order Number:') ?></strong> <?= $block->escapeHtml($_order->getIncrementId()) ?><br>
+                <strong><?= __('Order Date:') ?></strong>
+                <?= $block->formatDate($_order->getCreatedAt(), \IntlDateFormatter::SHORT, false) ?>
+            </div>
+            <div class="text-right">
+                <strong><?= __('Invoice ID :') ?></strong> #<?= $block->escapeHtml($_invoice->getIncrementId()) ?><br>
+                <strong><?= __('Invoice Details :') ?></strong> <?= __('GJ-%1', $_invoice->getIncrementId()) ?><br>
+                <strong><?= __('Invoice Date :') ?></strong>
+                <?= $block->formatDate($_invoice->getCreatedAt(), \IntlDateFormatter::SHORT, false) ?>
+            </div>
+        </div>
+
+        <!-- TABLE -->
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th width="3%">Sl. No</th>
+                    <th width="35%">Description</th>
+                    <th width="8%">Unit Price</th>
+                    <th width="5%">Qty</th>
+                    <th width="10%">Net Amount</th>
+                    <th width="7%">CGST</th>
+                    <th width="7%">SGST</th>
+                    <th width="7%">IGST</th>
+                    <th width="10%">Total Amount</th>
+                </tr>
+            </thead>
+            <?php
+            $totalCGST = 0;
+            $totalSGST = 0;
+            $totalIGST = 0;
+            foreach ($_invoice->getAllItems() as $_item) {
+                if (!$_item->getOrderItem()->getParentItem()) {
+                    $totalCGST += (float) $_item->getData('indiangst_cgst_amount');
+                    $totalSGST += (float) $_item->getData('indiangst_sgst_amount');
+                    $totalIGST += (float) $_item->getData('indiangst_igst_amount');
+                }
+            }
+            ?>
+            <?php foreach ($_invoice->getAllItems() as $_item): ?>
+                <?php if (!$_item->getOrderItem()->getParentItem()): ?>
+                    <tbody>
+                        <?= $block->getItemHtml($_item) ?>
+                    </tbody>
+                <?php endif; ?>
+            <?php endforeach; ?>
+            <!-- TOTAL ROW -->
+            <!-- TOTALS -->
+            <tfoot>
+                <!-- Subtotal -->
+                <tr>
+                    <td colspan="4" class="text-right"><strong><?= __('Subtotal') ?></strong></td>
+                    <td class="text-right"><?= $_order->formatPrice($_invoice->getSubtotal()) ?></td>
+                </tr>
+
+                <!-- Taxes Breakdown -->
+                <?php if ($totalCGST > 0): ?>
+                    <tr>
+                        <td colspan="8" class="text-right"><strong><?= __('CGST') ?></strong></td>
+                        <td class="text-right"><?= $_order->formatPrice($totalCGST) ?></td>
+                    </tr>
+                <?php endif; ?>
+
+                <?php if ($totalSGST > 0): ?>
+                    <tr>
+                        <td colspan="8" class="text-right"><strong><?= __('SGST') ?></strong></td>
+                        <td class="text-right"><?= $_order->formatPrice($totalSGST) ?></td>
+                    </tr>
+                <?php endif; ?>
+
+                <?php if ($totalIGST > 0): ?>
+                    <tr>
+                        <td colspan="8" class="text-right"><strong><?= __('IGST') ?></strong></td>
+                        <td class="text-right"><?= $_order->formatPrice($totalIGST) ?></td>
+                    </tr>
+                <?php endif; ?>
+
+                <!-- Fallback: If no specific GST data found but there is tax amount (e.g. legacy/other tax) -->
+                <?php if ($totalCGST == 0 && $totalSGST == 0 && $totalIGST == 0 && $_invoice->getTaxAmount() > 0): ?>
+                    <tr>
+                        <td colspan="8" class="text-right"><strong><?= __('Tax Amount') ?></strong></td>
+                        <td class="text-right"><?= $_order->formatPrice($_invoice->getTaxAmount()) ?></td>
+                    </tr>
+                <?php endif; ?>
+
+                <!-- Shipping -->
+                <?php if ($_invoice->getShippingAmount() > 0): ?>
+                    <tr>
+                        <td colspan="8" class="text-right"><strong><?= __('Shipping Charge') ?></strong></td>
+                        <td class="text-right"><?= $_order->formatPrice($_invoice->getShippingAmount()) ?></td>
+                    </tr>
+                <?php endif; ?>
+
+                <!-- Discount -->
+                <?php if ($_invoice->getDiscountAmount() < 0): ?>
+                    <tr>
+                        <td colspan="8" class="text-right"><strong><?= __('Discount') ?></strong></td>
+                        <td class="text-right"><?= $_order->formatPrice($_invoice->getDiscountAmount()) ?></td>
+                    </tr>
+                <?php endif; ?>
+
+                <?php
+                // Recalculate Grand Total based on displayed components
+                $calculatedGrandTotal = $_invoice->getSubtotal()
+                    + $_invoice->getShippingAmount()
+                    + $_invoice->getDiscountAmount();
+
+                if ($totalCGST > 0 || $totalSGST > 0 || $totalIGST > 0) {
+                    $calculatedGrandTotal += $totalCGST + $totalSGST + $totalIGST;
+                } else if ($_invoice->getTaxAmount() > 0) {
+                    $calculatedGrandTotal += $_invoice->getTaxAmount();
+                }
+
+                // stored grand total might be wrong (missing tax)
+                // So we prefer the calculated total.
+            
+                // Logic: Round the calculated total to nearest integer to get "Target Total"
+                // Then difference is Round Off.
+                $targetGrandTotal = round($calculatedGrandTotal);
+
+                // If the stored grand total is correct (matches calculated within small margin), use it.
+                // But here we know stored is 666.67 and calculated is 700.01.
+            
+                // Use explicit rounding to 2 decimals to avoid floating point weirdness
+                $roundOffArgs = round($targetGrandTotal - $calculatedGrandTotal, 2);
+
+                // Final display should be the Target (Rounded) Total
+                $finalGrandTotal = $targetGrandTotal;
+                ?>
+
+                <!-- Round Off Row -->
+                <?php if (abs($roundOffArgs) >= 0.01): ?>
+                    <tr>
+                        <td colspan="8" class="text-right"><strong><?= __('Round Off') ?></strong></td>
+                        <td class="text-right"><?= $_order->formatPrice($roundOffArgs) ?></td>
+                    </tr>
+                <?php endif; ?>
+
+                <!-- Grand Total -->
+                <tr class="grand-total">
+                    <td colspan="8" class="text-right"><strong><?= __('Grand Total') ?></strong></td>
+                    <td class="text-right" style="background: #ddd; font-weight: bold;">
+                        <?= $_order->formatPrice($finalGrandTotal) ?>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <!-- FOOTER -->
+        <div class="footer-section">
+            <div class="amount-words-row">
+                <?= __('Amount in Words:') ?><br>
+                <?= $gstHelper->amountToWords($finalGrandTotal) ?>
+            </div>
+
+            <div style="font-size: 9px; margin-bottom: 5px; font-style: italic;">
+                <?= __('* Rounding off is applicable as per Section 170 of CGST Act, 2017.') ?>
+            </div>
+
+            <div style="text-align: right;">
+                <strong><?= __('For %1', $vendorData ? $vendorData['business_name'] : 'Confirmed Seller') ?>:</strong>
+                <?php if ($vendorData && !empty($vendorData['gstin'])): ?>
+                    <div style="font-size: 8px; color: #555;"><?= __('GSTIN: %1', $vendorData['gstin']) ?></div>
+                <?php endif; ?>
+                <div class="signatory-block">
+                    <?php if ($vendorData && !empty($vendorData['signature'])): ?>
+                        <?php
+                        $mediaUrl = $objectManager->get(\Magento\Store\Model\StoreManagerInterface::class)
+                            ->getStore()
+                            ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
+                        $signatureUrl = $mediaUrl . 'vendor/signature/' . ltrim($vendorData['signature'], '/');
+                        ?>
+                        <img src="<?= $signatureUrl ?>" alt="Signature" style="max-height: 50px; margin-bottom: 5px;"><br>
+                    <?php else: ?>
+                        <br><br>
+                    <?php endif; ?>
+                    <strong style="text-decoration: underline;"><?= __('Authorized Signatory') ?></strong>
+                    <?php if ($vendorData && !empty($vendorData['authorized_name'])): ?>
+                        <br><strong><?= $block->escapeHtml($vendorData['authorized_name']) ?></strong>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <div class="reverse-charge">
+            <?= __('Whether tax is payable under reverse charge - No') ?>
+        </div>
+    </div>
+<?php endforeach; ?>

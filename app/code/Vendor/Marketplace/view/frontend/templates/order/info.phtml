@@ -1,0 +1,254 @@
+<?php
+/** @var $block \Vendor\Marketplace\Block\Order\Info */
+$_order = $block->getOrder();
+$paymentCode = $_order && $_order->getPayment() ? (string) $_order->getPayment()->getMethod() : '';
+$paymentInfoHtml = $_order && $_order->getPayment() ? (string) $block->getPaymentInfoHtml() : '';
+$hasVisiblePaymentInfo = trim(strip_tags($paymentInfoHtml)) !== '';
+?>
+<div class="order-details-wrapper">
+    <!-- Payment & Shipping Method Section -->
+    <div class="payment-shipping-section">
+        <h3 class="section-title"><?= $block->escapeHtml(__('Payment & Shipping Method')) ?></h3>
+
+        <div class="payment-shipping-grid">
+            <!-- Payment Information -->
+            <div class="payment-info-box">
+                <h4 class="box-title"><?= $block->escapeHtml(__('Payment Information')) ?></h4>
+                <div class="box-content">
+                    <?php if ($_order->getPayment()): ?>
+                        <div class="payment-method">
+                            <strong><?= $block->escapeHtml($block->getResolvedPaymentMethodTitle()) ?></strong>
+                        </div>
+                        <?php if ($_order->getOrderCurrencyCode()): ?>
+                            <div class="payment-currency">
+                                <?= $block->escapeHtml(__('The order was placed using %1.', $_order->getOrderCurrencyCode())) ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Additional Payment Info Block -->
+                        <div class="payment-info-details">
+                            <?php if ($hasVisiblePaymentInfo): ?>
+                                <?= /* @noEscape */ $paymentInfoHtml ?>
+                            <?php elseif ($paymentCode === 'cashondelivery' || $paymentCode === 'checkmo'): ?>
+                                <div class="payment-currency">
+                                    <?= $block->escapeHtml(__('Payment will be collected at the time of delivery.')) ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="payment-currency">
+                                    <?= $block->escapeHtml(__('No additional payment details were provided by the gateway.')) ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="payment-method">
+                            <strong><?= $block->escapeHtml(__('Payment method unavailable')) ?></strong>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Shipping & Handling Information -->
+            <div class="shipping-info-box">
+                <h4 class="box-title"><?= $block->escapeHtml(__('Shipping & Handling Information')) ?></h4>
+                <div class="box-content">
+                    <?php if (!$_order->getIsVirtual()): ?>
+                        <?php if ($_order->getShippingDescription()): ?>
+                            <div class="shipping-method">
+                                <strong><?= $block->escapeHtml($_order->getShippingDescription()) ?></strong>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($_order->getShippingAmount()): ?>
+                            <div class="shipping-amount">
+                                <?= /* @noEscape */ $_order->formatPrice($_order->getShippingAmount()) ?>
+                            </div>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <div class="virtual-order">
+                            <?= $block->escapeHtml(__('No shipping required (Virtual Order)')) ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Information Section -->
+    <div class="block block-order-details-view">
+        <div class="block-title">
+            <strong><?= $block->escapeHtml(__('Order Information')) ?></strong>
+        </div>
+        <div class="block-content">
+            <!-- Customer Email Box (consistent theme) -->
+            <div class="box box-customer-email">
+                <strong class="box-title">
+                    <span><?= $block->escapeHtml(__('Customer Information')) ?></span>
+                </strong>
+                <div class="box-content">
+                    <div class="info-row">
+                        <strong><?= $block->escapeHtml(__('Email:')) ?></strong>
+                        <a href="mailto:<?= $block->escapeHtml($_order->getCustomerEmail()) ?>"
+                            class="customer-email-link">
+                            <?= $block->escapeHtml($_order->getCustomerEmail()) ?>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="order-info-grid">
+                <?php if (!$_order->getIsVirtual()): ?>
+                    <div class="box box-order-shipping-address">
+                        <strong class="box-title"><span><?= $block->escapeHtml(__('Shipping Address')) ?></span></strong>
+                        <div class="box-content">
+                            <address><?= /* @noEscape */ $block->getFormattedAddress($_order->getShippingAddress()) ?>
+                            </address>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <div class="box box-order-billing-address">
+                    <strong class="box-title">
+                        <span><?= $block->escapeHtml(__('Billing Address')) ?></span>
+                    </strong>
+                    <div class="box-content">
+                        <address><?= /* @noEscape */ $block->getFormattedAddress($_order->getBillingAddress()) ?>
+                        </address>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .order-details-wrapper {
+        margin-top: 30px;
+    }
+
+    /* Payment & Shipping Section */
+    .payment-shipping-section {
+        background: #fff;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid #e3e6f0;
+        border-radius: 4px;
+    }
+
+    .payment-shipping-section .section-title {
+        font-size: 18px;
+        color: #5a5c69;
+        margin: 0 0 20px 0;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e3e6f0;
+    }
+
+    .payment-shipping-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .payment-info-box,
+    .shipping-info-box {
+        background: #f8f9fc;
+        padding: 15px;
+        border-radius: 4px;
+        border: 1px solid #e3e6f0;
+    }
+
+    .payment-info-box .box-title,
+    .shipping-info-box .box-title {
+        font-size: 14px;
+        color: #4e73df;
+        font-weight: 600;
+        margin: 0 0 15px 0;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e3e6f0;
+    }
+
+    .payment-info-box .box-content,
+    .shipping-info-box .box-content {
+        color: #5a5c69;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .payment-method,
+    .shipping-method {
+        margin-bottom: 10px;
+        font-size: 15px;
+    }
+
+    .payment-currency,
+    .shipping-amount {
+        color: #858796;
+        font-size: 13px;
+        margin-top: 5px;
+    }
+
+    .payment-info-details {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e3e6f0;
+    }
+
+    .virtual-order {
+        color: #858796;
+        font-style: italic;
+    }
+
+    /* Order Information Section */
+    .block-order-details-view {
+        background: #fff;
+        padding: 20px;
+        border: 1px solid #e3e6f0;
+        border-radius: 4px;
+    }
+
+    .block-order-details-view .block-title {
+        font-size: 18px;
+        color: #5a5c69;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #e3e6f0;
+        padding-bottom: 10px;
+    }
+
+    .order-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .block-order-details-view .box {
+        background: #f8f9fc;
+        padding: 15px;
+        border-radius: 4px;
+        border: 1px solid #e3e6f0;
+    }
+
+    .block-order-details-view .box-title {
+        display: block;
+        margin-bottom: 10px;
+        color: #4e73df;
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        border-bottom: 1px solid #e3e6f0;
+        padding-bottom: 5px;
+    }
+
+    .block-order-details-view address {
+        font-style: normal;
+        line-height: 1.6;
+        color: #5a5c69;
+        font-size: 13px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+
+        .payment-shipping-grid,
+        .order-info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

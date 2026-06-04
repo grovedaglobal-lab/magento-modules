@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- Override Items Table Template using attributes -->
+        <referenceBlock name="sales.order.items" template="Tax_IndianGST::order/items.phtml"/>
+        <!-- <referenceBlock name="sales.order.items.renderer.default" template="Tax_IndianGST::order/items/renderer/default.phtml"/> -->
+
+        <!-- Add Totals -->
+        <referenceBlock name="sales.order.view.totals">
+             <block class="Tax\IndianGST\Block\Order\Totals\Gst" name="indiangst.frontend.order.totals"/>
+        </referenceBlock>
+    </body>
+</page>

@@ -1,0 +1,18 @@
+<?php
+/**
+ * Product weight template
+ *
+ * @var $block \Magento\Catalog\Block\Product\View
+ */
+?>
+<?php $_product = $block->getProduct(); ?>
+<?php if ($_product->getTypeInstance()->hasWeight() && ($_weight = $_product->getWeight())): ?>
+    <?php
+    $weightUnit = $this->helper('Magento\Directory\Helper\Data')->getWeightUnit();
+    ?>
+    <div class="product attribute weight">
+        <strong class="type"><?= $escaper->escapeHtml(__('Weight')) ?></strong>
+        <span class="value"><?= $escaper->escapeHtml(number_format((float) $_weight, 2)) ?>
+            <?= $escaper->escapeHtml($weightUnit) ?></span>
+    </div>
+<?php endif; ?>

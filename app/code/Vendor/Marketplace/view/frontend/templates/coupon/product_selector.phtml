@@ -1,0 +1,124 @@
+<?php
+/** @var \Vendor\Marketplace\Block\Coupon\ProductList $block */
+$products = $block->getVendorProducts();
+$selectedSkus = $block->getSelectedProductIds();
+?>
+<div class="field">
+    <label class="label"><span><?= __('Select Products for Discount') ?></span></label>
+    <div class="control">
+        <div class="admin__data-grid-wrap admin__data-grid-wrap-static">
+            <table class="data-grid">
+                <thead>
+                    <tr>
+                        <th class="data-grid-th" style="width: 50px;">
+                            <input type="checkbox" id="select_all_products" onclick="toggleAllProducts(this)" />
+                        </th>
+                        <th class="data-grid-th"><?= __('ID') ?></th>
+                        <th class="data-grid-th"><?= __('Thumbnail') ?></th>
+                        <th class="data-grid-th"><?= __('Name') ?></th>
+                        <th class="data-grid-th"><?= __('SKU') ?></th>
+                        <th class="data-grid-th"><?= __('Price') ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (count($products) > 0): ?>
+                        <?php foreach ($products as $product): ?>
+                            <tr class="product-row parent-row">
+                                <td>
+                                    <input type="checkbox" name="product_skus[]"
+                                        value="<?= $block->escapeHtmlAttr($product->getSku()) ?>"
+                                        class="product-checkbox parent-checkbox" id="product_<?= $product->getId() ?>"
+                                        onclick="toggleChildren(this, '<?= $product->getId() ?>')"
+                                        <?= in_array($product->getSku(), $selectedSkus) ? 'checked' : '' ?> />
+                                </td>
+                                <td><?= $product->getId() ?></td>
+                                <td>
+                                    <img src="<?= $block->escapeUrl($block->getUrl('pub/media/catalog/product') . $product->getThumbnail()) ?>"
+                                        width="50" alt="" />
+                                </td>
+                                <td><strong><?= $block->escapeHtml($product->getName()) ?></strong></td>
+                                <td><strong><?= $block->escapeHtml($product->getSku()) ?></strong></td>
+                                <td><?= $block->escapeHtml($product->getPrice()) ?></td>
+                            </tr>
+
+                            <?php
+                            $children = $block->getChildProducts($product);
+                            if (count($children) > 0):
+                                ?>
+                                <?php foreach ($children as $child): ?>
+                                    <tr class="product-row child-row child-of-<?= $product->getId() ?>"
+                                        style="background-color: #fafafa;">
+                                        <td style="padding-left: 20px;">
+                                            <div style="display:flex; align-items:center;">
+                                                <span style="color: #ccc; margin-right:5px;">↳</span>
+                                                <input type="checkbox" name="product_skus[]"
+                                                    value="<?= $block->escapeHtmlAttr($child->getSku()) ?>"
+                                                    class="product-checkbox child-checkbox child-checkbox-<?= $product->getId() ?>"
+                                                    <?= in_array($child->getSku(), $selectedSkus) ? 'checked' : '' ?> />
+                                            </div>
+                                        </td>
+                                        <td><?= $child->getId() ?></td>
+                                        <td>
+                                            <?php if ($child->getThumbnail() && $child->getThumbnail() != 'no_selection'): ?>
+                                                <img src="<?= $block->escapeUrl($block->getUrl('pub/media/catalog/product') . $child->getThumbnail()) ?>"
+                                                    width="40" alt="" />
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?= $block->escapeHtml($child->getName()) ?></td>
+                                        <td><?= $block->escapeHtml($child->getSku()) ?></td>
+                                        <td><?= $block->escapeHtml($child->getPrice()) ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6"><?= __('No products found.') ?></td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleAllProducts(source) {
+        checkboxes = document.getElementsByName('product_skus[]');
+        for (var i = 0, n = checkboxes.length; i < n; i++) {
+            checkboxes[i].checked = source.checked;
+        }
+    }
+
+    function toggleChildren(source, parentId) {
+        var children = document.getElementsByClassName('child-checkbox-' + parentId);
+        for (var i = 0; i < children.length; i++) {
+            children[i].checked = source.checked;
+        }
+    }
+</script>
+
+<style>
+    .data-grid {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .data-grid th,
+    .data-grid td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .data-grid th {
+        background-color: #f5f5f5;
+    }
+
+    .child-row td {
+        font-size: 0.95em;
+    }
+</style>

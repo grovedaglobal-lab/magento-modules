@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="vendor_access_control" translate="label" sortOrder="950" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Vendor Access Control</label>
+            <tab>general</tab>
+            <resource>Magento_Config::config</resource>
+
+            <group id="general" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Settings</label>
+
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Module</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+
+                <field id="allowed_urls" translate="label comment" type="textarea" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Allowed URLs</label>
+                    <comment>One URL pattern per line. Example: /marketplace</comment>
+                </field>
+
+                <field id="blocked_urls" translate="label comment" type="textarea" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Blocked URLs (Require Login)</label>
+                    <comment>One URL pattern per line. Matching URLs require login.</comment>
+                </field>
+
+                <field id="hide_header_footer_urls" translate="label comment" type="textarea" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Hide Header/Footer URLs</label>
+                    <comment>One URL pattern per line. Matching pages hide header.container and footer-container.</comment>
+                </field>
+
+                <field id="apply_domain_only" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Apply Restriction On Specific Domain Only</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>If Yes, access control runs only when request host matches the configured domain.</comment>
+                </field>
+
+                <field id="domain" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Domain</label>
+                    <comment>Example: commerce.groveda.com. Leave empty to allow all domains.</comment>
+                    <depends>
+                        <field id="apply_domain_only">1</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

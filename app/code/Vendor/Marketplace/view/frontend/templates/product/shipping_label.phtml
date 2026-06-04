@@ -1,0 +1,15 @@
+<?php
+/** @var \Vendor\Marketplace\Block\Product\ShippingLabel $block */
+$profile = $block->getVendorProfile();
+?>
+<?php if ($profile && $profile->getFreeShippingAmount() > 0): ?>
+    <div class="vendor-shipping-label"
+        style="margin-top: 10px; padding: 10px; border: 1px dashed #006400; background-color: #f0fff0; color: #006400; border-radius: 4px;">
+        <strong>
+            <?= $block->escapeHtml(__('Free Shipping')) ?>:
+        </strong>
+        <span>
+            <?= $block->escapeHtml(__('Available on orders over %1 from this seller.', $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($profile->getFreeShippingAmount(), true, false))) ?>
+        </span>
+    </div>
+<?php endif; ?>

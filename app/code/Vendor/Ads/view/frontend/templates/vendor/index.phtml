@@ -1,0 +1,608 @@
+<?php
+/** @var $block \Vendor\Ads\Block\Vendor\Index */
+$campaigns        = $block->getCampaigns();
+$toggleStatusUrl  = $block->escapeUrl($block->getToggleStatusUrl());
+$kwUrl            = $block->escapeUrl($block->getCampaignKeywordsUrl());
+?>
+<div class="ads-dashboard-wrap">
+    <!-- ── TOOLBAR ── -->
+    <div class="ads-dashboard-toolbar">
+        <div class="toolbar-left">
+            <a href="<?= $block->escapeUrl($block->getCreateBidUrl()) ?>" class="btn-amazon-primary">
+                <?= $block->escapeHtml(__('Create campaign')) ?>
+            </a>
+            <div class="toolbar-search">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="<?= $block->escapeHtmlAttr(__('Find a campaign')) ?>" id="ads-search">
+            </div>
+
+            <!-- Filter by dropdown -->
+            <div class="toolbar-dropdown-wrap" id="filterDropdownWrap">
+                <button class="btn-toolbar-ghost" id="filterBtn" onclick="adsToggleDropdown('filterMenu')">
+                    <?= $block->escapeHtml(__('Filter by')) ?> <span>⌵</span>
+                </button>
+                <div class="toolbar-dropdown" id="filterMenu" style="display:none;">
+                    <div class="dropdown-title"><?= $block->escapeHtml(__('Filter by status')) ?></div>
+                    <label><input type="radio" name="ads-filter-status" value="all" checked> <?= $block->escapeHtml(__('All')) ?></label>
+                    <label><input type="radio" name="ads-filter-status" value="1"> <?= $block->escapeHtml(__('Active')) ?></label>
+                    <label><input type="radio" name="ads-filter-status" value="0"> <?= $block->escapeHtml(__('Paused')) ?></label>
+                    <button class="btn-dropdown-apply" onclick="adsApplyFilter()"><?= $block->escapeHtml(__('Apply')) ?></button>
+                </div>
+            </div>
+
+            <!-- Bulk actions dropdown -->
+            <div class="toolbar-dropdown-wrap" id="bulkDropdownWrap">
+                <button class="btn-toolbar-ghost" id="bulkBtn" onclick="adsToggleDropdown('bulkMenu')">
+                    <?= $block->escapeHtml(__('Bulk actions')) ?> <span>⌵</span>
+                </button>
+                <div class="toolbar-dropdown" id="bulkMenu" style="display:none;">
+                    <button class="btn-dropdown-item" onclick="adsBulkAction('activate')"><?= $block->escapeHtml(__('Activate selected')) ?></button>
+                    <button class="btn-dropdown-item" onclick="adsBulkAction('pause')"><?= $block->escapeHtml(__('Pause selected')) ?></button>
+                </div>
+            </div>
+        </div>
+        <div class="toolbar-right">
+            <!-- Columns dropdown -->
+            <div class="toolbar-dropdown-wrap" id="colDropdownWrap">
+                <button class="btn-toolbar-ghost" id="colBtn" onclick="adsToggleDropdown('colMenu')">
+                    <?= $block->escapeHtml(__('Columns')) ?> <span>⌵</span>
+                </button>
+                <div class="toolbar-dropdown toolbar-dropdown-right" id="colMenu" style="display:none;">
+                    <div class="dropdown-title"><?= $block->escapeHtml(__('Show / hide columns')) ?></div>
+                    <label><input type="checkbox" class="col-toggle" data-col="col-status" checked> <?= $block->escapeHtml(__('Status')) ?></label>
+                    <label><input type="checkbox" class="col-toggle" data-col="col-type" checked> <?= $block->escapeHtml(__('Type')) ?></label>
+                    <label><input type="checkbox" class="col-toggle" data-col="col-date-start" checked> <?= $block->escapeHtml(__('Start date')) ?></label>
+                    <label><input type="checkbox" class="col-toggle" data-col="col-date-end" checked> <?= $block->escapeHtml(__('End date')) ?></label>
+                    <label><input type="checkbox" class="col-toggle" data-col="col-budget" checked> <?= $block->escapeHtml(__('Budget')) ?></label>
+                    <label><input type="checkbox" class="col-toggle" data-col="col-cost" checked> <?= $block->escapeHtml(__('Cost type')) ?></label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── GRID ── -->
+    <div class="ads-grid-container">
+        <table class="ads-manager-table" id="adsManagerTable">
+            <thead>
+                <tr>
+                    <th class="col-check"><input type="checkbox" id="ads-select-all"></th>
+                    <th class="col-active"><?= $block->escapeHtml(__('Active')) ?></th>
+                    <th class="col-campaign"><?= $block->escapeHtml(__('Campaigns')) ?> <span class="info-circle">i</span></th>
+                    <th class="col-status"><?= $block->escapeHtml(__('Status')) ?></th>
+                    <th class="col-type"><?= $block->escapeHtml(__('Type')) ?></th>
+                    <th class="col-date-start"><?= $block->escapeHtml(__('Start date')) ?></th>
+                    <th class="col-date-end"><?= $block->escapeHtml(__('End date')) ?></th>
+                    <th class="col-budget"><?= $block->escapeHtml(__('Budget')) ?> <span class="info-circle">i</span></th>
+                    <th class="col-cost"><?= $block->escapeHtml(__('Cost type')) ?> <span class="info-circle">i</span></th>
+                    <th class="col-actions"></th>
+                </tr>
+            </thead>
+            <tbody id="adsCampaignBody">
+                <?php if (count($campaigns) > 0): ?>
+                    <?php foreach ($campaigns as $camp): ?>
+                        <?php
+                            $cid     = (int)$camp['campaign_id'];
+                            $status  = (int)$camp['status'];
+                            $editUrl = $block->escapeUrl($block->getEditUrl($cid));
+                        ?>
+                        <tr
+                            class="ads-campaign-row"
+                            data-campaign-id="<?= $cid ?>"
+                            data-status="<?= $status ?>"
+                            data-name="<?= $block->escapeHtmlAttr(strtolower($camp['name'])) ?>"
+                        >
+                            <td class="col-check"><input type="checkbox" class="ads-row-check" value="<?= $cid ?>"></td>
+                            <td class="col-active">
+                                <label class="ads-switch" title="<?= $block->escapeHtmlAttr(__('Toggle active/paused')) ?>">
+                                    <input
+                                        type="checkbox"
+                                        class="toggle-status-cb"
+                                        data-campaign-id="<?= $cid ?>"
+                                        <?= $status ? 'checked' : '' ?>
+                                    >
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
+                            <td class="col-campaign">
+                                <a href="javascript:void(0)" class="campaign-link campaign-toggle" data-campaign-id="<?= $cid ?>"><?= $block->escapeHtml($camp['name']) ?></a>
+                                <div class="group-hint">🗂 <?= $block->escapeHtml($camp['group_name'] ?: __('Portfolio')) ?></div>
+                            </td>
+                            <td class="col-status">
+                                <?php if (!$status): ?>
+                                    <span class="status-val status-paused"><?= $block->escapeHtml(__('Paused')) ?></span>
+                                <?php elseif ((float)$camp['balance'] <= 0): ?>
+                                    <span class="status-val status-out"><?= $block->escapeHtml(__('Out of Budget')) ?></span>
+                                    <div class="status-sub"><?= $block->escapeHtml(__('Details')) ?> ⌵</div>
+                                <?php else: ?>
+                                    <span class="status-val status-delivering"><?= $block->escapeHtml(__('Delivering')) ?></span>
+                                    <div class="status-sub"><?= $block->escapeHtml(__('Details')) ?> ⌵</div>
+                                <?php endif; ?>
+                            </td>
+                            <td class="col-type">
+                                <div class="type-main"><?= $block->escapeHtml(__('Sponsored Products')) ?></div>
+                                <div class="type-sub"><?= $block->escapeHtml(__('%1 Ads inside', $camp['ad_count'])) ?></div>
+                            </td>
+                            <td class="col-date-start">
+                                <span class="date-pill"><?= $block->escapeHtml(date('M d, Y', strtotime($camp['created_at']))) ?></span>
+                            </td>
+                            <td class="col-date-end">
+                                <span class="date-pill no-date"><?= $block->escapeHtml(__('No end date')) ?></span>
+                            </td>
+                            <td class="col-budget">
+                                <div class="budget-val">₹<?= number_format((float)($camp['daily_budget'] ?: 0), 2) ?></div>
+                                <div class="budget-sub"><?= $block->escapeHtml(__('Daily')) ?></div>
+                            </td>
+                            <td class="col-cost"><?= $block->escapeHtml(__('CPC')) ?></td>
+                            <td class="col-actions">
+                                <div class="row-action-wrap">
+                                    <span class="row-menu" title="<?= $block->escapeHtmlAttr(__('Actions')) ?>">⋮</span>
+                                    <div class="row-action-menu" style="display:none;">
+                                        <a href="<?= $editUrl ?>"><?= $block->escapeHtml(__('Edit')) ?></a>
+                                        <button onclick="adsToggleSingle(<?= $cid ?>, <?= $status ? 0 : 1 ?>)">
+                                            <?= $block->escapeHtml($status ? __('Pause') : __('Activate')) ?>
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- Expandable detail row -->
+                        <tr class="campaign-detail-row" id="detail-row-<?= $cid ?>" style="display:none;">
+                            <td colspan="10" class="detail-cell">
+                                <div class="detail-inner" id="detail-content-<?= $cid ?>">
+                                    <div class="detail-loading">Loading campaign details...</div>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr class="row-empty" id="adsEmptyRow">
+                        <td colspan="10"><?= $block->escapeHtml(__('No campaigns found. Start your first advertising campaign now.')) ?></td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+            <?php if (count($campaigns) > 0): ?>
+            <tfoot>
+                <tr class="row-total">
+                    <td colspan="2"></td>
+                    <td colspan="8"><strong id="adsTotalCount"><?= $block->escapeHtml(__('Totals for %1 Campaigns', count($campaigns))) ?></strong></td>
+                </tr>
+            </tfoot>
+            <?php endif; ?>
+        </table>
+
+        <div id="ads-no-results" style="display:none; text-align:center; padding:40px; color:#888; font-style:italic;">
+            <?= $block->escapeHtml(__('No campaigns match your search.')) ?>
+        </div>
+    </div>
+
+    <!-- Notification toast -->
+    <div id="ads-toast" class="ads-toast" style="display:none;"></div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    var TOGGLE_URL = '<?= $toggleStatusUrl ?>';
+    var KW_URL     = '<?= $kwUrl ?>';
+    var detailCache = {};
+
+    /* ─── SEARCH ─── */
+    var searchInput = document.getElementById('ads-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            adsApplyFilters();
+        });
+    }
+
+    /* ─── FILTER ─── */
+    window.adsApplyFilter = function () {
+        adsToggleDropdown('filterMenu'); // close
+        adsApplyFilters();
+    };
+
+    function adsApplyFilters() {
+        var query      = (searchInput ? searchInput.value.toLowerCase().trim() : '');
+        var filterEl   = document.querySelector('input[name="ads-filter-status"]:checked');
+        var filterStatus = filterEl ? filterEl.value : 'all';
+        var rows       = document.querySelectorAll('.ads-campaign-row');
+        var visible    = 0;
+
+        rows.forEach(function (row) {
+            var name   = row.getAttribute('data-name') || '';
+            var status = row.getAttribute('data-status');
+
+            var nameMatch   = (query === '' || name.indexOf(query) !== -1);
+            var statusMatch = (filterStatus === 'all' || status === filterStatus);
+
+            if (nameMatch && statusMatch) {
+                row.style.display = '';
+                visible++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        var noResults = document.getElementById('ads-no-results');
+        if (noResults) noResults.style.display = (visible === 0 && rows.length > 0) ? 'block' : 'none';
+
+        var totalCount = document.getElementById('adsTotalCount');
+        if (totalCount) totalCount.textContent = 'Totals for ' + visible + ' Campaigns';
+    }
+
+    /* ─── SELECT ALL ─── */
+    var selectAll = document.getElementById('ads-select-all');
+    if (selectAll) {
+        selectAll.addEventListener('change', function () {
+            document.querySelectorAll('.ads-row-check').forEach(function (cb) {
+                cb.checked = selectAll.checked;
+            });
+        });
+    }
+
+    /* ─── BULK ACTIONS ─── */
+    window.adsBulkAction = function (action) {
+        adsToggleDropdown('bulkMenu'); // close
+        var checked = document.querySelectorAll('.ads-row-check:checked');
+        if (checked.length === 0) {
+            adsShowToast('<?= $block->escapeJs(__('Please select at least one campaign.')) ?>', 'warn');
+            return;
+        }
+        var newStatus = (action === 'activate') ? 1 : 0;
+        var ids = [];
+        checked.forEach(function (cb) { ids.push(parseInt(cb.value, 10)); });
+
+        // Toggle each sequentially (simple loop, small sets)
+        ids.forEach(function (campaignId) {
+            adsDoToggle(campaignId, newStatus, false);
+        });
+        adsShowToast(action === 'activate'
+            ? '<?= $block->escapeJs(__('Selected campaigns activated.')) ?>'
+            : '<?= $block->escapeJs(__('Selected campaigns paused.')) ?>', 'success');
+    };
+
+    /* ─── TOGGLE STATUS (individual checkbox) ─── */
+    document.querySelectorAll('.toggle-status-cb').forEach(function (cb) {
+        cb.addEventListener('change', function () {
+            var campaignId = parseInt(this.getAttribute('data-campaign-id'), 10);
+            var newStatus  = this.checked ? 1 : 0;
+            adsDoToggle(campaignId, newStatus, true);
+        });
+    });
+
+    window.adsToggleSingle = function (campaignId, newStatus) {
+        adsDoToggle(campaignId, newStatus, true);
+        // Close the row menu
+        document.querySelectorAll('.row-action-menu').forEach(function (m) { m.style.display = 'none'; });
+    };
+
+    function adsDoToggle(campaignId, newStatus, showToast) {
+        var formData = new FormData();
+        formData.append('campaign_id', campaignId);
+        formData.append('status', newStatus);
+        // Add form key for CSRF protection
+        var formKeyEl = document.querySelector('input[name="form_key"]');
+        if (formKeyEl) formData.append('form_key', formKeyEl.value);
+
+        fetch(TOGGLE_URL, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.success) {
+                // Update row UI
+                var row = document.querySelector('.ads-campaign-row[data-campaign-id="' + campaignId + '"]');
+                if (row) {
+                    row.setAttribute('data-status', newStatus);
+
+                    // Update toggle checkbox
+                    var cb = row.querySelector('.toggle-status-cb');
+                    if (cb) cb.checked = (newStatus === 1);
+
+                    // Update status text
+                    var statusCell = row.querySelector('.col-status');
+                    if (statusCell) {
+                        if (!newStatus) {
+                            statusCell.innerHTML = '<span class="status-val status-paused"><?= $block->escapeJs(__('Paused')) ?></span>';
+                        } else {
+                            statusCell.innerHTML = '<span class="status-val status-delivering"><?= $block->escapeJs(__('Delivering')) ?></span><div class="status-sub"><?= $block->escapeJs(__('Details')) ?> ⌵</div>';
+                        }
+                    }
+
+                    // Update the row-menu action button text
+                    var actionBtn = row.querySelector('.row-action-menu button');
+                    if (actionBtn) {
+                        actionBtn.textContent = newStatus ? '<?= $block->escapeJs(__('Pause')) ?>' : '<?= $block->escapeJs(__('Activate')) ?>';
+                        actionBtn.setAttribute('onclick', 'adsToggleSingle(' + campaignId + ',' + (newStatus ? 0 : 1) + ')');
+                    }
+                }
+
+                if (showToast) adsShowToast(data.message, 'success');
+            } else {
+                // Revert checkbox
+                var cb2 = document.querySelector('.toggle-status-cb[data-campaign-id="' + campaignId + '"]');
+                if (cb2) cb2.checked = !newStatus;
+                if (showToast) adsShowToast(data.message || '<?= $block->escapeJs(__('An error occurred.')) ?>', 'error');
+            }
+        })
+        .catch(function () {
+            if (showToast) adsShowToast('<?= $block->escapeJs(__('Network error. Please try again.')) ?>', 'error');
+        });
+    }
+
+    /* ─── COLUMN TOGGLE ─── */
+    document.querySelectorAll('.col-toggle').forEach(function (cb) {
+        cb.addEventListener('change', function () {
+            var colClass = this.getAttribute('data-col');
+            var show     = this.checked;
+            // Find column index
+            var headers = document.querySelectorAll('#adsManagerTable thead th');
+            var colIdx  = -1;
+            headers.forEach(function (th, idx) {
+                if (th.classList.contains(colClass)) colIdx = idx;
+            });
+            if (colIdx === -1) return;
+
+            // Toggle header
+            headers.forEach(function (th, idx) {
+                if (idx === colIdx) th.style.display = show ? '' : 'none';
+            });
+            // Toggle all row cells at same index
+            document.querySelectorAll('#adsManagerTable tbody tr, #adsManagerTable tfoot tr').forEach(function (row) {
+                var cells = row.querySelectorAll('td, th');
+                if (cells[colIdx]) cells[colIdx].style.display = show ? '' : 'none';
+            });
+        });
+    });
+
+    /* ─── ROW ACTION MENU (⋮) ─── */
+    document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('row-menu')) {
+            // Close all others
+            document.querySelectorAll('.row-action-menu').forEach(function (m) { m.style.display = 'none'; });
+            var menu = e.target.nextElementSibling;
+            if (menu) menu.style.display = (menu.style.display === 'none') ? 'block' : 'none';
+            e.stopPropagation();
+        } else if (!e.target.closest('.row-action-wrap') && !e.target.closest('.toolbar-dropdown-wrap')) {
+            // Close row menus and toolbar dropdowns
+            document.querySelectorAll('.row-action-menu').forEach(function (m) { m.style.display = 'none'; });
+            document.querySelectorAll('.toolbar-dropdown').forEach(function (d) { d.style.display = 'none'; });
+        }
+    });
+
+    /* ─── DROPDOWN TOGGLE ─── */
+    window.adsToggleDropdown = function (id) {
+        var menu = document.getElementById(id);
+        if (!menu) return;
+        var isOpen = menu.style.display !== 'none';
+        // Close all dropdowns
+        document.querySelectorAll('.toolbar-dropdown').forEach(function (d) { d.style.display = 'none'; });
+        if (!isOpen) menu.style.display = 'block';
+    };
+
+    /* ─── TOAST ─── */
+    window.adsShowToast = function (msg, type) {
+        var toast = document.getElementById('ads-toast');
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.className   = 'ads-toast ads-toast-' + (type || 'info');
+        toast.style.display = 'block';
+        setTimeout(function () { toast.style.display = 'none'; }, 3200);
+    };
+
+    /* ─── CAMPAIGN DETAIL EXPAND ─── */
+    document.querySelectorAll('.campaign-toggle').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            var cid = this.getAttribute('data-campaign-id');
+            var detailRow = document.getElementById('detail-row-' + cid);
+            if (!detailRow) return;
+
+            // toggle visibility
+            if (detailRow.style.display !== 'none') {
+                detailRow.style.display = 'none';
+                return;
+            }
+            detailRow.style.display = '';
+
+            // if already loaded, skip fetch
+            if (detailCache[cid]) return;
+
+            // fetch
+            fetch(KW_URL.replace(/\/$/, '') + '?campaign_id=' + cid, { credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    var container = document.getElementById('detail-content-' + cid);
+                    if (!data.success) {
+                        container.innerHTML = '<div class="detail-empty">Error: ' + (data.error || 'Server error') + '</div>';
+                        return;
+                    }
+                    detailCache[cid] = true; // only cache on success
+                    if (!data.ads || data.ads.length === 0) {
+                        container.innerHTML = '<div class="detail-empty">No ads found in this campaign.</div>';
+                        return;
+                    }
+                    var html = '<table class="detail-table">';
+                    html += '<thead><tr>';
+                    html += '<th>Keyword</th><th>Match Type</th><th>Product</th>';
+                    html += '<th>Bid (₹)</th><th>Spent (₹)</th>';
+                    html += '<th>Impressions</th><th>Clicks</th><th>Status</th>';
+                    html += '</tr></thead><tbody>';
+                    data.ads.forEach(function (ad) {
+                        var kw = ad.keyword || (ad.targeting_type === 'auto' ? '<em>Auto Targeting</em>' : '—');
+                        var mt = ad.match_type || 'phrase';
+                        var mtClass = 'mt-' + mt;
+                        var mtLabel = mt.charAt(0).toUpperCase() + mt.slice(1);
+                        var statusCls = parseInt(ad.is_active) ? 'st-active' : 'st-paused';
+                        var statusLabel = parseInt(ad.is_active) ? 'Active' : 'Paused';
+                        html += '<tr>';
+                        html += '<td class="dt-kw">' + kw + '</td>';
+                        html += '<td><span class="mt-badge ' + mtClass + '">' + mtLabel + '</span></td>';
+                        html += '<td class="dt-prod">' + (ad.product_name || 'Product #' + ad.product_id) + '</td>';
+                        html += '<td class="dt-num">₹' + parseFloat(ad.bid_amount).toFixed(2) + '</td>';
+                        html += '<td class="dt-num">₹' + parseFloat(ad.spent_amount).toFixed(2) + '</td>';
+                        html += '<td class="dt-num">' + (parseInt(ad.impressions) || 0) + '</td>';
+                        html += '<td class="dt-num">' + (parseInt(ad.clicks) || 0) + '</td>';
+                        html += '<td><span class="dt-status ' + statusCls + '">' + statusLabel + '</span></td>';
+                        html += '</tr>';
+                    });
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                })
+                .catch(function () {
+                    document.getElementById('detail-content-' + cid).innerHTML = '<div class="detail-empty">Failed to load details.</div>';
+                });
+        });
+    });
+
+})();
+</script>
+
+<style>
+/* ── Amazon Dashboard Styling ── */
+:root {
+    --amz-blue: #007185;
+    --amz-blue-hover: #005f6d;
+    --amz-btn-border: #888;
+    --amz-bg-light: #f3f3f3;
+    --amz-border: #ddd;
+    --amz-text-main: #111;
+    --amz-text-muted: #565959;
+    --amz-green: #008a00;
+}
+
+.ads-dashboard-wrap { background: #fff; padding: 0; min-height: 80vh; font-family: "Amazon Ember", Arial, sans-serif; position: relative; }
+
+/* Toolbar */
+.ads-dashboard-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; border-bottom: 1px solid var(--amz-border); background: #fafafa; flex-wrap: wrap; gap: 8px; }
+.toolbar-left { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+.btn-amazon-primary { background: var(--amz-blue); color: #fff !important; text-decoration: none; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 13px; white-space: nowrap; }
+.btn-amazon-primary:hover { background: var(--amz-blue-hover); }
+
+.toolbar-search { position: relative; border: 1px solid #888; border-radius: 4px; background: #fff; display: flex; align-items: center; padding: 0 8px; }
+.toolbar-search input { border: none; padding: 6px 4px; font-size: 13px; outline: none; width: 180px; }
+.search-icon { font-size: 12px; margin-right: 4px; opacity: 0.6; }
+
+.btn-toolbar-ghost { background: #fff; border: 1px solid var(--amz-border); border-radius: 4px; padding: 6px 12px; font-size: 13px; cursor: pointer; color: var(--amz-text-muted); white-space: nowrap; }
+.btn-toolbar-ghost span { font-size: 10px; margin-left: 4px; }
+.btn-toolbar-ghost:hover { border-color: #777; }
+
+/* Dropdown */
+.toolbar-dropdown-wrap { position: relative; }
+.toolbar-dropdown {
+    position: absolute; top: calc(100% + 6px); left: 0; background: #fff;
+    border: 1px solid var(--amz-border); border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    padding: 10px 14px; min-width: 180px; z-index: 999;
+}
+.toolbar-dropdown-right { left: auto; right: 0; }
+.toolbar-dropdown label { display: flex; align-items: center; gap: 6px; padding: 5px 0; font-size: 13px; cursor: pointer; }
+.toolbar-dropdown label input { cursor: pointer; }
+.dropdown-title { font-size: 11px; text-transform: uppercase; color: #888; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 8px; }
+
+.btn-dropdown-apply { margin-top: 10px; background: var(--amz-blue); color: #fff; border: none; border-radius: 4px; padding: 6px 14px; font-size: 13px; cursor: pointer; width: 100%; }
+.btn-dropdown-apply:hover { background: var(--amz-blue-hover); }
+
+.btn-dropdown-item { display: block; width: 100%; text-align: left; background: none; border: none; padding: 8px 0; font-size: 13px; cursor: pointer; color: var(--amz-text-main); border-bottom: 1px solid #f0f0f0; }
+.btn-dropdown-item:last-child { border-bottom: none; }
+.btn-dropdown-item:hover { color: var(--amz-blue); }
+
+/* Table */
+.ads-grid-container { overflow-x: auto; }
+.ads-manager-table { width: 100%; border-collapse: collapse; font-size: 13px; color: var(--amz-text-main); }
+.ads-manager-table th { text-align: left; padding: 10px 12px; background: #fdfdfd; border-bottom: 2px solid var(--amz-border); font-weight: 500; color: var(--amz-text-muted); }
+.ads-manager-table th .info-circle { display: inline-block; width: 14px; height: 14px; background: #ccc; color: #fff; border-radius: 50%; font-size: 9px; line-height: 14px; text-align: center; font-style: normal; margin-left: 2px; }
+
+.ads-manager-table tr:hover { background: #f7fafa; }
+.ads-manager-table td { padding: 12px; border-bottom: 1px solid var(--amz-border); vertical-align: middle; }
+
+/* Switch Toggle */
+.ads-switch { position: relative; display: inline-block; width: 34px; height: 18px; cursor: pointer; }
+.ads-switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--amz-blue); }
+input:checked + .slider:before { transform: translateX(16px); }
+
+/* Campaign link */
+.campaign-link { color: var(--amz-blue); text-decoration: none; font-weight: 500; font-size: 13px; }
+.campaign-link:hover { text-decoration: underline; }
+.group-hint { font-size: 10px; color: var(--amz-text-muted); text-transform: uppercase; letter-spacing: 0.03em; margin-top: 2px; }
+
+.status-val { font-weight: 700; font-size: 12px; }
+.status-delivering { color: var(--amz-green); }
+.status-paused { color: var(--amz-text-muted); }
+.status-out { color: #c00; }
+.status-sub { font-size: 11px; color: var(--amz-blue); margin-top: 2px; cursor: pointer; }
+
+.type-sub { font-size: 11px; color: var(--amz-text-muted); }
+
+.date-pill { background: #eee; border: 1px solid var(--amz-border); padding: 2px 8px; border-radius: 3px; font-size: 11px; color: #333; }
+.date-pill.no-date { background: transparent; border-style: dashed; }
+
+.budget-val { font-weight: 500; }
+.budget-sub { font-size: 10px; color: var(--amz-text-muted); text-align: right; margin-right: 4px; }
+.col-budget { text-align: right; }
+
+/* Row action menu (⋮) */
+.row-action-wrap { position: relative; display: inline-block; }
+.row-menu { display: inline-block; padding: 4px 8px; font-size: 18px; color: #555; border-radius: 4px; cursor: pointer; user-select: none; }
+.row-menu:hover { background: #eee; }
+.row-action-menu {
+    position: absolute; right: 0; top: calc(100% + 4px); background: #fff;
+    border: 1px solid var(--amz-border); border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    min-width: 140px; z-index: 999; padding: 6px 0;
+}
+.row-action-menu a,
+.row-action-menu button {
+    display: block; width: 100%; text-align: left; padding: 8px 14px; font-size: 13px;
+    text-decoration: none; color: var(--amz-text-main); background: none; border: none; cursor: pointer;
+}
+.row-action-menu a:hover,
+.row-action-menu button:hover { background: #f3f3f3; color: var(--amz-blue); }
+
+.row-total { background: #f3f3f3 !important; }
+.row-total td { font-weight: 600; padding: 14px 12px; border-top: 1px solid var(--amz-border); }
+
+.row-empty td { text-align: center; padding: 60px; color: #888; font-style: italic; font-size: 15px; }
+
+/* Toast */
+.ads-toast {
+    position: fixed; bottom: 28px; right: 28px; padding: 12px 22px;
+    border-radius: 8px; font-size: 14px; font-weight: 500; z-index: 9999;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18); animation: fadeInUp .3s ease;
+}
+.ads-toast-success { background: #008a00; color: #fff; }
+.ads-toast-error   { background: #c00;    color: #fff; }
+.ads-toast-warn    { background: #f08c00; color: #fff; }
+.ads-toast-info    { background: #007185; color: #fff; }
+
+@keyframes fadeInUp {
+    from { transform: translateY(12px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* Campaign Detail Expandable Row */
+.campaign-detail-row td { padding: 0 !important; border-bottom: 2px solid var(--amz-blue) !important; }
+.detail-cell { background: #f7fafb; }
+.detail-inner { padding: 16px 20px; }
+.detail-loading { color: var(--amz-text-muted); font-size: 13px; padding: 20px 0; text-align: center; }
+.detail-empty { color: #888; font-size: 13px; padding: 16px 0; text-align: center; font-style: italic; }
+.detail-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.detail-table th { text-align: left; padding: 8px 10px; background: #eef4f6; color: var(--amz-text-muted); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid #ddd; }
+.detail-table td { padding: 9px 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
+.detail-table tr:hover { background: #eff7f9; }
+.dt-kw { font-weight: 600; color: var(--amz-text-main); word-break: break-word; }
+.dt-prod { color: var(--amz-text-muted); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dt-num { text-align: right; font-family: 'Courier New', monospace; }
+.dt-status { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+.st-active { background: #e8f5e9; color: #2e7d32; }
+.st-paused { background: #f5f5f5; color: #888; }
+.mt-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+.mt-broad  { background: #e3f2fd; color: #1565c0; }
+.mt-phrase { background: #f3e5f5; color: #7b1fa2; }
+.mt-exact  { background: #e8f5e9; color: #2e7d32; }
+.campaign-toggle { cursor: pointer; }
+</style>

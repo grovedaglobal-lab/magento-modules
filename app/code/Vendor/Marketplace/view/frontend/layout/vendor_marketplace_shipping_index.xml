@@ -1,0 +1,9 @@
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="marketplace_vendor_dashboard_layout"/>
+    <body>
+        <referenceBlock name="vendor.portal.wrapper">
+             <!-- Shipping Content -->
+             <block class="Vendor\Marketplace\Block\Shipping\Settings" name="vendor.shipping.settings" template="Vendor_Marketplace::shipping/settings.phtml" as="main_content" cacheable="false"/>
+        </referenceBlock>
+    </body>
+</page>

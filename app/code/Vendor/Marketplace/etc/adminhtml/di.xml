@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <virtualType name="Magento\Catalog\Ui\DataProvider\Product\Form\Modifier\Pool">
+        <arguments>
+            <argument name="modifiers" xsi:type="array">
+                <item name="vendor_marketplace_vendor_id_search" xsi:type="array">
+                    <item name="class" xsi:type="string">Vendor\Marketplace\Ui\DataProvider\Product\Form\Modifier\VendorSearch</item>
+                    <item name="sortOrder" xsi:type="number">100</item>
+                </item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Magento\Sales\Controller\Adminhtml\Order\Invoice\Save">
+        <plugin name="vendor_marketplace_split_invoice_save" type="Vendor\Marketplace\Plugin\Adminhtml\Order\Invoice\SavePlugin" sortOrder="10"/>
+    </type>
+
+    <!-- Filter order grid for vendor users -->
+    <type name="Magento\Sales\Model\ResourceModel\Order\Grid\Collection">
+        <plugin name="vendor_marketplace_filter_order_grid" type="Vendor\Marketplace\Plugin\Sales\Model\ResourceModel\Order\Grid\CollectionPlugin" sortOrder="10"/>
+    </type>
+
+
+
+    <virtualType name="Vendor\Marketplace\Model\ResourceModel\Vendor\Grid\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">vendor_entity</argument>
+            <argument name="resourceModel" xsi:type="string">Vendor\Marketplace\Model\ResourceModel\Vendor</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Vendor\Marketplace\Model\ResourceModel\VendorCommission\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">vendor_commission</argument>
+            <argument name="resourceModel" xsi:type="string">Vendor\Marketplace\Model\ResourceModel\VendorCommission</argument>
+        </arguments>
+    </type>
+
+    <type name="Vendor\Marketplace\Model\ResourceModel\VendorDocument\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">vendor_document</argument>
+            <argument name="resourceModel" xsi:type="string">Vendor\Marketplace\Model\ResourceModel\VendorDocument</argument>
+        </arguments>
+    </type>
+
+    <type name="Vendor\Marketplace\Model\ResourceModel\VendorCoadocument\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">vendor_document</argument>
+            <argument name="resourceModel" xsi:type="string">Vendor\Marketplace\Model\ResourceModel\VendorDocument</argument>
+        </arguments>
+    </type>
+
+    <type name="Vendor\Marketplace\Model\ResourceModel\VendorOrganicdocument\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">vendor_document</argument>
+            <argument name="resourceModel" xsi:type="string">Vendor\Marketplace\Model\ResourceModel\VendorDocument</argument>
+        </arguments>
+    </type>
+
+    <virtualType name="Vendor\Marketplace\Model\ResourceModel\News\Grid\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">vendor_news</argument>
+            <argument name="resourceModel" xsi:type="string">Vendor\Marketplace\Model\ResourceModel\News</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Vendor\Marketplace\Model\ResourceModel\VendorOrder\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">vendor_order</argument>
+            <argument name="resourceModel" xsi:type="string">Vendor\Marketplace\Model\ResourceModel\VendorOrder</argument>
+        </arguments>
+    </type>
+
+    <!-- Commission Data Providers -->
+    <virtualType name="VendorMarketplaceCommissionGridDataProvider" type="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider"/>
+    <virtualType name="VendorMarketplaceCommissionFormDataProvider" type="Vendor\Marketplace\Model\Commission\DataProvider\DataProvider"/>
+
+</config>

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Vendor_Ads::ads_root" title="Vendor Ads" module="Vendor_Ads" sortOrder="20" parent="Magento_Backend::marketing" resource="Vendor_Ads::ads_root"/>
+        <add id="Vendor_Ads::ads_keywords" title="Keyword Management" module="Vendor_Ads" sortOrder="10" parent="Vendor_Ads::ads_root" action="vendor_ads/keyword/index" resource="Vendor_Ads::ads_keywords"/>
+        <add id="Vendor_Ads::ads_bids" title="Vendor Bids" module="Vendor_Ads" sortOrder="20" parent="Vendor_Ads::ads_root" action="vendor_ads/bid/index" resource="Vendor_Ads::ads_bids"/>
+        <add id="Vendor_Ads::ads_wallet" title="Wallet" module="Vendor_Ads" sortOrder="30" parent="Vendor_Ads::ads_root" action="vendor_ads/wallet/index" resource="Vendor_Ads::ads_wallet"/>
+        <add id="Vendor_Ads::ads_wallet_history" title="Wallet History" module="Vendor_Ads" sortOrder="31" parent="Vendor_Ads::ads_root" action="vendor_ads/wallet/history" resource="Vendor_Ads::ads_wallet_history"/>
+        <add id="Vendor_Ads::ads_reports" title="Reports" module="Vendor_Ads" sortOrder="40" parent="Vendor_Ads::ads_root" action="vendor_ads/reports/index" resource="Vendor_Ads::ads_reports"/>
+        <add id="Vendor_Ads::wallet_orders" title="Wallet Orders" module="Vendor_Ads" sortOrder="45" parent="Vendor_Ads::ads_root" action="vendor_ads/walletorders/index" resource="Vendor_Ads::wallet_orders"/>
+    </menu>
+</config>

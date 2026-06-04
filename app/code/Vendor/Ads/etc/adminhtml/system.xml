@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="vendor_ads" translate="label" sortOrder="200">
+            <label>Vendor Ads</label>
+        </tab>
+
+        <section id="vendor_ads" translate="label" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Vendor Advertising</label>
+            <tab>vendor_ads</tab>
+            <resource>Vendor_Ads::ads_root</resource>
+
+            <group id="general" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Settings</label>
+
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Vendor Ads</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable or disable the entire Vendor Advertising system.</comment>
+                </field>
+
+                <field id="max_sponsored" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Max Sponsored Products Per Search</label>
+                    <comment>Maximum number of sponsored products injected into search results. Default: 3</comment>
+                    <validate>required-entry validate-number validate-greater-than-zero</validate>
+                </field>
+
+                <field id="max_bids_per_vendor" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Max Active Bids Per Vendor</label>
+                    <comment>Limit on how many active bids a single vendor can have.</comment>
+                    <validate>required-entry validate-number validate-greater-than-zero</validate>
+                </field>
+            </group>
+
+            <group id="vendor_integration" translate="label" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Multi-Vendor Module Integration</label>
+
+                <field id="vendor_module" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Vendor Module</label>
+                    <source_model>Vendor\Ads\Model\Config\Source\VendorModule</source_model>
+                    <comment>Select which multi-vendor module is installed. This links Vendor Ads to the correct vendor data table.</comment>
+                </field>
+
+                <field id="vendor_table" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Custom Vendor Table (optional)</label>
+                    <comment>Only required if "Custom / Other" is selected above. Enter the exact DB table name (e.g. my_vendor_sellers).</comment>
+                    <depends>
+                        <field id="vendor_module">custom</field>
+                    </depends>
+                </field>
+
+                <field id="vendor_id_column" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Vendor ID Column</label>
+                    <comment>Primary key column in the vendor table above. Default: entity_id</comment>
+                    <depends>
+                        <field id="vendor_module">custom</field>
+                    </depends>
+                </field>
+
+                <field id="vendor_name_column" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Vendor Name Column</label>
+                    <comment>Column storing the vendor/seller name. Default: name</comment>
+                    <depends>
+                        <field id="vendor_module">custom</field>
+                    </depends>
+                </field>
+
+                <field id="customer_id_column" translate="label comment" type="text" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Customer ID Column</label>
+                    <comment>Column linking vendor record to a Magento customer. Default: customer_id</comment>
+                    <depends>
+                        <field id="vendor_module">custom</field>
+                    </depends>
+                </field>
+            </group>
+
+            <group id="cpc" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>CPC Billing Settings</label>
+
+                <field id="min_bid" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Minimum Bid Amount</label>
+                    <comment>Minimum CPC bid a vendor can set. Default: 0.01</comment>
+                    <validate>required-entry validate-number</validate>
+                </field>
+
+                <field id="default_currency" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Default Wallet Currency</label>
+                    <comment>Currency code for new wallets (e.g. USD, INR). Default: USD</comment>
+                </field>
+            </group>
+
+            <group id="wallet_recharge" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Wallet Recharge Settings</label>
+
+                <field id="recharge_product_sku" translate="label comment" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Recharge Product SKU</label>
+                    <comment>SKU of the virtual product used for wallet recharge checkout (example: wallet-recharge).</comment>
+                    <validate>required-entry</validate>
+                </field>
+
+                <field id="gst_tax_class_id" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>GST Tax Class</label>
+                    <source_model>Magento\Tax\Model\TaxClass\Source\Product</source_model>
+                    <comment>Tax class applied on wallet recharge order item.</comment>
+                </field>
+
+                <field id="tax_mode" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Tax Mode</label>
+                    <source_model>Vendor\Ads\Model\Config\Source\TaxMode</source_model>
+                    <comment>Exclusive: GST is added on top. Inclusive: entered amount already includes GST.</comment>
+                </field>
+
+                <field id="authorized_signatory" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Authorized Signatory Name</label>
+                    <comment>Name displayed below the signature on GST invoices (e.g. "Rishabh Pareek").</comment>
+                </field>
+
+                <field id="signature_image" translate="label comment" type="image" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Admin Signature Image</label>
+                    <comment>Upload the signature image to display on GST invoices. Recommended: transparent PNG, max 200x80px.</comment>
+                    <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
+                    <upload_dir config="system/filesystem/media" scope_info="1">vendor_ads/signature</upload_dir>
+                    <base_url type="media" scope_info="1">vendor_ads/signature</base_url>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

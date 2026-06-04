@@ -1,0 +1,132 @@
+<?php
+/**
+ * Vendor Marketplace Custom Invoice Item Renderer - Amazon Style
+ */
+// @codingStandardsIgnoreFile
+
+/** @var  $block \Magento\Sales\Block\Order\Item\Renderer\DefaultRenderer */
+$_item = $block->getItem();
+$_order = $block->getOrder();
+$_sku = $_item->getSku();
+
+// Data Calculations
+$qty = $_item->getQty() * 1;
+// CRITICAL FIX: Unit Price should be derived from Net Row Total to match the invoice totals
+// $_item->getPrice() might be Gross in DB if Inclusive Tax, but Row Total is Net.
+$totalRowNet = $_item->getRowTotal();
+$unitPrice = ($qty > 0) ? ($totalRowNet / $qty) : 0;
+$netAmount = $unitPrice * $qty;
+$percent = (float) $_item->getData('indiangst_percent');
+
+$cgst = (float) $_item->getData('indiangst_cgst_amount');
+$sgst = (float) $_item->getData('indiangst_sgst_amount');
+$igst = (float) $_item->getData('indiangst_igst_amount');
+$taxAmount = $cgst + $sgst + $igst;
+
+$taxType = '';
+if ($igst > 0) {
+    $taxType = 'IGST';
+} elseif ($cgst > 0 || $sgst > 0) {
+    $taxType = 'CGST/SGST';
+} else {
+    // Determine by state logic if really needed, but generally if amount is 0, type is less relevant or Intra
+    $taxType = '-';
+}
+
+$hsn = $_item->getOrderItem()->getProduct()->getData('hsn_code');
+if (!$hsn) {
+    // Fallback: This is expensive in a loop, but necessary if data missing
+    $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+    $resource = $objectManager->get(\Magento\Framework\App\ResourceConnection::class);
+    $connection = $resource->getConnection();
+    $tableName = $resource->getTableName('tax_indiangst_rates');
+    $taxClassId = $_item->getOrderItem()->getProduct()->getTaxClassId();
+    $hsn = $connection->fetchOne(
+        $connection->select()->from($tableName, ['hsn_code'])->where('tax_class_id = ?', $taxClassId)
+    );
+}
+
+// Sl. No helper - we don't have loop index here easily without passing it down. 
+// A simple hack: static counter? No, block is new instance usually.
+// We'll leave Sl. No blank or handle it via CSS counters if possible, 
+// OR simpler: just put '1' or '-' since strict numbering requires modification to the parent loop which we did not do perfectly.
+// Correction: The parent loop in invoice.phtml can't easily pass the index to the block.
+// We will use a standard decrement/increment or just '-' for now unless we override the renderer block class.
+// CSS Counters are best for print.
+?>
+<style>
+    body {
+        counter-reset: item-counter;
+    }
+
+    .item-row {
+        counter-increment: item-counter;
+    }
+
+    .col-sl::before {
+        content: counter(item-counter);
+    }
+</style>
+
+<tr class="item-row">
+    <!-- 1. Sl. No -->
+    <td class="col-sl text-center"></td>
+
+    <!-- 2. Description -->
+    <td class="col-desc">
+        <strong class="product-name"><?= $block->escapeHtml($_item->getName()) ?></strong>
+        <div class="hsn-code" style="font-size: 10px; color: #555;">HSN/SAC:
+            <?= $hsn ? $block->escapeHtml($hsn) : '-' ?>
+        </div>
+    </td>
+
+    <!-- 3. Unit Price -->
+    <td class="col-price text-right">
+        <?= $_order->formatPrice($unitPrice) ?>
+    </td>
+
+    <!-- 4. Qty -->
+    <td class="col-qty text-center">
+        <?= $qty ?>
+    </td>
+
+    <!-- 5. Net Amount -->
+    <td class="col-net text-right">
+        <?= $_order->formatPrice($netAmount) ?>
+    </td>
+
+    <!-- 6. CGST -->
+    <td class="col-cgst text-center">
+        <?php if ($cgst > 0): ?>
+            <div><?= ($percent / 2) ?>%</div>
+            <div><?= $_order->formatPrice($cgst) ?></div>
+        <?php else: ?>
+            -
+        <?php endif; ?>
+    </td>
+
+    <!-- 7. SGST -->
+    <td class="col-sgst text-center">
+        <?php if ($sgst > 0): ?>
+            <div><?= ($percent / 2) ?>%</div>
+            <div><?= $_order->formatPrice($sgst) ?></div>
+        <?php else: ?>
+            -
+        <?php endif; ?>
+    </td>
+
+    <!-- 8. IGST -->
+    <td class="col-igst text-center">
+        <?php if ($igst > 0): ?>
+            <div><?= $percent ?>%</div>
+            <div><?= $_order->formatPrice($igst) ?></div>
+        <?php else: ?>
+            -
+        <?php endif; ?>
+    </td>
+
+    <!-- 9. Total Amount -->
+    <td class="col-total text-right">
+        <?= $_order->formatPrice($_item->getRowTotalInclTax()) ?>
+    </td>
+</tr>

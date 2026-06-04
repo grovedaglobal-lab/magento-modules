@@ -1,0 +1,36 @@
+<!--
+/**
+ * Custom Uploader Template for Vendor Marketplace
+ * Based on Magento_Downloadable/view/adminhtml/web/template/components/file-uploader.html
+ */
+-->
+<div class="admin__field-control">
+    <div class="file-uploader" data-role="drop-zone" css="_loading: isLoading">
+        <each args="data: value, as: '$file'">
+            <div class="file-uploader-summary">
+                <div class="file-uploader-filename">
+                    <!-- ko if: $file.url -->
+                    <a attr="href: $file.url" target="_blank" text="$file.name"></a>
+                    <!-- /ko -->
+                    <!-- ko if: !$file.url -->
+                    <text args="$file.name"></text>
+                    <!-- /ko -->
+                    (<text args="$parent.formatSize($file.size)"></text>)
+                </div>
+                <div class="actions">
+                    <button type="button" class="action-delete" attr="title: $t('Delete')"
+                        click="$parent.removeFile.bind($parent, $file)">
+                        <span translate="'Delete'"></span>
+                    </button>
+                </div>
+            </div>
+        </each>
+        <div class="file-uploader-area">
+            <input type="file" afterRender="onElementRender"
+                attr="id: uid, name: fileInputName, multiple: isMultipleFiles" />
+            <!-- Removed 'for' attribute to fix accessibility error since JS handles the click -->
+            <label class="file-uploader-button action-secondary" translate="'Browse Files...'"></label>
+            <span class="file-uploader-spinner"></span>
+        </div>
+    </div>
+</div>

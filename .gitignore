@@ -1,0 +1,37 @@
+# Magento
+/vendor/
+/generated/
+/var/cache/
+/var/page_cache/
+/var/view_preprocessed/
+/pub/static/*
+!/pub/static/.htaccess
+
+# Media
+/pub/media/
+
+# Environment
+/app/etc/env.php
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Node
+node_modules/
+
+# Composer
+composer.phar
+
+!app/
+!app/code/
+!app/code/**
+
+!.gitignore

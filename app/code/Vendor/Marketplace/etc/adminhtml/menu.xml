@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Vendor_Marketplace::marketplace" title="Vendor Marketplace" module="Vendor_Marketplace" sortOrder="51" resource="Vendor_Marketplace::marketplace"/>
+        
+        <!-- Menu Section -->
+        <add id="Vendor_Marketplace::manage_seller" title="Manage Seller" module="Vendor_Marketplace" sortOrder="10" parent="Vendor_Marketplace::marketplace" action="vendor_marketplace/index/index" resource="Vendor_Marketplace::manage_seller"/>
+        <add id="Vendor_Marketplace::manage_product" title="Manage Product" module="Vendor_Marketplace" sortOrder="20" parent="Vendor_Marketplace::marketplace" action="catalog/product/index" resource="Vendor_Marketplace::manage_product"/>
+        <add id="Vendor_Marketplace::manage_commission" title="Referral Fees" module="Vendor_Marketplace" sortOrder="30" parent="Vendor_Marketplace::marketplace" action="vendor_marketplace/commission/index" resource="Vendor_Marketplace::manage_commission"/>
+        <add id="Vendor_Marketplace::manage_documents" title="Vendor Documents" module="Vendor_Marketplace" sortOrder="35" parent="Vendor_Marketplace::marketplace" action="vendor_marketplace/document/index" resource="Vendor_Marketplace::manage_documents"/>
+        <add id="Vendor_Marketplace::manage_coa_documents" title="Vendor COA Documents" module="Vendor_Marketplace" sortOrder="36" parent="Vendor_Marketplace::marketplace" action="vendor_marketplace/coadocument/index" resource="Vendor_Marketplace::manage_documents"/>
+        <add id="Vendor_Marketplace::manage_organic_documents" title="Vendor Organic Certs" module="Vendor_Marketplace" sortOrder="37" parent="Vendor_Marketplace::marketplace" action="vendor_marketplace/organicdocument/index" resource="Vendor_Marketplace::manage_documents"/>
+        <add id="Vendor_Marketplace::sellers_transaction" title="Sellers Transaction" module="Vendor_Marketplace" sortOrder="40" parent="Vendor_Marketplace::marketplace" action="vendor_marketplace/transaction/index" resource="Vendor_Marketplace::sellers_transaction"/>
+        <add id="Vendor_Marketplace::manage_feedback" title="Manage Feedback" module="Vendor_Marketplace" sortOrder="50" parent="Vendor_Marketplace::marketplace" action="vendor_marketplace/feedback/index" resource="Vendor_Marketplace::manage_feedback"/>
+        <add id="Vendor_Marketplace::seller_flag_reason" title="Seller Flag Reason" module="Vendor_Marketplace" sortOrder="60" parent="Vendor_Marketplace::marketplace" action="vendor_marketplace/sellerflag/index" resource="Vendor_Marketplace::seller_flag_reason"/>
+        <add id="Vendor_Marketplace::product_flag_reason" title="Product Flag Reason" module="Vendor_Marketplace" sortOrder="70" parent="Vendor_Marketplace::marketplace" action="vendor_marketplace/productflag/index" resource="Vendor_Marketplace::product_flag_reason"/>
+
+        <add id="Vendor_Marketplace::manage_news" title="Manage News" module="Vendor_Marketplace" sortOrder="90" parent="Vendor_Marketplace::marketplace" action="vendor_marketplace/news/index" resource="Vendor_Marketplace::manage_news"/>
+        <add id="Vendor_Marketplace::configuration_settings" title="Configuration Settings" module="Vendor_Marketplace" sortOrder="100" parent="Vendor_Marketplace::marketplace" action="adminhtml/system_config/edit/section/vendor_marketplace" resource="Vendor_Marketplace::configuration_settings"/>
+
+        <!-- Support Section -->
+        <add id="Vendor_Marketplace::support" title="Support" module="Vendor_Marketplace" sortOrder="200" parent="Vendor_Marketplace::marketplace" resource="Vendor_Marketplace::support"/>
+        <add id="Vendor_Marketplace::user_guide" title="User Guide" module="Vendor_Marketplace" sortOrder="10" parent="Vendor_Marketplace::support" action="vendor_marketplace/support/guide" resource="Vendor_Marketplace::user_guide"/>
+        <add id="Vendor_Marketplace::store_extension" title="Store Extension" module="Vendor_Marketplace" sortOrder="20" parent="Vendor_Marketplace::support" action="vendor_marketplace/support/extension" resource="Vendor_Marketplace::store_extension"/>
+        <add id="Vendor_Marketplace::ticket" title="Ticket/Customisations" module="Vendor_Marketplace" sortOrder="30" parent="Vendor_Marketplace::support" action="vendor_marketplace/support/ticket" resource="Vendor_Marketplace::ticket"/>
+        <add id="Vendor_Marketplace::services" title="Services" module="Vendor_Marketplace" sortOrder="40" parent="Vendor_Marketplace::support" action="vendor_marketplace/support/services" resource="Vendor_Marketplace::services"/>
+        <add id="Vendor_Marketplace::reviews" title="Reviews" module="Vendor_Marketplace" sortOrder="50" parent="Vendor_Marketplace::support" action="vendor_marketplace/support/reviews" resource="Vendor_Marketplace::reviews"/>
+    </menu>
+</config>

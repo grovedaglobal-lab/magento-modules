@@ -1,0 +1,68 @@
+<?php
+/** @var \Vendor\Ads\Block\Adminhtml\Keyword\Grid $block */
+$keywords = $block->getKeywordData();
+?>
+<div class="vendor-ads-admin">
+    <h2><?= $block->escapeHtml(__('Vendor Ads — Keyword Intelligence')) ?></h2>
+    <p style="color:#666;"><?= $block->escapeHtml(__('All indexed keywords with active searches. Sorted by bid activity then popularity.')) ?></p>
+
+    <?php if (empty($keywords)): ?>
+        <div class="message message-notice"><span><?= $block->escapeHtml(__('No keywords found. Customers have not searched yet, or search indexing is pending.')) ?></span></div>
+    <?php else: ?>
+    <table class="data-grid admin__table-primary" style="width:100%;">
+        <thead>
+            <tr>
+                <th style="width:22%;"><?= $block->escapeHtml(__('Keyword')) ?></th>
+                <th><?= $block->escapeHtml(__('Opportunity')) ?></th>
+                <th><?= $block->escapeHtml(__('Popularity')) ?></th>
+                <th><?= $block->escapeHtml(__('Products')) ?></th>
+                <th><?= $block->escapeHtml(__('Active Bids')) ?></th>
+                <th><?= $block->escapeHtml(__('Avg CPC (₹)')) ?></th>
+                <th><?= $block->escapeHtml(__('Max CPC (₹)')) ?></th>
+                <th><?= $block->escapeHtml(__('Impressions')) ?></th>
+                <th><?= $block->escapeHtml(__('Clicks')) ?></th>
+                <th><?= $block->escapeHtml(__('Details')) ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($keywords as $kw): ?>
+            <?php $opp = $block->getOpportunity($kw); ?>
+            <tr>
+                <td>
+                    <code style="font-size:13px;"><?= $block->escapeHtml($kw['query_text']) ?></code>
+                </td>
+                <td>
+                    <span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;
+                                 background:<?= $block->escapeHtml($opp['bg']) ?>;color:<?= $block->escapeHtml($opp['color']) ?>;">
+                        <?= $block->escapeHtml($opp['label']) ?>
+                    </span>
+                </td>
+                <td>
+                    <strong><?= (int)$kw['popularity'] ?></strong>
+                    <?php if ((int)$kw['popularity'] === 0): ?>
+                        <small style="color:#bbb;display:block;font-size:10px;">no searches yet</small>
+                    <?php endif; ?>
+                </td>
+                <td><?= (int)$kw['num_results'] ?></td>
+                <td>
+                    <?php $bids = (int)$kw['active_bids']; ?>
+                    <span style="font-weight:<?= $bids > 0 ? '700' : '400' ?>;color:<?= $bids > 0 ? '#111' : '#bbb' ?>;">
+                        <?= $bids ?>
+                    </span>
+                </td>
+                <td><?= $kw['avg_bid'] ? '₹' . $block->escapeHtml($kw['avg_bid']) : '<span style="color:#bbb;">—</span>' ?></td>
+                <td><?= $kw['max_bid'] ? '₹' . $block->escapeHtml($kw['max_bid']) : '<span style="color:#bbb;">—</span>' ?></td>
+                <td><?= number_format((int)$kw['total_impressions']) ?></td>
+                <td><?= number_format((int)$kw['total_clicks']) ?></td>
+                <td>
+                    <a href="<?= $block->escapeUrl($block->getDetailsUrl((int)$kw['query_id'])) ?>"
+                       style="color:#007bdb;font-size:12px;">
+                        <?= $block->escapeHtml(__('Details')) ?>
+                    </a>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php endif; ?>
+</div>

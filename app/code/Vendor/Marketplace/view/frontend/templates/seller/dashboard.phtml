@@ -1,0 +1,302 @@
+<?php
+/** @var \Vendor\Marketplace\Block\Seller\Dashboard $block */
+$stats = $block->getStatistics();
+$chartData = json_encode($stats['chart_data']);
+?>
+
+
+
+
+<div class="dashboard-controls">
+    <div class="control-tabs">
+        <span class="tab active" data-target="reports"><?= __('Reports') ?></span>
+        <span class="tab" data-target="activities"><?= __('Activities') ?></span>
+    </div>
+    <div class="date-filter">
+        <select>
+            <option><?= __('Last 30 Days') ?></option>
+            <option><?= __('This Year') ?></option>
+        </select>
+    </div>
+</div>
+
+<!-- REPORTS SECTION -->
+<div id="dashboard-reports" class="tab-content active">
+    <div class="stats-grid">
+        <!-- SALES CARD -->
+        <div class="card sales-card">
+            <div class="card-header">
+                <div class="big-number"><?= $block->formatPrice($stats['sales']) ?></div>
+                <?php
+                $trend = $stats['trends']['sales'];
+                $trendClass = $trend > 0 ? 'positive' : ($trend < 0 ? 'negative' : 'neutral');
+                $arrow = $trend > 0 ? '&uarr;' : ($trend < 0 ? '&darr;' : '&harr;');
+                ?>
+                <div class="trend <?= $trendClass ?>">
+                    <?= number_format(abs($trend), 2) ?>% <?= $arrow ?>
+                    <small><?= __('Total Sales (MoM)') ?></small>
+                </div>
+                <a href="<?= $block->getUrl('vendor_marketplace/transaction/history') ?>"
+                    class="card-link"><?= __('Transactions') ?></a>
+            </div>
+            <div class="breakdown-grid">
+                <div class="bd-item">
+                    <span class="value"><?= $block->formatPrice($stats['payouts']) ?></span>
+                    <span class="label"><?= __('Total Payouts') ?></span>
+                </div>
+                <div class="bd-item">
+                    <span class="value"><?= $block->formatPrice($stats['remaining']) ?></span>
+                    <span class="label"><?= __('Remaining Payout') ?></span>
+                </div>
+                <div class="bd-item">
+                    <span class="value"><?= $block->formatPrice($stats['commission']) ?></span>
+                    <span class="label"><?= __('Commission Paid') ?></span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title"><?= __('Total Sales over time') ?></div>
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+
+        <!-- ORDERS CARD -->
+        <div class="card orders-card">
+            <div class="card-header">
+                <div class="big-number"><?= $stats['orders_total'] ?></div>
+                <?php
+                $trend = $stats['trends']['orders'];
+                $trendClass = $trend > 0 ? 'positive' : ($trend < 0 ? 'negative' : 'neutral');
+                $arrow = $trend > 0 ? '&uarr;' : ($trend < 0 ? '&darr;' : '&harr;');
+                ?>
+                <div class="trend <?= $trendClass ?>">
+                    <?= number_format(abs($trend), 2) ?>% <?= $arrow ?>
+                    <small><?= __('Total Orders (MoM)') ?></small>
+                </div>
+                <a href="<?= $block->getUrl('vendor_marketplace/order/history') ?>"
+                    class="card-link"><?= __('View All Orders') ?></a>
+            </div>
+            <div class="breakdown-grid">
+                <div class="bd-item">
+                    <span class="value"><?= $stats['orders_processing'] ?></span>
+                    <span class="label"><?= __('Processing') ?></span>
+                </div>
+                <div class="bd-item">
+                    <span class="value"><?= $stats['orders_complete'] ?></span>
+                    <span class="label"><?= __('Complete') ?></span>
+                </div>
+                <div class="bd-item">
+                    <span class="value"><?= $stats['orders_cancelled'] ?></span>
+                    <span class="label"><?= __('Cancelled') ?></span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title"><?= __('Orders over time') ?></div>
+                <canvas id="ordersChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-stats-grid">
+        <div class="card small-card">
+            <div class="big-number"><?= $block->formatPrice($stats['avg_order_value']) ?></div>
+            <?php
+            $trend = $stats['trends']['avg_order'];
+            $trendClass = $trend > 0 ? 'positive' : ($trend < 0 ? 'negative' : 'neutral');
+            $arrow = $trend > 0 ? '&uarr;' : ($trend < 0 ? '&darr;' : '&harr;');
+            ?>
+            <div class="trend <?= $trendClass ?>">
+                <?= number_format(abs($trend), 2) ?>% <?= $arrow ?>
+                <?= __('Avg Order Value') ?>
+            </div>
+        </div>
+        <div class="card small-card">
+            <div class="big-number"><?= $stats['total_customers'] ?></div>
+            <!-- Customer trend placeholder -->
+            <div class="trend neutral">
+                0.00% &harr; <?= __('Customers (MoM)') ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .trend.positive {
+        color: #28a745;
+        font-size: 14px;
+    }
+
+    .trend.negative {
+        color: #dc3545;
+        font-size: 14px;
+    }
+
+    .trend.neutral {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    /* Activity Status Labels */
+    .status-label {
+        display: inline-block;
+        padding: 2px 8px;
+        font-size: 11px;
+        font-weight: 600;
+        border-radius: 10px;
+        text-transform: uppercase;
+        margin-left: 8px;
+        vertical-align: middle;
+    }
+
+    .status-label.pending {
+        background-color: #ffeeba;
+        color: #856404;
+    }
+
+    .status-label.processing {
+        background-color: #b8daff;
+        color: #004085;
+    }
+
+    .status-label.complete {
+        background-color: #c3e6cb;
+        color: #155724;
+    }
+
+    .status-label.canceled,
+    .status-label.cancelled,
+    .status-label.closed {
+        background-color: #f5c6cb;
+        color: #721c24;
+    }
+
+    .activity-details .actions {
+        margin-top: 5px;
+        font-size: 12px;
+    }
+
+    .activity-details .actions a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .activity-details .actions a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<!-- ACTIVITIES SECTION -->
+<div id="dashboard-activities" class="tab-content" style="display:none;">
+    <div class="card">
+        <div class="card-header">
+            <h3>
+                <?= __('Recent Activities') ?>
+            </h3>
+        </div>
+        <div class="activities-list">
+            <?php
+            $recentOrders = $block->getRecentOrders(5);
+            if ($recentOrders && $recentOrders->getSize() > 0):
+                ?>
+                <?php foreach ($recentOrders as $order): ?>
+                    <div class="activity-item">
+                        <div class="activity-icon order"></div>
+                        <div class="activity-details">
+                            <p>
+                                <strong><?= __('Order #%1 Received', $order->getIncrementId()) ?></strong>
+                                <span class="status-label <?= $order->getStatus() ?>"><?= ucfirst($order->getStatus()) ?></span>
+                            </p>
+                            <span class="date">
+                                <?= $block->formatDate($order->getCreatedAt(), \IntlDateFormatter::MEDIUM, true) ?>
+                            </span>
+                            <div class="actions">
+                                <a href="<?= $block->getUrl('marketplace/order/view', ['id' => $order->getId()]) ?>">
+                                    <?= __('View Order') ?>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p>
+                    <?= __('No recent activities found.') ?>
+                </p>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    // Tab switching - plain JS, no framework dependency needed
+    document.addEventListener('DOMContentLoaded', function () {
+        var tabs = document.querySelectorAll('.control-tabs .tab');
+        tabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                var target = this.getAttribute('data-target');
+
+                // Toggle active tab
+                tabs.forEach(function (t) { t.classList.remove('active'); });
+                this.classList.add('active');
+
+                // Toggle content panels
+                document.querySelectorAll('.tab-content').forEach(function (panel) {
+                    panel.style.display = 'none';
+                });
+                var activePanel = document.getElementById('dashboard-' + target);
+                if (activePanel) {
+                    activePanel.style.display = 'block';
+                }
+            });
+        });
+    });
+</script>
+
+<script>
+    require(['chartjs'], function (Chart) {
+        if (!document.getElementById('salesChart')) return;
+
+        var chartData = <?= $chartData ?>;
+        var labels = chartData.map(function (item) { return item.date; });
+        var salesData = chartData.map(function (item) { return item.sales; });
+        var ordersData = chartData.map(function (item) { return item.orders; });
+
+        new Chart(document.getElementById('salesChart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Sales',
+                    data: salesData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1, fill: true, tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        new Chart(document.getElementById('ordersChart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Orders',
+                    data: ordersData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1, fill: true, tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    });
+</script>

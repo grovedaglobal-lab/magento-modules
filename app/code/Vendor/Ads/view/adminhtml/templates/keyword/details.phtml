@@ -1,0 +1,141 @@
+<?php
+/** @var \Vendor\Ads\Block\Adminhtml\Keyword\Details $block */
+$query = $block->getQuery();
+$link = $block->getSearchLink();
+$synonyms = $block->getSynonyms();
+?>
+<div class="keyword-details-container">
+    <div class="keyword-info">
+        <h2>Keyword: <?= $block->escapeHtml($query->getQueryText()) ?></h2>
+        <p><strong>Query ID:</strong> <?= $block->escapeHtml($query->getId()) ?></p>
+        <p><strong>Popularity (Search Uses):</strong> <?= $block->escapeHtml($query->getPopularity()) ?></p>
+        <p><strong>Results Count:</strong> <?= $block->escapeHtml($query->getNumResults()) ?></p>
+        <p><strong>Ads Enabled:</strong> <?= ($link && $link->getIsAdsEnabled()) ? __('Yes') : __('No') ?></p>
+    </div>
+
+    <div class="synonyms-section">
+        <h3>Synonyms</h3>
+        <?php if (!empty($synonyms)): ?>
+            <ul>
+                <?php foreach ($synonyms as $syn): ?>
+                    <li><?= $block->escapeHtml($syn) ?></li>
+                <?php endforeach; ?>
+            </ul>
+        <?php else: ?>
+            <p>No synonyms found for this keyword.</p>
+        <?php endif; ?>
+    </div>
+
+    <div class="bid-history-section">
+        <h3>Bid History / Competitive Landscape</h3>
+        <?php $bids = $block->getBidHistory(); ?>
+        <?php if (!empty($bids)): ?>
+            <table class="data-grid admin__table-primary" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th>Version</th>
+                        <th>Vendor</th>
+                        <th>Campaign</th>
+                        <th>CPC Bid</th>
+                        <th>Daily Budget</th>
+                        <th>Match Type</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Compare</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($bids as $i => $b): ?>
+                        <tr>
+                            <td>v<?= (int)$b['version'] ?></td>
+                            <td><?= $block->escapeHtml($block->getVendorName((int)$b['vendor_id'])) ?></td>
+                            <td><?= $block->escapeHtml($b['campaign_name'] ?: '—') ?></td>
+                            <td>₹<?= number_format((float)$b['bid_amount'], 2) ?></td>
+                            <td><?= $b['daily_budget'] ? '₹' . number_format((float)$b['daily_budget'], 2) : '—' ?></td>
+                            <td><?= $block->escapeHtml(ucfirst($b['match_type'])) ?></td>
+                            <td>
+                                <?php if ($b['is_active']): ?>
+                                    <span style="color:#2d7a2d;font-weight:700;">LIVE</span>
+                                <?php else: ?>
+                                    <span style="color:#999;">Inactive</span>
+                                <?php endif; ?>
+                            </td>
+                            <td style="font-size:11px;"><?= $block->escapeHtml($b['started_at'] ?: $b['created_at']) ?></td>
+                            <td>
+                                <?php if (isset($bids[$i+1]) && $bids[$i+1]['vendor_id'] == $b['vendor_id']): ?>
+                                    <button type="button" class="action-default btn-compare"
+                                            data-bid-a="<?= (int)$bids[$i+1]['bid_id'] ?>"
+                                            data-bid-b="<?= (int)$b['bid_id'] ?>"
+                                            data-label-a="v<?= (int)$bids[$i+1]['version'] ?>"
+                                            data-label-b="v<?= (int)$b['version'] ?>">
+                                        Compare
+                                    </button>
+                                <?php else: ?>
+                                    —
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p>No bids found for this keyword.</p>
+        <?php endif; ?>
+    </div>
+
+    <div class="actions">
+        <a href="<?= $block->getUrl('vendor_ads/keyword/index') ?>" class="action-default">
+            <?= __('Back to Keywords') ?>
+        </a>
+    </div>
+</div>
+
+<!-- Comparison Modal -->
+<div id="versionCompareModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:8px;padding:28px;max-width:700px;width:95%;max-height:90vh;overflow-y:auto;position:relative;">
+        <button id="closeCompareModal" style="position:absolute;top:12px;right:16px;font-size:20px;background:none;border:none;cursor:pointer;">✕</button>
+        <h3 id="compareModalTitle" style="margin-top:0;font-size:16px;font-weight:700;color:#333;"></h3>
+        <div id="compareModalBody"></div>
+    </div>
+</div>
+
+<script>
+require(['jquery'], function ($) {
+    'use strict';
+    var compareUrl = '<?= $block->escapeJs($block->getCompareUrl()) ?>';
+
+    $(document).on('click', '.btn-compare', function () {
+        var bidA = $(this).data('bid-a'), bidB = $(this).data('bid-b');
+        $('#compareModalTitle').text('Comparing ' + $(this).data('label-a') + ' → ' + $(this).data('label-b'));
+        $('#compareModalBody').html('<p style="text-align:center;padding:20px;">Loading...</p>');
+        $('#versionCompareModal').css('display', 'flex');
+
+        $.ajax({
+            url: compareUrl,
+            data: { bid_id_a: bidA, bid_id_b: bidB },
+            dataType: 'json',
+            success: function (res) {
+                if (!res.success) { $('#compareModalBody').html('<p style="color:red;">' + res.message + '</p>'); return; }
+                var html = '<table class="data-grid admin__table-primary" style="width:100%;">';
+                html += '<thead><tr><th>Field</th><th>' + res.version_a + '</th><th>' + res.version_b + '</th><th>Change</th></tr></thead><tbody>';
+                $.each(res.diff, function (i, row) {
+                    var rowStyle = row.changed ? 'background:#fffbe6;' : '';
+                    var changeCell = row.changed ? (row.pct_change ? (row.pct_change > 0 ? '+' : '') + row.pct_change + '%' : 'Changed') : '—';
+                    html += '<tr style="' + rowStyle + '"><td><strong>' + row.field + '</strong></td><td>' + row.value_a + '</td><td><strong>' + row.value_b + '</strong></td><td>' + changeCell + '</td></tr>';
+                });
+                html += '</tbody></table>';
+                $('#compareModalBody').html(html);
+            }
+        });
+    });
+    $('#closeCompareModal, #versionCompareModal').on('click', function(e) { if (e.target === this) $('#versionCompareModal').hide(); });
+});
+</script>
+
+<style>
+    .keyword-details-container { margin: 20px; padding: 20px; background: #fff; border: 1px solid #ddd; }
+    .keyword-info h2 { margin-top: 0; color: #007bdb; }
+    .synonyms-section, .bid-history-section { margin: 25px 0; border-top: 1px solid #eee; padding-top: 15px; }
+    .bid-history-section h3 { margin-bottom: 15px; }
+    .actions { margin-top: 30px; display: flex; gap: 10px; }
+</style>

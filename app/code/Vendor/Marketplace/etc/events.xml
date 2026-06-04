@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="sales_order_save_after">
+        <observer name="vendor_marketplace_split_order" instance="Vendor\Marketplace\Observer\OrderPlaceAfter"/>
+    </event>
+    <event name="catalog_product_save_before">
+        <observer name="vendor_marketplace_product_save_before" instance="Vendor\Marketplace\Observer\ProductSaveBefore" />
+    </event>
+    <event name="vendor_marketplace_vendor_profile_save_after">
+        <observer name="vendor_marketplace_source_sync" instance="Vendor\Marketplace\Observer\VendorSourceSync" />
+    </event>
+    <event name="catalog_product_save_after">
+        <observer name="vendor_marketplace_product_source_assign" instance="Vendor\Marketplace\Observer\VendorProductSourceAssign" />
+        <observer name="vendor_marketplace_fix_stock_status" instance="Vendor\Marketplace\Observer\FixStockStatus" />
+    </event>
+    <event name="vendor_marketplace_commission_calculated">
+        <observer name="vendor_marketplace_notify_order" instance="Vendor\Marketplace\Observer\NotifyNewOrder"/>
+        <observer name="vendor_marketplace_send_vendor_email" instance="Vendor\Marketplace\Observer\SendVendorNewOrderEmail"/>
+    </event>
+    <event name="review_save_after">
+        <observer name="vendor_marketplace_notify_review" instance="Vendor\Marketplace\Observer\NotifyNewReview"/>
+    </event>
+</config>

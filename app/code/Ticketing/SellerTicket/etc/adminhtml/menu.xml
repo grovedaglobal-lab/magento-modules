@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Ticketing_SellerTicket::ticket_manage" title="Seller Tickets" module="Ticketing_SellerTicket" sortOrder="20" parent="Vendor_Marketplace::marketplace" action="sellerticket/ticket/index" resource="Ticketing_SellerTicket::ticket_manage"/>
+    </menu>
+</config>

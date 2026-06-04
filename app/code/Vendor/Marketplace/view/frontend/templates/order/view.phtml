@@ -1,0 +1,334 @@
+<?php
+/** @var \Vendor\Marketplace\Block\Order\View $block */
+$writer = new \Zend_Log_Writer_Stream(BP . '/var/log/vendor_order_debug.log');
+$logger = new \Zend_Log();
+$logger->addWriter($writer);
+
+$logger->info('TEMPLATE: Starting view.phtml rendering');
+
+try {
+    $vendorOrder = $block->getVendorOrder();
+    $logger->info('TEMPLATE: getVendorOrder() returned: ' . ($vendorOrder ? 'VendorOrder ID ' . $vendorOrder->getId() : 'NULL'));
+} catch (\Exception $e) {
+    $logger->info('TEMPLATE ERROR in getVendorOrder(): ' . $e->getMessage());
+    throw $e;
+}
+
+try {
+    $order = $block->getOrder();
+    $logger->info('TEMPLATE: getOrder() returned: ' . ($order ? 'Order ID ' . $order->getId() : 'NULL'));
+} catch (\Exception $e) {
+    $logger->info('TEMPLATE ERROR in getOrder(): ' . $e->getMessage());
+    throw $e;
+}
+
+if (!$vendorOrder || !$order) {
+    $logger->info('TEMPLATE: No vendor order or order found - showing error message');
+    echo '<div class="message error">Order not found or you do not have permission to view this order.</div>';
+    return;
+}
+
+// Register order in registry for child blocks (Magento standard blocks expect this)
+$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$registry = $objectManager->get(\Magento\Framework\Registry::class);
+
+// Unregister if already exists to avoid duplicate registry key error
+if ($registry->registry('current_order')) {
+    $registry->unregister('current_order');
+}
+$registry->register('current_order', $order);
+
+// Also ensure vendor order is registered
+if ($registry->registry('current_vendor_order')) {
+    $registry->unregister('current_vendor_order');
+}
+$registry->register('current_vendor_order', $vendorOrder);
+$logger->info('TEMPLATE: Registry updated');
+?>
+<div class="vendor-order-view">
+    <?= $block->getChildHtml('vendor_order_actions') ?>
+
+    <div class="order-details-items ordered">
+        <div class="order-title">
+            <strong><?= $block->escapeHtml(__('Items Ordered')) ?></strong>
+        </div>
+        <?= $block->getChildHtml('order_items') ?>
+    </div>
+
+    <?= $block->getChildHtml('vendor_order_info') ?>
+
+    <!-- Shipment Information -->
+    <?php $shipments = $block->getVendorShipments(); ?>
+    <?php if (count($shipments) > 0): ?>
+        <div class="block block-order-details-view shadow-sm" style="margin-top: 30px;">
+            <div class="block-title">
+                <strong><i class="fas fa-box-open text-indigo-500"></i>
+                    <?= $block->escapeHtml(__('Shipment Information')) ?></strong>
+            </div>
+            <div class="block-content">
+                <?php foreach ($shipments as $shipment): ?>
+                    <div class="shipment-block dashboard-card"
+                        style="margin-bottom: 25px; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                        <div class="card-header"
+                            style="background: #f8fafc; padding: 15px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                            <h4 style="margin:0; font-size: 1.1rem; color: #1e293b;">
+                                <i class="fas fa-truck text-indigo-400"></i>
+                                <?= $block->escapeHtml(__('Shipment #')) ?>
+                                <?= $block->escapeHtml($shipment->getIncrementId()) ?>
+                            </h4>
+                            <span class="text-sm font-medium"
+                                style="color: #64748b; background: white; padding: 4px 12px; border-radius: 20px; border: 1px solid #e2e8f0;">
+                                <?= $block->formatDate($shipment->getCreatedAt(), \IntlDateFormatter::MEDIUM) ?>
+                            </span>
+                        </div>
+
+                        <div class="card-content" style="padding: 20px;">
+                            <!-- Tracks -->
+                            <?php $tracks = $shipment->getAllTracks(); ?>
+                            <?php if (count($tracks) > 0): ?>
+                                <div class="table-wrapper shadow-xs rounded-lg overflow-hidden border border-gray-100">
+                                    <table class="data-table tracking-table" style="width: 100%; border-collapse: collapse;">
+                                        <thead>
+                                            <tr style="background: #f1f5f9; text-align: left;">
+                                                <th
+                                                    style="padding: 12px 15px; font-weight: 700; font-size: 0.9rem; color: #475569;">
+                                                    <?= $block->escapeHtml(__('Carrier')) ?>
+                                                </th>
+                                                <th
+                                                    style="padding: 12px 15px; font-weight: 700; font-size: 0.9rem; color: #475569;">
+                                                    <?= $block->escapeHtml(__('Tracking Number')) ?>
+                                                </th>
+                                                <th
+                                                    style="padding: 12px 15px; font-weight: 700; font-size: 0.9rem; color: #475569; text-align: center;">
+                                                    <?= $block->escapeHtml(__('Action')) ?>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($tracks as $track): ?>
+                                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                                    <td style="padding: 15px; color: #334155; font-weight: 500;">
+                                                        <?= $block->escapeHtml($track->getTitle()) ?>
+                                                    </td>
+                                                    <td
+                                                        style="padding: 15px; color: #4f46e5; font-family: monospace; font-size: 1.1rem; font-weight: 700;">
+                                                        <?= $block->escapeHtml($track->getTrackNumber()) ?>
+                                                    </td>
+                                                    <td style="padding: 15px; text-align: center;">
+                                                        <a href="<?= $block->escapeUrl($objectManager->get(\Magento\Shipping\Helper\Data::class)->getTrackingPopupUrlBySalesModel($shipment)) ?>"
+                                                            class="tool-btn view" target="_blank"
+                                                            style="height: 32px; padding: 0 15px; font-size: 0.8rem;">
+                                                            <i class="fas fa-external-link-alt"></i>
+                                                            <?= $block->escapeHtml(__('Track')) ?>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php else: ?>
+                                <div class="no-tracking-container"
+                                    style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; padding: 15px; display: flex; align-items: flex-start; gap: 12px;">
+                                    <i class="fas fa-exclamation-triangle text-amber-500"
+                                        style="font-size: 1.25rem; margin-top: 2px;"></i>
+                                    <div style="flex-grow: 1;">
+                                        <p style="margin: 0 0 12px 0; color: #92400e; font-weight: 600; font-size: 0.95rem;">
+                                            <?= $block->escapeHtml(__('No tracking information has been added for this shipment.')) ?>
+                                        </p>
+
+                                        <!-- Form to add tracking -->
+                                        <form action="<?= $block->getUrl('marketplace/order/addTrack') ?>" method="post"
+                                            style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                            <input type="hidden" name="shipment_id" value="<?= $shipment->getId() ?>">
+                                            <input type="hidden" name="id" value="<?= $vendorOrder->getId() ?>">
+                                            <div style="flex: 1; min-width: 150px;">
+                                                <input type="text" name="carrier"
+                                                    placeholder="<?= $block->escapeHtmlAttr(__('Carrier Name (e.g. FedEx)')) ?>"
+                                                    required
+                                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1.5px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
+                                            </div>
+                                            <div style="flex: 1; min-width: 150px;">
+                                                <input type="text" name="tracking_number"
+                                                    placeholder="<?= $block->escapeHtmlAttr(__('Tracking ID')) ?>" required
+                                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1.5px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
+                                            </div>
+                                            <button type="submit" class="action-btn primary"
+                                                style="height: 38px; padding: 0 20px; font-size: 0.9rem;">
+                                                <i class="fas fa-plus"></i> <?= $block->escapeHtml(__('Add Track')) ?>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
+                            <!-- Shipment Items -->
+                            <div class="shipment-items" style="margin-top: 20px;">
+                                <h5
+                                    style="color: #475569; font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-list-ul text-gray-400"></i>
+                                    <?= $block->escapeHtml(__('Items in this Shipment')) ?>
+                                </h5>
+                                <div class="table-wrapper shadow-xs rounded-lg overflow-hidden border border-gray-100">
+                                    <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                                        <thead>
+                                            <tr style="background: #f8fafc; text-align: left;">
+                                                <th
+                                                    style="padding: 10px 15px; font-weight: 600; font-size: 0.85rem; color: #64748b;">
+                                                    <?= $block->escapeHtml(__('Product')) ?>
+                                                </th>
+                                                <th
+                                                    style="padding: 10px 15px; font-weight: 600; font-size: 0.85rem; color: #64748b; text-align: center;">
+                                                    <?= $block->escapeHtml(__('Qty Shipped')) ?>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php
+                                            $vendorId = $vendorOrder->getVendorId();
+                                            foreach ($shipment->getAllItems() as $item):
+                                                $orderItem = $item->getOrderItem();
+                                                if (!$orderItem || $orderItem->getParentItem())
+                                                    continue;
+
+                                                // Verify vendor
+                                                $product = $orderItem->getProduct();
+                                                $itemVendorId = $product ? $product->getData('vendor_id') : null;
+                                                if ($itemVendorId != $vendorId)
+                                                    continue;
+                                                ?>
+                                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                                    <td style="padding: 12px 15px;">
+                                                        <div style="font-weight: 600; color: #334155;">
+                                                            <?= $block->escapeHtml($item->getName()) ?>
+                                                        </div>
+                                                        <div style="font-size: 0.8rem; color: #64748b;">SKU:
+                                                            <?= $block->escapeHtml($item->getSku()) ?>
+                                                        </div>
+                                                    </td>
+                                                    <td
+                                                        style="padding: 12px 15px; text-align: center; color: #334155; font-weight: 600;">
+                                                        <?= (int) $item->getQty() ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- Order Totals and Comments -->
+    <?php
+    $logger->info('TEMPLATE: Rendering totals begin');
+    echo $this->getLayout()
+        ->createBlock(\Vendor\Marketplace\Block\Order\View::class)
+        ->setTemplate('Vendor_Marketplace::order/totals.phtml')
+        ->toHtml();
+    $logger->info('TEMPLATE: Rendering totals end');
+    ?>
+
+    <!-- Signature Information -->
+    <?php
+    $vendorId = $vendorOrder->getVendorId();
+    $vendorProfile = $objectManager->create(\Vendor\Marketplace\Model\VendorProfile::class)->load($vendorId, 'vendor_id');
+    ?>
+    <?php if ($vendorProfile->getSignature() || $vendorProfile->getAuthorizedName()): ?>
+        <div class="block block-order-details-view" style="margin-top: 20px;">
+            <div class="block-title">
+                <strong><?= $block->escapeHtml(__('Signature Information')) ?></strong>
+            </div>
+            <div class="block-content">
+                <div class="signatory-block" style="text-align: right;">
+                    <?php if ($vendorProfile->getSignature()): ?>
+                        <?php
+                        $mediaUrl = $objectManager->get(\Magento\Store\Model\StoreManagerInterface::class)
+                            ->getStore()
+                            ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
+                        $signatureUrl = $mediaUrl . 'vendor/signature/' . ltrim($vendorProfile->getSignature(), '/');
+                        ?>
+                        <img src="<?= $signatureUrl ?>" alt="Signature" style="max-height: 100px; margin-bottom: 10px;"><br>
+                    <?php endif; ?>
+                    <strong><?= $block->escapeHtml(__('Authorized Signatory')) ?></strong>
+                    <?php if ($vendorProfile->getAuthorizedName()): ?>
+                        <br><span><?= $block->escapeHtml($vendorProfile->getAuthorizedName()) ?></span>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+</div>
+
+<style>
+    .vendor-order-view {
+        padding: 20px;
+        background: #fff;
+        border-radius: 4px;
+    }
+
+    .order-details-items {
+        margin-bottom: 30px;
+    }
+
+    .order-title {
+        font-size: 18px;
+        color: #5a5c69;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #e3e6f0;
+        padding-bottom: 10px;
+    }
+
+    /* Order Info Boxes */
+    .block-order-details-view {
+        background: #f8f9fc;
+        padding: 20px;
+        border-radius: 4px;
+        border: 1px solid #e3e6f0;
+    }
+
+    .block-order-details-view .block-title {
+        font-size: 18px;
+        color: #4e73df;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #e3e6f0;
+        padding-bottom: 10px;
+    }
+
+    .block-order-details-view .box {
+        background: #fff;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        border: 1px solid #e3e6f0;
+    }
+
+    .block-order-details-view .box-title {
+        display: block;
+        margin-bottom: 10px;
+        color: #4e73df;
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        border-bottom: 1px solid #e3e6f0;
+        padding-bottom: 5px;
+    }
+
+    .block-order-details-view address {
+        font-style: normal;
+        line-height: 1.6;
+        color: #5a5c69;
+        font-size: 13px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .vendor-order-view {
+            padding: 10px;
+        }
+    }
+</style>

@@ -1,0 +1,249 @@
+<?php
+/** @var $block \Vendor\Marketplace\Block\Review\ReviewList */
+$collection = $block->getReviewCollection();
+$count = $collection ? $collection->getSize() : 0;
+?>
+
+<style>
+    :root {
+        --primary-color: #052e16;
+        --secondary-color: #166534;
+        --accent-color: #22c55e;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --bg-white: #ffffff;
+        --bg-surface: #f8fafc;
+        --border-color: #e2e8f0;
+    }
+
+    .review-list-container {
+        font-family: 'Inter', sans-serif;
+        background: var(--bg-surface);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .list-header h2 {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin: 0;
+    }
+
+    .review-stats-badge {
+        background: var(--primary-color);
+        color: white;
+        padding: 8px 18px;
+        border-radius: 20px;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .reviews-table-wrapper {
+        background: var(--bg-white);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        overflow-x: auto;
+    }
+
+    .reviews-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 800px;
+    }
+
+    .reviews-table th {
+        background: #f1f5f9;
+        padding: 16px;
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .reviews-table td {
+        padding: 20px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 16px;
+        vertical-align: top;
+    }
+
+    .col-date {
+        color: var(--text-muted);
+        width: 110px;
+    }
+
+    .col-product {
+        font-weight: 600;
+        width: 200px;
+    }
+
+    .col-rating {
+        width: 100px;
+    }
+
+    .col-status {
+        width: 120px;
+    }
+
+    /* Star Rating UI */
+    .star-rating {
+        display: flex;
+        gap: 2px;
+    }
+
+    .star-rating svg {
+        width: 14px;
+        height: 14px;
+        fill: #e2e8f0;
+    }
+
+    .star-rating svg.filled {
+        fill: #fbbf24;
+    }
+
+    .review-text-summary {
+        font-weight: 700;
+        display: block;
+        margin-bottom: 4px;
+        color: var(--text-main);
+    }
+
+    .review-text-detail {
+        color: var(--text-muted);
+        font-size: 15px;
+        line-height: 1.5;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    .status-approved {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-pending {
+        background: #fef9c3;
+        color: #854d0e;
+    }
+
+    .status-not-approved {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .toolbar-bottom {
+        margin-top: 20px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .no-data-msg {
+        padding: 40px;
+        text-align: center;
+        color: var(--text-muted);
+    }
+</style>
+
+<div class="review-list-container">
+    <div class="list-header">
+        <h2><?= __('Product Reviews') ?></h2>
+        <div class="review-stats-badge">
+            <?= __('Total: %1', $count) ?>
+        </div>
+    </div>
+
+    <div class="reviews-table-wrapper">
+        <table class="reviews-table">
+            <thead>
+                <tr>
+                    <th class="col-date"><?= __('Date') ?></th>
+                    <th class="col-product"><?= __('Product') ?></th>
+                    <th class="col-customer"><?= __('Customer') ?></th>
+                    <th class="col-rating"><?= __('Rating') ?></th>
+                    <th class="col-summary"><?= __('Review') ?></th>
+                    <th class="col-status"><?= __('Status') ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($count > 0): ?>
+                    <?php foreach ($collection as $review): ?>
+                        <tr>
+                            <td class="col-date">
+                                <?= $block->escapeHtml(date('M d, Y', strtotime($review->getCreatedAt()))) ?>
+                            </td>
+                            <td class="col-product">
+                                <?= $block->escapeHtml($review->getProductName() ?: __('N/A')) ?>
+                            </td>
+                            <td class="col-customer">
+                                <?= $block->escapeHtml($review->getNickname()) ?>
+                            </td>
+                            <td class="col-rating">
+                                <?php
+                                $votes = $review->getRatingVotes();
+                                $percent = 0;
+                                if ($votes && count($votes)) {
+                                    foreach ($votes as $vote) {
+                                        $percent += (int) $vote->getPercent();
+                                    }
+                                    $percent = $percent / count($votes);
+                                }
+                                $stars = round($percent / 20);
+                                ?>
+                                <div class="star-rating" title="<?= $percent ?>%">
+                                    <?php for ($i = 1; $i <= 5; $i++): ?>
+                                        <svg class="<?= $i <= $stars ? 'filled' : '' ?>" viewBox="0 0 20 20">
+                                            <path
+                                                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    <?php endfor; ?>
+                                </div>
+                            </td>
+                            <td class="col-summary">
+                                <span class="review-text-summary"><?= $block->escapeHtml($review->getTitle()) ?></span>
+                                <div class="review-text-detail"><?= $block->escapeHtml($review->getDetail()) ?></div>
+                            </td>
+                            <td class="col-status">
+                                <span
+                                    class="status-badge status-<?= strtolower($block->getStatusLabel($review->getStatusId())) ?>">
+                                    <?= $block->getStatusLabel($review->getStatusId()) ?>
+                                </span>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="6" class="no-data-msg">
+                            <?= __('No reviews found for your products.') ?>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <?php if ($block->getPagerHtml()): ?>
+        <div class="toolbar-bottom">
+            <?= $block->getPagerHtml() ?>
+        </div>
+    <?php endif; ?>
+</div>

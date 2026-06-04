@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <customer>
+            <password>
+                <forgot_email_template>vendor_marketplace_customer_password_reset_confirmation_template</forgot_email_template>
+            </password>
+        </customer>
+        <carriers>
+            <vendorshipping>
+                <active>1</active>
+                <sallowspecific>0</sallowspecific>
+                <model>Vendor\Marketplace\Model\Carrier\VendorShipping</model>
+                <name>Vendor Shipping</name>
+                <title>Vendor Shipping</title>
+                <sort_order>10</sort_order>
+                <showmethod>0</showmethod>
+            </vendorshipping>
+        </carriers>
+        <vendor_marketplace>
+            <commission>
+                <default_percent>10</default_percent>
+            </commission>
+            <general>
+                <auto_approve_vendor>0</auto_approve_vendor>
+                <auto_approve_product>1</auto_approve_product>
+            </general>
+            <settings>
+                <vendor_frontend_url></vendor_frontend_url>
+                <customer_frontend_url></customer_frontend_url>
+            </settings>
+            <source_mapping>
+                <address_field>pickup_address</address_field>
+                <city_field>pickup_city</city_field>
+                <country_field>pickup_country</country_field>
+                <postcode_field>pickup_zip_code</postcode_field>
+                <region_field>pickup_state</region_field>
+                <phone_field>pickup_phone</phone_field>
+                <email_field>pickup_email</email_field>
+            </source_mapping>
+            <vendorshipping>
+                <active>1</active>
+                <sallowspecific>0</sallowspecific>
+                <name>Vendor Shipping</name>
+                <title>Vendor Shipping</title>
+                <sort_order>10</sort_order>
+                <showmethod>0</showmethod>
+            </vendorshipping>
+            <email>
+                <vendor_order_new_template>vendor_marketplace_email_vendor_order_new_template</vendor_order_new_template>
+                <vendor_forgot_password_template>vendor_marketplace_vendor_forgot_password_template</vendor_forgot_password_template>
+            </email>
+        </vendor_marketplace>
+    </default>
+</config>

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="styles"/>
+    <body>
+        <referenceContainer name="content">
+            <block class="Vendor\Ads\Block\Adminhtml\Wallet\Grid" name="vendor_ads_wallet_grid" template="Vendor_Ads::wallet/grid.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

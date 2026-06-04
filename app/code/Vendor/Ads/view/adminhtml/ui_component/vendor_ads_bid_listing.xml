@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">vendor_ads_bid_listing.vendor_ads_bid_listing_data_source</item>
+        </item>
+    </argument>
+    <settings>
+        <spinner>vendor_ads_bid_columns</spinner>
+        <deps>
+            <dep>vendor_ads_bid_listing.vendor_ads_bid_listing_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="vendor_ads_bid_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">bid_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Vendor_Ads::ads_bids</aclResource>
+        <dataProvider class="Vendor\Ads\Ui\DataProvider\Bid\Listing" name="vendor_ads_bid_listing_data_source">
+            <settings>
+                <requestFieldName>id</requestFieldName>
+                <primaryFieldName>bid_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filters name="listing_filters"/>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+    <columns name="vendor_ads_bid_columns">
+        <column name="bid_id">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Bid ID</label>
+            </settings>
+        </column>
+        <column name="vendor_name">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Vendor Name</label>
+            </settings>
+        </column>
+        <column name="product_name">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Product Name</label>
+            </settings>
+        </column>
+        <column name="query_text">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Keyword</label>
+            </settings>
+        </column>
+        <column name="bid_amount" class="Magento\Sales\Ui\Component\Listing\Column\Price">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Bid Amount</label>
+            </settings>
+        </column>
+        <column name="daily_budget" class="Magento\Sales\Ui\Component\Listing\Column\Price">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Daily Budget</label>
+            </settings>
+        </column>
+        <column name="spent_amount" class="Magento\Sales\Ui\Component\Listing\Column\Price">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Spent Amount</label>
+            </settings>
+        </column>
+        <column name="is_active" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <options class="Magento\Config\Model\Config\Source\Yesno"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Active</label>
+            </settings>
+        </column>
+        <actionsColumn name="actions" class="Vendor\Ads\Ui\Component\Listing\Column\BidActions">
+            <settings>
+                <indexField>bid_id</indexField>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>

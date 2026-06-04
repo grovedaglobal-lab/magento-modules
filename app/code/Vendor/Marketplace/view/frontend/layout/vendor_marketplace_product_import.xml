@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="marketplace_vendor_dashboard_layout"/>
+    <head>
+        <css src="Vendor_Marketplace::css/dashboard.css"/>
+        <css src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" src_type="url"/>
+    </head>
+    <body>
+        <referenceBlock name="vendor.marketplace.dashboard.home" remove="true"/>
+
+        <referenceBlock name="vendor.portal.wrapper">
+            <block class="Vendor\Marketplace\Block\Product\Import"
+                   name="vendor.product.import.block"
+                   template="Vendor_Marketplace::product/import.phtml"
+                   as="main_content"
+                   cacheable="false"/>
+        </referenceBlock>
+    </body>
+</page>

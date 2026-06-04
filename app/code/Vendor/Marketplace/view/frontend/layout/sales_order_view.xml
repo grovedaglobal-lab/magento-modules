@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <!-- Include the base order item renderers -->
+    <update handle="sales_order_item_renderers"/>
+    <body>
+        <referenceBlock name="sales.order.items.renderer.default">
+            <action method="setTemplate">
+                <argument name="template" xsi:type="string">Vendor_Marketplace::order/items/renderer/default.phtml</argument>
+            </action>
+        </referenceBlock>
+        
+        <referenceBlock name="sales.order.items.renderer.simple">
+            <action method="setTemplate">
+                <argument name="template" xsi:type="string">Vendor_Marketplace::order/items/renderer/default.phtml</argument>
+            </action>
+        </referenceBlock>
+        
+        <referenceBlock name="sales.order.items.renderer.configurable">
+            <action method="setTemplate">
+                <argument name="template" xsi:type="string">Vendor_Marketplace::order/items/renderer/default.phtml</argument>
+            </action>
+        </referenceBlock>
+    </body>
+</page>

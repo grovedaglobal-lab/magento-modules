@@ -147,7 +147,7 @@ class DownloadTemplate extends Action
             'product_type', 'attribute_set', 'sku', 'name', 'description', 'short_description', 'meta_title', 'meta_keyword', 'meta_description', 'price', 'cost', 'weight',
             'category_names', 'status', 'visibility', 'image', 'image_2', 'image_3',
             'image_4', 'image_5', 'image_6', 'image_7', 'video_url', 'gst_rate', 'hsn_code', 'barcode',
-            'parent_sku', 'parent_name', 'variant_attribute', 'variant_value', 'qty'
+            'parent_sku', 'parent_name', 'variant_attribute', 'Variant Weight', 'qty'
         ];
 
         $templateRows = $this->getVendorProductRows($vendor, $categories, $attributeSets);
@@ -444,7 +444,7 @@ class DownloadTemplate extends Action
             [],
             ['FOR CONFIGURABLE PRODUCTS:'],
             ['1. Enter parent row with type=configurable, parent_sku, parent_name'],
-            ['2. Enter child rows with type=simple, same parent_sku, variant_attribute, variant_value'],
+            ['2. Enter child rows with type=simple, same parent_sku, variant_attribute, Variant Weight'],
             ['3. Each child requires unique SKU and pricing'],
             [],
             ['CATEGORY SELECTION:'],
@@ -784,6 +784,7 @@ class DownloadTemplate extends Action
             'parent_name' => ['string', 'For variants', 'Parent product name'],
             'variant_attribute' => ['string', 'For variants', 'e.g., color, size'],
             'variant_value' => ['string', 'For variants', 'e.g., Red, Large'],
+            'Variant Weight' => ['string', 'For variants', 'e.g., 15g, 40g, 100g'],
             'qty' => ['integer', 'Yes', 'Stock quantity'],
         ];
 

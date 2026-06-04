@@ -166,6 +166,317 @@ footer.page-footer,
     font-weight: 600;
 }
 
+/* ============================================
+   SIDEBAR SUB-MENU (Settings Sub-Options)
+   ============================================ */
+
+/* Exclude sub-menu items from the base nav.item a rule */
+.vendor-sidebar .nav.item.nav-has-submenu > a.nav-parent-link {
+    position: relative;
+}
+
+.vendor-sidebar .nav-arrow {
+    margin-left: auto;
+    font-size: 10px !important;
+    width: auto !important;
+    opacity: 0.65;
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+}
+
+.vendor-sidebar .nav-arrow.rotated {
+    transform: rotate(180deg);
+}
+
+/* Sub-menu container — darker tray */
+.vendor-sidebar .nav-submenu {
+    list-style: none;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, opacity 0.3s ease;
+    opacity: 0;
+    background-color: rgba(0, 0, 0, 0.25);
+    border-top: 1px solid rgba(255,255,255,0.04);
+    padding: 4px 0;
+    margin: 0;
+}
+
+.vendor-sidebar .nav-submenu.open {
+    max-height: 500px;
+    opacity: 1;
+}
+
+/* Sub-item links — override base .nav.item a with higher specificity */
+.vendor-sidebar ul.nav.items .nav-submenu-item a,
+.vendor-sidebar .nav-submenu .nav-submenu-item a {
+    display: flex !important;
+    align-items: center !important;
+    padding: 9px 16px 9px 52px !important;
+    color: rgba(255, 255, 255, 0.55) !important;
+    text-decoration: none !important;
+    font-size: 12.5px !important;
+    font-weight: 400 !important;
+    gap: 9px !important;
+    border-left: 3px solid transparent !important;
+    background-color: transparent !important;
+    transition: all 0.2s ease !important;
+    letter-spacing: 0.01em;
+}
+
+.vendor-sidebar ul.nav.items .nav-submenu-item a i,
+.vendor-sidebar .nav-submenu .nav-submenu-item a i {
+    width: 15px !important;
+    font-size: 12px !important;
+    text-align: center !important;
+    opacity: 0.7;
+    flex-shrink: 0;
+}
+
+/* Hover state */
+.vendor-sidebar ul.nav.items .nav-submenu-item a:hover,
+.vendor-sidebar .nav-submenu .nav-submenu-item a:hover {
+    background-color: rgba(255, 255, 255, 0.09) !important;
+    color: rgba(255, 255, 255, 0.92) !important;
+    padding-left: 56px !important;
+    border-left-color: rgba(255,255,255,0.3) !important;
+}
+
+.vendor-sidebar ul.nav.items .nav-submenu-item a:hover i {
+    opacity: 1;
+}
+
+/* Active press */
+.vendor-sidebar ul.nav.items .nav-submenu-item a:active,
+.vendor-sidebar .nav-submenu .nav-submenu-item a:active {
+    background-color: rgba(255, 255, 255, 0.14) !important;
+    transform: scale(0.98);
+}
+
+/* Currently active sub-item */
+.vendor-sidebar ul.nav.items .nav-submenu-item.current a,
+.vendor-sidebar .nav-submenu .nav-submenu-item.current a {
+    background-color: rgba(255, 255, 255, 0.13) !important;
+    color: #ffffff !important;
+    border-left-color: #6fcf97 !important;
+    font-weight: 600 !important;
+    padding-left: 52px !important;
+}
+
+.vendor-sidebar ul.nav.items .nav-submenu-item.current a i {
+    opacity: 1 !important;
+}
+
+/* Parent Settings item when sub-menu is open */
+.vendor-sidebar .nav.item.nav-has-submenu.current > a.nav-parent-link {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    color: #fff !important;
+    border-left-color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+/* ============================================
+   PROFILE SECTION TABS
+   ============================================ */
+.profile-section-tabs {
+    margin-bottom: 24px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    border: 1px solid #e5e7eb;
+}
+
+.profile-tabs-nav {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.profile-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+    text-decoration: none !important;
+    transition: background-color 0.18s ease, color 0.18s ease,
+                box-shadow 0.18s ease, transform 0.12s ease, border-color 0.18s ease;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    outline: none;
+}
+
+.profile-tab-btn i {
+    font-size: 14px;
+    transition: color 0.18s ease;
+}
+
+/* Hover — inactive tab */
+.profile-tab-btn:not(.active):hover {
+    background-color: #eef2f7;
+    color: #113321;
+    border-color: #d1dce8;
+    text-decoration: none !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(17, 51, 33, 0.1);
+}
+
+.profile-tab-btn:not(.active):hover i {
+    color: #113321;
+}
+
+/* Active press — inactive tab */
+.profile-tab-btn:not(.active):active {
+    transform: translateY(0) scale(0.97);
+    background-color: #e2eaf0;
+    box-shadow: none;
+}
+
+/* Active (current tab) */
+.profile-tab-btn.active {
+    background-color: #113321;
+    color: #ffffff;
+    border-color: #0d2a1a;
+    box-shadow: 0 3px 10px rgba(17, 51, 33, 0.30);
+    font-weight: 600;
+    cursor: default;
+}
+
+.profile-tab-btn.active i {
+    color: #ffffff;
+}
+
+/* Hover on already-active tab (subtle pulse) */
+.profile-tab-btn.active:hover {
+    background-color: #1a4a2f;
+    box-shadow: 0 4px 14px rgba(17, 51, 33, 0.35);
+    text-decoration: none !important;
+}
+
+/* Profile Tab Panels */
+.profile-tab-panel {
+    display: none;
+}
+
+.profile-tab-panel.active {
+    display: block;
+    animation: tabFadeIn 0.25s ease;
+}
+
+@keyframes tabFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Section Divider inside profile panels */
+.profile-section-divider {
+    display: flex;
+    align-items: center;
+    margin: 28px 0 20px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #374151;
+    gap: 10px;
+}
+
+.profile-section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+}
+
+.profile-section-divider i {
+    color: #113321;
+    font-size: 15px;
+}
+
+/* Profile Form Actions Bar */
+.profile-form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding: 16px 20px;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+/* Social Media Field Styles */
+.social-field-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 13.5px;
+    color: #374151;
+}
+
+.social-input-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.social-input-row .input-text {
+    flex: 1;
+}
+
+.toggle-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+    min-width: 50px;
+}
+
+/* Social icon brand colors */
+.social-icon { font-size: 18px; }
+.social-twitter   { color: #1DA1F2; }
+.social-facebook  { color: #1877F2; }
+.social-instagram { color: #E1306C; }
+.social-youtube   { color: #FF0000; }
+.social-vimeo     { color: #1AB7EA; }
+.social-pinterest { color: #E60023; }
+
+/* Document File Validation — inline hint below file input */
+.doc-file-hint {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #9ca3af;
+    font-style: italic;
+    line-height: 1.4;
+    transition: color 0.2s;
+}
+
+/* Turns red when file fails validation */
+.doc-file-hint-error {
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #dc2626;
+    font-style: normal;
+    line-height: 1.4;
+    display: block;
+}
+
+/* Highlight the file input itself on error (matches Magento's mage-error border) */
+.input-file.mage-error {
+    outline: 2px solid #dc2626;
+    border-radius: 4px;
+}
+
+
+
+
+
 /* Main Content Area */
 .vendor-main-content {
     flex-grow: 1;
@@ -1676,33 +1987,95 @@ span[class*="status-"] {
     border-radius: 8px;
     font-weight: 700;
     font-size: 1rem;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    user-select: none;
+    outline: none;
     border: 1px solid transparent;
+    box-shadow: var(--shadow-sm);
+    transition: background-color 0.18s ease, color 0.18s ease,
+                box-shadow 0.18s ease, transform 0.12s ease,
+                border-color 0.18s ease, filter 0.18s ease;
 }
 
 .action-btn i {
     font-size: 1rem;
+    pointer-events: none;
 }
 
+/* Primary (brand green) */
 .action-btn.primary {
     background-color: var(--brand-primary);
     color: #fff;
+    border-color: #0a2218;
 }
 
+.action-btn.primary:hover {
+    background-color: #1a4a2f;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(17, 51, 33, 0.35);
+    color: #fff;
+    text-decoration: none;
+}
+
+.action-btn.primary:active {
+    background-color: #0d2a1a;
+    transform: translateY(0) scale(0.97);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Secondary (slightly lighter green) */
 .action-btn.secondary {
     background-color: var(--brand-secondary);
     color: #fff;
+    border-color: #113321;
 }
 
+.action-btn.secondary:hover {
+    background-color: #225c3c;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(26, 74, 47, 0.30);
+    color: #fff;
+    text-decoration: none;
+}
+
+.action-btn.secondary:active {
+    background-color: #113321;
+    transform: translateY(0) scale(0.97);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Danger (red) */
 .action-btn.danger {
     background-color: #ef4444;
     color: #fff;
+    border-color: #b91c1c;
 }
 
+.action-btn.danger:hover {
+    background-color: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+    color: #fff;
+    text-decoration: none;
+}
+
+.action-btn.danger:active {
+    background-color: #b91c1c;
+    transform: translateY(0) scale(0.97);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Large variant */
+.action-btn.large {
+    padding: 12px 28px;
+    font-size: 1.05rem;
+    letter-spacing: 0.01em;
+}
+
+/* Print / Back (light style) */
 .action-btn.action-print,
 .action-btn.action-back {
     background-color: #fff;
@@ -1710,10 +2083,20 @@ span[class*="status-"] {
     border-color: var(--border-light);
 }
 
-.action-btn:hover {
+.action-btn.action-print:hover,
+.action-btn.action-back:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+    color: #113321;
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
-    filter: brightness(1.1);
+    text-decoration: none;
+}
+
+.action-btn.action-print:active,
+.action-btn.action-back:active {
+    transform: translateY(0) scale(0.97);
+    box-shadow: var(--shadow-sm);
 }
 
 .order-view-header {

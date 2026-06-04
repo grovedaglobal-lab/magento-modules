@@ -43,15 +43,18 @@ class Upload extends Action
 
     public function execute()
     {
-        $resultJson = $this->resultJsonFactory->create();
+        $resultRedirect = $this->resultRedirectFactory->create();
+        $redirectPath = '*/*/import';
 
         try {
             if (!$this->getRequest()->isPost()) {
-                return $resultJson->setData(['success' => false, 'message' => 'Invalid request method']);
+                $this->messageManager->addErrorMessage('Invalid request method');
+                return $resultRedirect->setPath($redirectPath);
             }
 
             if (empty($_FILES['import_file']) || empty($_FILES['import_file']['name'])) {
-                return $resultJson->setData(['success' => false, 'message' => 'No file uploaded (field name: import_file)']);
+                $this->messageManager->addErrorMessage('No file uploaded (field name: import_file)');
+                return $resultRedirect->setPath($redirectPath);
             }
 
             $uploader = $this->uploaderFactory->create(['fileId' => 'import_file']);
@@ -93,6 +96,9 @@ class Upload extends Action
             for ($c = 1; $c <= $highestColumnIndex; $c++) {
                 $colLetter = Coordinate::stringFromColumnIndex($c);
                 $h = trim((string) $worksheet->getCell($colLetter . '1')->getValue());
+                // Normalize friendly column header names to internal keys
+                $headerAliases = ['Variant Weight' => 'variant_value'];
+                $h = $headerAliases[$h] ?? $h;
                 $headers[$c] = $h;
             }
 
@@ -500,22 +506,16 @@ class Upload extends Action
                 }
             }
 
-            return $resultJson->setData([
-                'success' => true,
-                'message' => 'Import completed',
-                'created' => $created,
-                'updated' => $updated,
-                'errors' => $errors,
-            ]);
+            $this->messageManager->addSuccessMessage(__('Import completed. Created: %1, Updated: %2', $created, $updated));
+            if (!empty($errors)) {
+                $this->messageManager->addErrorMessage(__('Some rows failed to import: %1', implode(', ', array_slice($errors, 0, 5)) . (count($errors) > 5 ? ' (and ' . (count($errors) - 5) . ' more)' : '')));
+            }
+            return $resultRedirect->setPath($redirectPath);
 
-            return $resultJson->setData([
-                'success' => true,
-                'message' => 'File uploaded',
-                'path' => $savedPath,
-                'warning' => 'PhpSpreadsheet not installed; parsing skipped. Run `composer require phpoffice/phpspreadsheet` to enable parsing.'
-            ]);
+
         } catch (\Exception $e) {
-            return $resultJson->setData(['success' => false, 'message' => $e->getMessage()]);
+            $this->messageManager->addErrorMessage($e->getMessage());
+            return $resultRedirect->setPath($redirectPath);
         }
     }
 

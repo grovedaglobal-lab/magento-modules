@@ -18,8 +18,20 @@ $menuItems = [
     ['label' => 'Ad Wallet', 'url' => 'vendor_ads/vendor/wallet', 'icon' => 'fa-wallet'],
     ['label' => 'Recharge History', 'url' => 'vendor_ads/vendor/wallethistory', 'icon' => 'fa-history'],
     // ------------------
-    ['label' => 'Settings', 'url' => 'marketplace/seller/profile', 'icon' => 'fa-cog'],
 ];
+
+// Profile sub-menu items (Settings sub-options)
+$profileSubItems = [
+    ['label' => 'Profile Information', 'tab' => 'profile-info', 'icon' => 'fa-user-edit'],
+    ['label' => 'Business Information', 'tab' => 'business-info', 'icon' => 'fa-briefcase'],
+    ['label' => 'Vendor Documents', 'tab' => 'vendor-docs', 'icon' => 'fa-file-contract'],
+    ['label' => 'Organic Certification', 'tab' => 'organic-cert', 'icon' => 'fa-leaf'],
+    ['label' => 'Social Media Links', 'tab' => 'social-media', 'icon' => 'fa-share-alt'],
+    ['label' => 'COA Report', 'tab' => 'coa-report', 'icon' => 'fa-file-alt'],
+];
+
+$isOnProfilePage = strpos($block->getRequest()->getPathInfo(), '/marketplace/seller/profile') !== false;
+$activeTab = $block->getRequest()->getParam('tab', 'profile-info');
 ?>
 <div class="block account-nav">
     <div class="content">
@@ -40,7 +52,50 @@ $menuItems = [
                         </a>
                     </li>
                 <?php endforeach; ?>
+
+                <!-- Settings with Sub-Menu -->
+                <li class="nav item nav-has-submenu <?= $isOnProfilePage ? 'current open' : '' ?>" id="nav-settings-item">
+                    <a href="<?= $block->getUrl('marketplace/seller/profile') ?>" class="nav-parent-link" id="nav-settings-toggle">
+                        <i class="fas fa-cog"></i>
+                        <span class="nav-label">Settings</span>
+                        <i class="fas fa-chevron-down nav-arrow <?= $isOnProfilePage ? 'rotated' : '' ?>"></i>
+                    </a>
+                    <ul class="nav-submenu <?= $isOnProfilePage ? 'open' : '' ?>">
+                        <?php foreach ($profileSubItems as $subItem): ?>
+                            <?php $isSubCurrent = $isOnProfilePage && $activeTab === $subItem['tab']; ?>
+                            <li class="nav-submenu-item <?= $isSubCurrent ? 'current' : '' ?>">
+                                <a href="<?= $block->getUrl('marketplace/seller/profile') ?>?tab=<?= $subItem['tab'] ?>">
+                                    <i class="fas <?= $subItem['icon'] ?>"></i>
+                                    <span><?= $block->escapeHtml(__($subItem['label'])) ?></span>
+                                </a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </li>
             </ul>
         </nav>
     </div>
 </div>
+
+<script>
+require(['jquery'], function ($) {
+    'use strict';
+
+    // Toggle submenu on parent click
+    $('#nav-settings-toggle').on('click', function (e) {
+        var $parent = $(this).closest('.nav-has-submenu');
+        var $submenu = $parent.find('.nav-submenu');
+        var $arrow = $(this).find('.nav-arrow');
+
+        // If clicking a link that is already open, allow navigation
+        if ($parent.hasClass('open') && <?= $isOnProfilePage ? 'true' : 'false' ?>) {
+            return true; // allow navigation
+        }
+
+        e.preventDefault();
+        $parent.toggleClass('open');
+        $submenu.toggleClass('open');
+        $arrow.toggleClass('rotated');
+    });
+});
+</script>

@@ -227,6 +227,10 @@ class ProfilePost extends \Magento\Framework\App\Action\Action
             $this->messageManager->addErrorMessage($e->getMessage());
         }
 
-        return $this->resultRedirectFactory->create()->setPath('*/*/profile');
+        // Preserve active tab after redirect
+        $activeTab = $this->getRequest()->getPostValue('active_tab', 'profile-info');
+        $redirect = $this->resultRedirectFactory->create();
+        $redirect->setPath('*/*/profile', ['tab' => $activeTab]);
+        return $redirect;
     }
 }

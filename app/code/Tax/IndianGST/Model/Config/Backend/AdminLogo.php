@@ -37,6 +37,6 @@ class AdminLogo extends Image
      */
     protected function _getAllowedExtensions(): array
     {
-        return ['jpg', 'jpeg', 'gif', 'png', 'svg'];
+        return ['jpg', 'jpeg', 'png', 'webp'];
     }
 }

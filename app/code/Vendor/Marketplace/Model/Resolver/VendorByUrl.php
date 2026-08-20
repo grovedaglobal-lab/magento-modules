@@ -104,6 +104,10 @@ class VendorByUrl implements ResolverInterface
             'pan_number' => $vendor->getData('business_license'),
             'signature' => $vendor->getData('signature'),
             'authorized_name' => $vendor->getData('authorized_name'),
+            'brand_header_image' => $vendor->getData('brand_header_image'),
+            'brand_slider_image_1' => $vendor->getData('brand_slider_image_1'),
+            'brand_slider_image_2' => $vendor->getData('brand_slider_image_2'),
+            'brand_slider_image_3' => $vendor->getData('brand_slider_image_3'),
             'status' => (int) $vendor->getData('status'),
         ];
 
@@ -123,6 +127,19 @@ class VendorByUrl implements ResolverInterface
 
         $vendorData['signature_url'] = $vendorData['signature']
             ? $mediaUrl . 'vendor/signature/' . $vendorData['signature']
+            : null;
+
+        $vendorData['brand_header_image_url'] = $vendorData['brand_header_image']
+            ? $mediaUrl . 'vendor/brand/' . $vendorData['brand_header_image']
+            : null;
+        $vendorData['brand_slider_image_1_url'] = $vendorData['brand_slider_image_1']
+            ? $mediaUrl . 'vendor/brand/' . $vendorData['brand_slider_image_1']
+            : null;
+        $vendorData['brand_slider_image_2_url'] = $vendorData['brand_slider_image_2']
+            ? $mediaUrl . 'vendor/brand/' . $vendorData['brand_slider_image_2']
+            : null;
+        $vendorData['brand_slider_image_3_url'] = $vendorData['brand_slider_image_3']
+            ? $mediaUrl . 'vendor/brand/' . $vendorData['brand_slider_image_3']
             : null;
 
         return $vendorData;

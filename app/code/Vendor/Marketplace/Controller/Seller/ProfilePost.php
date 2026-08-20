@@ -93,7 +93,11 @@ class ProfilePost extends \Magento\Framework\App\Action\Action
                 'banner' => 'vendor/banner',
                 'fulfillment_image' => 'vendor/fulfillment',
                 'signature' => 'vendor/signature',
-                'payment_document' => 'vendor/payment_document'
+                'payment_document' => 'vendor/payment_document',
+                'brand_header_image' => 'vendor/brand',
+                'brand_slider_image_1' => 'vendor/brand',
+                'brand_slider_image_2' => 'vendor/brand',
+                'brand_slider_image_3' => 'vendor/brand',
             ];
 
             $files = $this->getRequest()->getFiles();
@@ -105,7 +109,7 @@ class ProfilePost extends \Magento\Framework\App\Action\Action
                         if ($field === 'payment_document') {
                             $uploader->setAllowedExtensions(['pdf']);
                         } else {
-                            $uploader->setAllowedExtensions(['jpg', 'jpeg', 'gif', 'png']);
+                            $uploader->setAllowedExtensions(['jpg', 'jpeg', 'gif', 'png', 'webp']);
                         }
                         $uploader->setAllowRenameFiles(true);
                         $uploader->setFilesDispersion(false);
@@ -147,7 +151,7 @@ class ProfilePost extends \Magento\Framework\App\Action\Action
             }
 
             // Handle asset deletions
-            $assetsToDelete = ['logo', 'banner', 'fulfillment_image'];
+            $assetsToDelete = ['logo', 'banner', 'fulfillment_image', 'brand_header_image', 'brand_slider_image_1', 'brand_slider_image_2', 'brand_slider_image_3'];
             foreach ($assetsToDelete as $asset) {
                 if (isset($data['delete_' . $asset]) && $data['delete_' . $asset]) {
                     $data[$asset] = ''; // Clear in DB
@@ -189,8 +193,23 @@ class ProfilePost extends \Magento\Framework\App\Action\Action
                             $docResult = $docUploader->save($docSavePath);
                             $uploadedFileName = $docResult['file'];
 
-                            // Create Document Record
-                            $document = $this->vendorDocumentFactory->create();
+                            // Create or update Document Record (Prevents duplicate row insertions on rapid multi-submit)
+                            $document = null;
+                            if (!empty($docData['certificate_number'])) {
+                                $existing = $this->vendorDocumentFactory->create()->getCollection()
+                                    ->addFieldToFilter('vendor_id', $vendor->getId())
+                                    ->addFieldToFilter('document_type', isset($docData['type']) ? $docData['type'] : '')
+                                    ->addFieldToFilter('certificate_number', $docData['certificate_number'])
+                                    ->getFirstItem();
+                                if ($existing->getId()) {
+                                    $document = $existing;
+                                }
+                            }
+
+                            if (!$document) {
+                                $document = $this->vendorDocumentFactory->create();
+                            }
+
                             $document->setVendorId($vendor->getId());
                             $document->setLabel(isset($docData['label']) ? $docData['label'] : '');
                             $document->setDocumentType(isset($docData['type']) ? $docData['type'] : '');

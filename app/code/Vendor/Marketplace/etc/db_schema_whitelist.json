@@ -71,7 +71,11 @@
             "allowed_shipping_sources": true,
             "fulfillment_label": true,
             "signature": true,
-            "authorized_name": true
+            "authorized_name": true,
+            "brand_header_image": true,
+            "brand_slider_image_1": true,
+            "brand_slider_image_2": true,
+            "brand_slider_image_3": true
         },
         "constraint": {
             "PRIMARY": true,

@@ -8,9 +8,7 @@
 
         <referenceBlock name="vendor.portal.wrapper">
              <!-- Main Content: Product List -->
-             <block class="Vendor\Marketplace\Block\Product\ListProduct" name="vendor.product.list.custom" template="Vendor_Marketplace::product/list.phtml" as="main_content" cacheable="false">
-                 <block class="Magento\Theme\Block\Html\Pager" name="vendor.product.list.pager"/>
-             </block>
+             <block class="Vendor\Marketplace\Block\Product\ListProduct" name="vendor.product.list.custom" template="Vendor_Marketplace::product/list.phtml" as="main_content" cacheable="false"/>
         </referenceBlock>
     </body>
 </page>

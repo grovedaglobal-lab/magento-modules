@@ -1,10 +1,11 @@
-<?php
+﻿<?php
 /** @var $block \Vendor\Marketplace\Block\Seller\Navigation */
 // Manually defining menu items with Icons for the clone
 $menuItems = [
     ['label' => 'Dashboard', 'url' => 'marketplace/seller/dashboard', 'icon' => 'fa-tachometer-alt'],
     ['label' => 'Orders', 'url' => 'marketplace/order/history', 'icon' => 'fa-dollar-sign'],
     ['label' => 'Products', 'url' => 'marketplace/product/index', 'icon' => 'fa-box'],
+    ['label' => 'Bulk Image Upload', 'url' => 'marketplace/bulkimage/index', 'icon' => 'fa-images'],
     ['label' => 'Coupons', 'url' => 'marketplace/coupon/index', 'icon' => 'fa-ticket-alt'],
     ['label' => 'Coupon Report', 'url' => 'marketplace/report/coupon', 'icon' => 'fa-chart-line'],
     ['label' => 'Earnings', 'url' => 'marketplace/report/earnings', 'icon' => 'fa-chart-pie'],
@@ -28,6 +29,7 @@ $profileSubItems = [
     ['label' => 'Organic Certification', 'tab' => 'organic-cert', 'icon' => 'fa-leaf'],
     ['label' => 'Social Media Links', 'tab' => 'social-media', 'icon' => 'fa-share-alt'],
     ['label' => 'COA Report', 'tab' => 'coa-report', 'icon' => 'fa-file-alt'],
+    ['label' => 'Brand Images', 'tab' => 'brand', 'icon' => 'fa-image'],
 ];
 
 $isOnProfilePage = strpos($block->getRequest()->getPathInfo(), '/marketplace/seller/profile') !== false;

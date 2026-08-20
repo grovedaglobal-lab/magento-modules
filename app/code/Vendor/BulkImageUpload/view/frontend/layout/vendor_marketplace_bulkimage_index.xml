@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="marketplace_vendor_dashboard_layout"/>
+    <body>
+        <referenceBlock name="vendor.portal.wrapper">
+            <block class="Magento\Framework\View\Element\Template" name="bulk_image_upload_form" template="Vendor_BulkImageUpload::bulkimage/upload_form.phtml" as="main_content">
+                <block class="Vendor\BulkImageUpload\Block\BulkImage\JobHistory" name="job_history" template="Vendor_BulkImageUpload::bulkimage/job_history.phtml" as="job_history" />
+            </block>
+        </referenceBlock>
+    </body>
+</page>

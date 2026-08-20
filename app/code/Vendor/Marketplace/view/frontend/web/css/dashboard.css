@@ -3325,3 +3325,116 @@ td.col-pending {
     color: #92400e !important;
     border: 1px solid #fef3c7 !important;
 }
+
+/* MARKETPLACE GRID PAGINATION STYLES */
+
+/* ── Product Grid Pagination Styling ── */
+.grid-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+.grid-pagination .pager {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+}
+.grid-pagination .count-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+}
+.grid-pagination .toolbar-amount {
+    display: none !important;
+}
+.grid-pagination .limiter {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+}
+.grid-pagination .limiter-label {
+    font-size: 0.82rem;
+    color: #64748b;
+    font-weight: 600;
+}
+.grid-pagination .limiter-options {
+    padding: 4px 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #1e293b;
+    background: #fff;
+    cursor: pointer;
+    outline: none;
+    height: 32px;
+}
+.grid-pagination .limiter-text {
+    font-size: 0.82rem;
+    color: #64748b;
+}
+.grid-pagination .pages {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.grid-pagination .pages-label {
+    display: none !important;
+}
+.grid-pagination .pages-items {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+.grid-pagination .pages-items .item {
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    display: inline-flex !important;
+}
+.grid-pagination .pages-items .item .label {
+    display: none !important;
+}
+.grid-pagination .pages-items .item .page,
+.grid-pagination .pages-items .item .action {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    padding: 0 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
+    color: #334155 !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+    box-sizing: border-box !important;
+    line-height: 1 !important;
+}
+.grid-pagination .pages-items .item a.page:hover,
+.grid-pagination .pages-items .item a.action:hover {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+.grid-pagination .pages-items .item.current strong.page,
+.grid-pagination .pages-items .item strong.page {
+    background: #12371e !important;
+    border-color: #12371e !important;
+    color: #ffffff !important;
+    cursor: default !important;
+}
+

@@ -1,0 +1,243 @@
+<div class="vendor-profile-container">
+    
+    <!-- Upload Guidelines -->
+    <div class="dashboard-card shadow-sm mb-6" style="background-color: #f8fcf8; border-left: 4px solid #0b9b3e; margin-bottom: 20px;">
+        <div class="card-header" style="padding-bottom: 10px; border-bottom: 1px solid #e5efe5;">
+            <h3 style="color: #0b9b3e; font-size: 1.1rem; margin: 0;"><i class="fas fa-info-circle"></i> <?= __('Image Upload Guidelines') ?></h3>
+        </div>
+        <div class="card-content" style="padding-top: 15px; padding-bottom: 15px;">
+            <ul style="list-style-type: disc; margin-left: 20px; color: #444; line-height: 1.6;">
+                <li><?= __('Upload multiple individual images (.jpg, .png) OR multiple <strong>.zip</strong> archives. (Max 1GB and 1000 images per ZIP).') ?></li>
+                <li><?= __('Name each image file exactly matching the product <strong>SKU</strong>.') ?></li>
+                <li><?= __('For the main image, use: <code>SKU.jpg</code> or <code>SKU.png</code>') ?></li>
+                <li><?= __('For additional gallery images, append an underscore and a number: <code>SKU_1.jpg</code>, <code>SKU_2.jpg</code>, etc.') ?></li>
+                <li><?= __('All images uploaded will <strong>replace</strong> the existing product gallery.') ?></li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="bulk-upload-messages" style="display:none; margin-bottom: 20px;"></div>
+    
+    <form action="<?= $block->escapeUrl($block->getUrl('marketplace/bulkimage/upload')) ?>" method="POST" id="bulk-image-upload-form" enctype="multipart/form-data">
+        <?= $block->getBlockHtml('formkey') ?>
+        
+        <div class="dashboard-card shadow-sm">
+            <div class="card-header">
+                <h3><i class="fas fa-file-archive"></i> <?= __('Bulk Image Upload') ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="profile-form-grid">
+                    <div class="form-field-group required">
+                        <label for="bulk_image_zip"><?= __('Upload Images or ZIP Archives') ?></label>
+                        <div class="upload-control">
+                            <input type="file" name="bulk_images[]" id="bulk_image_zip" class="input-file required-entry" accept=".zip,.jpg,.jpeg,.png" multiple />
+                        </div>
+                    </div>
+                </div>
+
+                <div id="bulk-upload-progress-container" style="display:none; margin-top: 20px;">
+                    <div class="progress-info" style="margin-bottom: 5px; font-weight: bold; color: #555;">
+                        <span id="bulk-upload-status-text"><i class="fas fa-spinner fa-spin"></i> <?= __('Uploading & Processing...') ?></span>
+                        <span id="bulk-upload-percentage" style="float: right;">0%</span>
+                    </div>
+                    <div class="progress-bar-wrap" style="width: 100%; background-color: #f0f0f0; border-radius: 4px; overflow: hidden; height: 10px;">
+                        <div id="bulk-upload-progress-bar" style="width: 0%; height: 100%; background-color: #0b9b3e; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+                
+                <div class="profile-form-actions mt-6">
+                    <button type="submit" class="action-btn primary large" id="bulk-upload-submit-btn">
+                        <i class="fas fa-upload"></i>
+                        <span><?= __('Upload and Process') ?></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+    
+    <div id="bulk-upload-results" style="display:none; margin-top: 30px;"></div>
+    
+    <?= $block->getChildHtml('job_history') ?>
+</div>
+
+
+
+
+<script type="text/javascript">
+require([
+    'jquery',
+    'mage/translate',
+    'mage/url'
+], function ($, $t, urlBuilder) {
+    'use strict';
+    
+    $(document).ready(function() {
+        var $form = $('#bulk-image-upload-form');
+        var $messages = $('#bulk-upload-messages');
+        var $progressContainer = $('#bulk-upload-progress-container');
+        var $progressBar = $('#bulk-upload-progress-bar');
+        var $progressText = $('#bulk-upload-status-text');
+        var $progressPercentage = $('#bulk-upload-percentage');
+        var $results = $('#bulk-upload-results');
+        var $submitBtn = $('#bulk-upload-submit-btn');
+
+        var pollInterval;
+
+        $form.on('submit', function (e) {
+            e.preventDefault();
+
+            var fileInput = $('#bulk_image_zip')[0];
+            if (!fileInput.files.length) {
+                showMessage($t('Please select a ZIP file.'), 'error');
+                return;
+            }
+
+            var formData = new FormData($form[0]);
+
+            $submitBtn.prop('disabled', true);
+            $messages.hide();
+            $results.hide();
+            $progressContainer.show();
+            updateProgress(0, $t('Uploading ZIP... Please do not refresh the page!'));
+
+            $.ajax({
+                url: $form.attr('action'),
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                showLoader: false,
+                success: function (response) {
+                    if (response.success && response.job_id) {
+                        updateProgress(10, $t('Upload successful, your files are valid, we will take it from here.'));
+                        startPolling(response.job_id);
+                    } else {
+                        handleError(response.error || $t('Upload failed.'));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    handleError(error || $t('A network error occurred.'));
+                }
+            });
+        });
+
+        function startPolling(jobId) {
+            var statusUrl = urlBuilder.build('marketplace/bulkimage/status') + '?job_id=' + jobId;
+            
+            pollInterval = setInterval(function () {
+                $.ajax({
+                    url: statusUrl,
+                    type: 'GET',
+                    showLoader: false,
+                    cache: false,
+                    success: function (res) {
+                        if (res.error) {
+                            clearInterval(pollInterval);
+                            handleError(res.error);
+                            return;
+                        }
+
+                        var total = res.total || 0;
+                        var processed = res.processed || 0;
+                        var pct = total > 0 ? Math.round((processed / total) * 100) : 0;
+                        
+                        // Scale percentage from 10% to 100% since 0-10% was upload phase
+                        var actualPct = 10 + (pct * 0.9);
+                        
+                        if (res.status === 'processing') {
+                            updateProgress(actualPct, $t('Processing images...') + ' (' + processed + '/' + total + ')');
+                        } else if (res.status === 'completed' || res.status === 'failed') {
+                            clearInterval(pollInterval);
+                            updateProgress(100, res.status === 'completed' ? $t('Completed!') : $t('Failed.'));
+                            setTimeout(function() {
+                                $progressContainer.hide();
+                                renderResults(res.result_json, res.status);
+                                $submitBtn.prop('disabled', false);
+                                $form[0].reset();
+                                setTimeout(function() { window.location.reload(); }, 3000);
+                            }, 1000);
+                        }
+                    },
+                    error: function () {
+                        clearInterval(pollInterval);
+                        handleError($t('Lost connection to server.'));
+                    }
+                });
+            }, 2000); // poll every 2 seconds
+        }
+
+        function updateProgress(pct, text) {
+            $progressBar.css('width', pct + '%');
+            $progressPercentage.text(Math.round(pct) + '%');
+            if (text) {
+                $progressText.html('<i class="fas fa-spinner fa-spin"></i> ' + text);
+                if (pct === 100) {
+                    $progressText.html('<i class="fas fa-check-circle"></i> ' + text);
+                }
+            }
+        }
+
+        function handleError(msg) {
+            $progressContainer.hide();
+            $submitBtn.prop('disabled', false);
+            showMessage(msg, 'error');
+        }
+
+        function showMessage(msg, type) {
+            var color = type === 'error' ? '#e02b27' : '#006400';
+            var bgColor = type === 'error' ? '#fae5e5' : '#e5efe5';
+            $messages.html('<div style="padding: 10px 20px; color: '+color+'; background-color: '+bgColor+'; border-radius: 4px;">' + msg + '</div>').show();
+        }
+
+        function renderResults(resultJson, status) {
+            if (!resultJson) {
+                showMessage($t('Job finished but no detailed results were returned.'), status === 'completed' ? 'success' : 'error');
+                return;
+            }
+            
+            var html = '<div class="dashboard-card shadow-sm">';
+            html += '<div class="card-header"><h3><i class="fas fa-clipboard-list"></i> ' + $t('Upload Results') + '</h3></div>';
+            html += '<div class="card-content">';
+            
+            html += '<div style="margin-bottom: 20px;"><strong>' + $t('Processed SKUs') + ':</strong> ' + resultJson.successCount + '</div>';
+            
+            if (resultJson.globalErrors && resultJson.globalErrors.length > 0) {
+                html += '<div style="color: #e02b27; margin-bottom: 15px;"><strong>Global Errors:</strong><ul>';
+                resultJson.globalErrors.forEach(function(err) {
+                    html += '<li>' + err + '</li>';
+                });
+                html += '</ul></div>';
+            }
+            
+            if (resultJson.errors && Object.keys(resultJson.errors).length > 0) {
+                html += '<div class="table-wrapper shadow-xs rounded-lg overflow-hidden border border-gray-100">';
+                html += '<table class="shipping-rates-table"><thead><tr>';
+                html += '<th class="col label">SKU / File</th><th class="col type">Error</th>';
+                html += '</tr></thead><tbody>';
+                
+                $.each(resultJson.errors, function(identifier, errors) {
+                    html += '<tr>';
+                    html += '<td class="col label font-bold text-gray-700">' + identifier + '</td>';
+                    html += '<td class="col type text-sm text-red-600"><ul>';
+                    errors.forEach(function(err) {
+                        html += '<li>' + err + '</li>';
+                    });
+                    html += '</ul></td>';
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table></div>';
+            } else if (!resultJson.globalErrors || resultJson.globalErrors.length === 0) {
+                html += '<div style="color: #0b9b3e; font-weight: bold;"><i class="fas fa-check-circle"></i> ' + $t('All images processed successfully with no errors!') + '</div>';
+            }
+            
+            html += '</div></div>';
+            $results.html(html).show();
+        }
+    });
+});
+</script>
+
+
+
+

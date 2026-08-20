@@ -39,12 +39,14 @@ class ListProduct extends Template
     {
         parent::_prepareLayout();
         if ($this->getVendorProducts()) {
-            // Retrieve pager defined in XML
-            $pager = $this->getChildBlock('vendor.product.list.pager');
-
-            if ($pager) {
-                $pager->setCollection($this->getVendorProducts());
-            }
+            $pager = $this->getLayout()->createBlock(
+                \Magento\Theme\Block\Html\Pager::class,
+                'vendor.product.list.pager'
+            )->setAvailableLimit([10 => 10, 20 => 20, 50 => 50, 100 => 100])
+             ->setShowPerPage(true)
+             ->setCollection($this->getVendorProducts());
+            
+            $this->setChild('pager', $pager);
         }
         return $this;
     }

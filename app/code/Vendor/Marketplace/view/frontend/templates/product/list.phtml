@@ -1,3 +1,247 @@
+<style>
+/* ── Clean Professional Product Grid & Hierarchy Styling ── */
+#product-grid-table {
+    min-width: 1300px !important;
+    width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background: #FFFFFF !important;
+}
+#product-grid-table th {
+    background: #12371e !important;
+    color: #FFFFFF !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: 12px 14px !important;
+    border: none !important;
+    white-space: nowrap !important;
+}
+#product-grid-table td {
+    padding: 11px 14px !important;
+    font-size: 13px !important;
+    color: #1E293B !important;
+    border-bottom: 1px solid #F1F5F9 !important;
+    border-top: none !important;
+    vertical-align: middle !important;
+}
+
+/* Parent Row */
+.parent-product-row td {
+    background-color: #FFFFFF !important;
+    border-top: 1px solid #E2E8F0 !important;
+}
+.parent-product-row .prod-title {
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    color: #0F172A !important;
+}
+
+/* Child Rows (Subtle clean nested tint) */
+.child-product-row td {
+    background-color: #F8FAFC !important;
+    border-bottom: 1px solid #EDF2F7 !important;
+}
+.child-product-row:hover td {
+    background-color: #F1F5F9 !important;
+}
+.child-name-wrap {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+.child-arrow {
+    color: #94A3B8 !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+    line-height: 1 !important;
+}
+.child-prod-title {
+    font-weight: 500 !important;
+    color: #334155 !important;
+    font-size: 13px !important;
+}
+
+/* Toggle Button */
+.variant-toggle-btn {
+    margin-left: 5px;
+    border: 1px solid #CBD5E1;
+    background: #F8FAFC;
+    color: #475569;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    transition: all 0.15s ease;
+    font-weight: 600;
+}
+.variant-toggle-btn:hover {
+    background: #12371e;
+    color: #FFFFFF;
+    border-color: #12371e;
+}
+
+/* Type Pills */
+.type-pill {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+}
+.type-pill.type-configurable {
+    background: #EDE9FE;
+    color: #5B21B6;
+}
+.type-pill.type-simple {
+    background: #F1F5F9;
+    color: #475569;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.status-badge.enabled {
+    background: #ECFDF5;
+    color: #059669;
+    border: 1px solid #A7F3D0;
+}
+.status-badge.disabled {
+    background: #FEF2F2;
+    color: #DC2626;
+    border: 1px solid #FECACA;
+}
+.status-badge.pending {
+    background: #FFFBEB;
+    color: #D97706;
+    border: 1px solid #FDE68A;
+}
+
+/* Pagination Controls */
+.grid-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+.grid-pagination .pager {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+}
+.grid-pagination .count-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+}
+.grid-pagination .toolbar-amount {
+    display: none !important;
+}
+.grid-pagination .limiter {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+}
+.grid-pagination .limiter-label {
+    font-size: 0.82rem;
+    color: #64748b;
+    font-weight: 600;
+}
+.grid-pagination .limiter-options {
+    padding: 4px 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #1e293b;
+    background: #fff;
+    cursor: pointer;
+    outline: none;
+    height: 32px;
+}
+.grid-pagination .limiter-text {
+    font-size: 0.82rem;
+    color: #64748b;
+}
+.grid-pagination .pages {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.grid-pagination .pages-label {
+    display: none !important;
+}
+.grid-pagination .pages-items {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+.grid-pagination .pages-items .item {
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    display: inline-flex !important;
+}
+.grid-pagination .pages-items .item .label {
+    display: none !important;
+}
+.grid-pagination .pages-items .item .page,
+.grid-pagination .pages-items .item .action {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    padding: 0 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
+    color: #334155 !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+    box-sizing: border-box !important;
+    line-height: 1 !important;
+}
+.grid-pagination .pages-items .item a.page:hover,
+.grid-pagination .pages-items .item a.action:hover {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+.grid-pagination .pages-items .item.current strong.page,
+.grid-pagination .pages-items .item strong.page {
+    background: #12371e !important;
+    border-color: #12371e !important;
+    color: #ffffff !important;
+    cursor: default !important;
+}
+</style>
 <?php
 /** @var \Vendor\Marketplace\Block\Product\ListProduct $block */
 $products = $block->getVendorProducts();
@@ -149,6 +393,7 @@ $isApproved = $vendor ? ($vendor->getStatus() == 1) : false;
                 <thead>
                     <tr>
                         <th class="col-checkbox"><input type="checkbox" onclick="toggleAll(this)" /></th>
+                        <th class="col-actions"><?= __('Action') ?></th>
                         <th class="col-id"><?= __('ID') ?></th>
                         <th class="col-thumbnail"><?= __('Thumbnail') ?></th>
                         <th class="col-name"><?= __('Name') ?></th>
@@ -162,7 +407,6 @@ $isApproved = $vendor ? ($vendor->getStatus() == 1) : false;
                         <th class="col-sold"><?= __('Qty Sold') ?></th>
                         <th class="col-confirmed"><?= __('Qty Confirmed') ?></th>
                         <th class="col-pending"><?= __('Qty Pending') ?></th>
-                        <th class="col-actions"><?= __('Action') ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -175,28 +419,46 @@ $isApproved = $vendor ? ($vendor->getStatus() == 1) : false;
                             $product = $productData['product'];
                             $children = $productData['children'];
                             $salesStats = $block->getSalesStats($product);
-                            $isParent = !empty($children);
+                            $isParent = ($product->getTypeId() === 'configurable' || !empty($children));
+                            $childCount = count($children);
                             ?>
-                            <tr class="<?= $isParent ? 'parent-product-row' : '' ?>">
+                            <tr class="<?= $isParent ? 'parent-product-row' : 'standalone-product-row' ?>" data-parent-id="<?= $product->getId() ?>">
                                 <td class="col-checkbox">
                                     <input type="checkbox" name="product_ids[]" value="<?= $product->getId() ?>" />
                                 </td>
-                                <td class="col-id"><?= $product->getId() ?></td>
+                                <td class="col-actions">
+                                    <select class="action-select"
+                                        onchange="handleRowAction(this, '<?= $block->getEditProductUrl($product) ?>', '<?= $block->getUrl('*/*/delete', ['id' => $product->getId()]) ?>')">
+                                        <option value=""><?= __('Select') ?></option>
+                                        <option value="edit"><?= __('Edit') ?></option>
+                                        <option value="delete"><?= __('Delete') ?></option>
+                                    </select>
+                                </td>
+                                <td class="col-id">
+                                    <strong><?= $product->getId() ?></strong>
+                                    <?php if ($isParent && $childCount > 0): ?>
+                                        <button type="button" class="variant-toggle-btn" onclick="toggleVariants(<?= $product->getId() ?>, this)" title="<?= __('Toggle Variants') ?>">
+                                            <i class="fas fa-chevron-down"></i> <?= $childCount ?>
+                                        </button>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="col-thumbnail">
                                     <?php
                                     $imageUrl = $this->helper('Magento\Catalog\Helper\Image')
                                         ->init($product, 'product_small_image')
-                                        ->resize(50)
+                                        ->resize(44)
                                         ->getUrl();
                                     ?>
-                                    <img src="<?= $imageUrl ?>" alt="Thumbnail" width="50" height="50" />
+                                    <img src="<?= $imageUrl ?>" alt="Thumbnail" width="44" height="44" style="border-radius: 6px; border: 1px solid #E2E8F0; object-fit: contain;" />
                                 </td>
-                                <td class="col-name"><?= $block->escapeHtml($product->getName()) ?></td>
+                                <td class="col-name">
+                                    <strong class="prod-title"><?= $block->escapeHtml($product->getName()) ?></strong>
+                                </td>
                                 <td class="col-categories">
                                     <?php
                                     $categoryIds = $product->getCategoryIds();
+                                    $categoryNames = [];
                                     if (!empty($categoryIds)) {
-                                        $categoryNames = [];
                                         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
                                         $categoryRepository = $objectManager->get('\Magento\Catalog\Api\CategoryRepositoryInterface');
                                         foreach ($categoryIds as $categoryId) {
@@ -229,49 +491,53 @@ $isApproved = $vendor ? ($vendor->getStatus() == 1) : false;
                                         <?php endif; ?>
                                     <?php endif; ?>
                                 </td>
-                                <td class="col-type"><?= ucfirst($product->getTypeId()) ?></td>
+                                <td class="col-type">
+                                    <span class="type-pill type-<?= strtolower($product->getTypeId()) ?>"><?= ucfirst($product->getTypeId()) ?></span>
+                                </td>
                                 <td class="col-price">
                                     <?= $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($product->getPrice(), true, false) ?>
                                 </td>
-                                <td class="col-sku"><?= $block->escapeHtml($product->getSku()) ?></td>
+                                <td class="col-sku font-mono"><?= $block->escapeHtml($product->getSku()) ?></td>
                                 <td class="col-qty">
                                     <span class="qty-number"><?= (float) $block->getProductQty($product) ?></span>
                                 </td>
                                 <td class="col-sold"><?= $salesStats['sold'] ?></td>
                                 <td class="col-confirmed"><?= $salesStats['confirmed'] ?></td>
                                 <td class="col-pending"><?= $salesStats['pending'] ?></td>
-                                <td class="col-actions">
-                                    <select class="action-select"
-                                        onchange="handleRowAction(this, '<?= $block->getEditProductUrl($product) ?>', '<?= $block->getUrl('*/*/delete', ['id' => $product->getId()]) ?>')">
-                                        <option value=""><?= __('Select') ?></option>
-                                        <option value="edit"><?= __('Edit') ?></option>
-                                        <option value="delete"><?= __('Delete') ?></option>
-                                    </select>
-                                </td>
                             </tr>
 
                             <?php if (!empty($children)): ?>
-                                <?php foreach ($children as $child): ?>
-                                    <?php $childSalesStats = $block->getSalesStats($child); ?>
-                                    <tr class="child-product-row">
+                                <?php foreach ($children as $cIdx => $child): ?>
+                                    <?php 
+                                    $childSalesStats = $block->getSalesStats($child);
+                                    ?>
+                                    <tr class="child-product-row child-of-<?= $product->getId() ?>" data-parent-id="<?= $product->getId() ?>">
                                         <td class="col-checkbox">
                                             <input type="checkbox" name="product_ids[]" value="<?= $child->getId() ?>" />
                                         </td>
-                                        <td class="col-id child-id"><?= $child->getId() ?></td>
+                                        <td class="col-actions">
+                                            <span style="color: #94a3b8; font-weight: 500;">-</span>
+                                        </td>
+                                        <td class="col-id" style="color: #64748B; font-size: 12.5px;">
+                                            <?= $child->getId() ?>
+                                        </td>
                                         <td class="col-thumbnail">
                                             <?php
                                             $childImageUrl = $this->helper('Magento\Catalog\Helper\Image')
                                                 ->init($child, 'product_small_image')
-                                                ->resize(50)
+                                                ->resize(38)
                                                 ->getUrl();
                                             ?>
-                                            <img src="<?= $childImageUrl ?>" alt="Thumbnail" width="50" height="50" />
+                                            <img src="<?= $childImageUrl ?>" alt="Thumbnail" width="38" height="38" style="border-radius: 4px; border: 1px solid #E2E8F0; object-fit: contain;" />
                                         </td>
-                                        <td class="col-name child-name">
-                                            <span class="child-indicator">↳</span> <?= $block->escapeHtml($child->getName()) ?>
+                                        <td class="col-name">
+                                            <div class="child-name-wrap">
+                                                <span class="child-arrow">↳</span>
+                                                <span class="child-prod-title"><?= $block->escapeHtml($child->getName()) ?></span>
+                                            </div>
                                         </td>
-                                        <td class="col-categories">-</td>
-                                        <td class="col-attr-set">-</td>
+                                        <td class="col-categories" style="color: #94A3B8;">-</td>
+                                        <td class="col-attr-set" style="color: #94A3B8;">-</td>
                                         <td class="col-status">
                                             <?php if ($child->getStatus() == 1): ?>
                                                 <span class="status-badge enabled"><?= __('Enabled') ?></span>
@@ -279,25 +545,19 @@ $isApproved = $vendor ? ($vendor->getStatus() == 1) : false;
                                                 <span class="status-badge disabled"><?= __('Disabled') ?></span>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="col-type"><?= ucfirst($child->getTypeId()) ?></td>
-                                        <td class="col-price">
+                                        <td class="col-type">
+                                            <span class="type-pill type-simple"><?= ucfirst($child->getTypeId()) ?></span>
+                                        </td>
+                                        <td class="col-price" style="font-weight: 700; color: #1E293B;">
                                             <?= $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($child->getPrice(), true, false) ?>
                                         </td>
-                                        <td class="col-sku"><?= $block->escapeHtml($child->getSku()) ?></td>
+                                        <td class="col-sku font-mono"><?= $block->escapeHtml($child->getSku()) ?></td>
                                         <td class="col-qty">
                                             <span class="qty-number"><?= (float) $block->getProductQty($child) ?></span>
                                         </td>
                                         <td class="col-sold"><?= $childSalesStats['sold'] ?></td>
                                         <td class="col-confirmed"><?= $childSalesStats['confirmed'] ?></td>
                                         <td class="col-pending"><?= $childSalesStats['pending'] ?></td>
-                                        <td class="col-actions">
-                                            <select class="action-select"
-                                                onchange="handleRowAction(this, '<?= $block->getEditProductUrl($child) ?>', '<?= $block->getUrl('*/*/delete', ['id' => $child->getId()]) ?>')">
-                                                <option value=""><?= __('Select') ?></option>
-                                                <option value="edit"><?= __('Edit') ?></option>
-                                                <option value="delete"><?= __('Delete') ?></option>
-                                            </select>
-                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -310,10 +570,37 @@ $isApproved = $vendor ? ($vendor->getStatus() == 1) : false;
                 </tbody>
             </table>
         </div>
+        
+        <?php if ($block->getPagerHtml()): ?>
+            <div class="grid-controls bottom" style="margin-top: 15px; display: flex; justify-content: flex-end; align-items: center;">
+                <div class="grid-pagination">
+                    <?= $block->getPagerHtml() ?>
+                </div>
+            </div>
+        <?php endif; ?>
     </form>
 </div>
 
 <script>
+    
+    function toggleVariants(parentId, btn) {
+        var rows = document.querySelectorAll('.child-of-' + parentId);
+        var isHidden = false;
+        rows.forEach(function (row) {
+            if (row.style.display === 'none') {
+                row.style.display = '';
+                isHidden = false;
+            } else {
+                row.style.display = 'none';
+                isHidden = true;
+            }
+        });
+        var icon = btn.querySelector('i');
+        if (icon) {
+            icon.className = isHidden ? 'fas fa-chevron-right' : 'fas fa-chevron-down';
+        }
+    }
+
     function toggleFilters() {
         var el = document.getElementById('grid-filters');
         el.style.display = (el.style.display === 'none') ? 'block' : 'none';

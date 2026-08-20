@@ -105,7 +105,7 @@ class TransportBuilderPlugin
                         $frontendBaseUrl = rtrim($frontendBaseUrl, '/');
                         $path = $isVendorTemplate
                             ? sprintf('/marketplace/account/createpassword/?id=%s&token=%s', rawurlencode((string)$customerId), rawurlencode($rpToken))
-                            : sprintf('/reset-password?token=%s&email=%s', rawurlencode($rpToken), urlencode($email));
+                            : sprintf('/reset-password?token=%s&email=%s', rawurlencode($rpToken), rawurlencode($email));
                         $vars['frontend_reset_url'] = sprintf(
                             '%s%s',
                             $frontendBaseUrl,

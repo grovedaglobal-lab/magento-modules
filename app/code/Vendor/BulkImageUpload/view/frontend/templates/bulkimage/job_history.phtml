@@ -1,0 +1,57 @@
+<?php $jobs = $block->getJobs(); ?>
+<div class="dashboard-card shadow-sm mt-10">
+    <div class="card-header">
+        <h3><i class="fas fa-history"></i> <?= __('Recent Bulk Upload Jobs') ?></h3>
+    </div>
+    <div class="card-content">
+        <div class="table-wrapper shadow-xs rounded-lg overflow-hidden border border-gray-100">
+            <table class="shipping-rates-table">
+                <thead>
+                    <tr>
+                        <th class="col label"><?= __('Job ID') ?></th>
+                        <th class="col label"><?= __('File') ?></th>
+                        <th class="col status text-center"><?= __('Status') ?></th>
+                        <th class="col type text-center"><?= __('Progress') ?></th>
+                        <th class="col type"><?= __('Submitted') ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (count($jobs) > 0): ?>
+                        <?php foreach ($jobs as $job): ?>
+                        <tr>
+                            <td class="col label" style="font-family: monospace; font-size: 0.9em;"><?= $block->escapeHtml($job->getJobId()) ?></td>
+                            <td class="col label font-medium"><?= $block->escapeHtml($job->getZipFilename()) ?></td>
+                            <td class="col status text-center">
+                                <span class="<?= $block->escapeHtmlAttr($block->getStatusBadgeClass($job->getStatus())) ?>">
+                                    <?= $block->escapeHtml($block->getStatusLabel($job->getStatus())) ?>
+                                </span>
+                            </td>
+                            <td class="col type text-center">
+                                <?php if ($job->getTotalSkus() > 0): ?>
+                                    <div style="font-size: 0.85em; font-weight: bold;">
+                                        <?= (int)$job->getProcessedSkus() ?> / <?= (int)$job->getTotalSkus() ?> SKUs
+                                    </div>
+                                    <div style="font-size: 0.75em; color: #0b9b3e;">
+                                        <?= (int)$job->getSuccessCount() ?> Success
+                                    </div>
+                                <?php else: ?>
+                                    <span class="text-gray-400">-</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="col type text-sm text-gray-500">
+                                <?= $block->escapeHtml($job->getCreatedAt()) ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                    <tr>
+                        <td colspan="5" class="text-center py-10 italic text-gray-400">
+                            <?= __('No recent jobs found.') ?>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

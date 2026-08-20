@@ -20,7 +20,7 @@ class Collection extends AbstractCollection
         $this->getSelect()->joinLeft(
             ['profile' => $this->getTable('vendor_profile')],
             'main_table.entity_id = profile.vendor_id',
-            ['shop_name', 'logo', 'description', 'banner', 'email', 'phone', 'address', 'city', 'state', 'zip_code', 'country', 'company_name', 'tax_id', 'business_license', 'signature', 'authorized_name']
+            ['shop_name', 'logo', 'description', 'banner', 'email', 'phone', 'address', 'city', 'state', 'zip_code', 'country', 'company_name', 'tax_id', 'business_license', 'signature', 'authorized_name', 'brand_header_image', 'brand_slider_image_1', 'brand_slider_image_2', 'brand_slider_image_3']
         );
         return $this;
     }

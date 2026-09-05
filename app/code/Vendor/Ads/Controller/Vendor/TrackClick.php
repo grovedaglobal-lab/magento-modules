@@ -41,8 +41,26 @@ class TrackClick extends Action
                     ctr    = IFNULL(ROUND((clicks + 1) / NULLIF(impressions, 0) * 100, 4), 0)
             ", [$bidId, $today]);
 
-            // Deduct wallet and handle budget — uses atomic SQL inside BillingService
-            $this->billingService->processClick($bidId);
+            // Anti-fraud & rate-limiting protection: check user agent and session cooldown
+            $userAgent = (string)$this->getRequest()->getHeader('User-Agent');
+            if (!empty($userAgent) && preg_match('/(bot|crawl|spider|slurp|curl|wget|python|scanner|headless)/i', $userAgent)) {
+                return $result->setData(['success' => false, 'message' => 'Automated click ignored']);
+            }
+
+            $session = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Framework\Session\SessionManagerInterface::class);
+            $clickedBids = $session->getData('clicked_ad_bids') ?: [];
+            $now = time();
+            $isDuplicate = false;
+            if (isset($clickedBids[$bidId]) && ($now - (int)$clickedBids[$bidId]) < 300) {
+                $isDuplicate = true;
+            }
+            $clickedBids[$bidId] = $now;
+            $session->setData('clicked_ad_bids', $clickedBids);
+
+            if (!$isDuplicate) {
+                // Deduct wallet and handle budget — uses atomic SQL inside BillingService
+                $this->billingService->processClick($bidId);
+            }
 
             // Write raw event to vendor_ads_logs
             $this->writeLog($bidId, 'click');

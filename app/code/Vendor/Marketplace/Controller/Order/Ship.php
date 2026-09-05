@@ -132,6 +132,21 @@ class Ship extends Action
 
             // Explicitly save the order to ensure status updates are persisted
             $order->save();
+            // Amazon/Flipkart Marketplace model: Update this specific vendor order status
+            // Check if all items for this vendor are now fully shipped
+            $allVendorItemsShipped = true;
+            $vendorItemsAfter = $this->vendorHelper->getVendorOrderItems($order, $vendor->getId());
+            foreach ($vendorItemsAfter as $item) {
+                if (($item->getQtyOrdered() - $item->getQtyShipped()) > 0) {
+                    $allVendorItemsShipped = false;
+                    break;
+                }
+            }
+
+            if ($allVendorItemsShipped) {
+                $vendorOrder->setStatus(\Magento\Sales\Model\Order::STATE_COMPLETE);
+                $vendorOrder->save();
+            }
 
             // Notify Customer (Shipment without tracking)
             try {
@@ -149,3 +164,4 @@ class Ship extends Action
         return $this->resultRedirectFactory->create()->setPath('marketplace/order/view', ['id' => $orderId]);
     }
 }
+

@@ -34,6 +34,12 @@ class Save extends AbstractVendor
             return $this->_redirect($redirectUrl);
         }
 
+        $formKeyValidator = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Framework\Data\Form\FormKey\Validator::class);
+        if (!$formKeyValidator->validate($this->getRequest())) {
+            $this->messageManager->addErrorMessage(__('Invalid form key. Please refresh the page and try again.'));
+            return $this->_redirect($redirectUrl);
+        }
+
         $vendorId = $this->_vendorSession->getVendorId();
         $subject = $this->getRequest()->getParam('subject');
         $category = $this->getRequest()->getParam('category');

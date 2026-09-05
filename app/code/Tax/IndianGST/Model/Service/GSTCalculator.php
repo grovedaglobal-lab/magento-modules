@@ -59,13 +59,14 @@ class GSTCalculator
         // 3. Determine Tax Type (IGST or CGST/SGST)
         $isInterState = ($vendorStateId != $customerStateId);
 
-        // 4. Get Tax Rate
-        // For simplicity, we assume generic 18% if not defined, or fetch from Tax Class
-        // In a real module, we would map Product Tax Class ID to a GST % table.
-        $gstPercent = 18.00; // Default example
-
-        // Advanced: Fetch from tax_indiangst_rates table if you implemented it fully
-        // $rateModel = ... fetch by product->getTaxClassId()
+        // 4. Get Tax Rate (Dynamically check product gst_rate attribute before default)
+        $gstPercent = 18.00; // Default fallback
+        if ($product) {
+            $productGstRate = $product->getData('gst_rate');
+            if ($productGstRate !== null && $productGstRate !== '') {
+                $gstPercent = (float)$productGstRate;
+            }
+        }
 
         $taxDetails = [
             'type' => $isInterState ? 'IGST' : 'CGST_SGST',

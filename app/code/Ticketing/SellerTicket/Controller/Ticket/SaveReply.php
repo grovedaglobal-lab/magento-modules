@@ -28,6 +28,22 @@ class SaveReply extends AbstractVendor
         $ticketId = $request->getParam('ticket_id');
         $messageText = $request->getParam('message');
 
+        // Verify ticket ownership (IDOR prevention)
+        $ticketFactory = \Magento\Framework\App\ObjectManager::getInstance()->get(\Ticketing\SellerTicket\Model\TicketFactory::class);
+        $ticket = $ticketFactory->create()->load($ticketId);
+        $currentVendorId = (int)$this->_vendorSession->getVendorId();
+
+        if (!$ticket->getId() || (int)$ticket->getVendorId() !== $currentVendorId) {
+            $this->messageManager->addErrorMessage(__('Access Denied. You do not have permission to reply to this ticket.'));
+            return $this->_redirect('*/*/index');
+        }
+
+        $formKeyValidator = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Framework\Data\Form\FormKey\Validator::class);
+        if (!$formKeyValidator->validate($this->getRequest())) {
+            $this->messageManager->addErrorMessage(__('Invalid form key. Please refresh the page and try again.'));
+            return $this->_redirect('*/*/view', ['id' => $ticketId]);
+        }
+
         if ($ticketId && trim($messageText)) {
             try {
                 $senderName = 'Seller';

@@ -13,7 +13,7 @@ use Magento\Framework\App\ResourceConnection;
  *
  * Reads real-time product views directly from report_event table.
  * Returns both product_ids and skus so the frontend can filter by sku.
- * No cron aggregation delay — works immediately after a product is viewed.
+ * No cron aggregation delay â€” works immediately after a product is viewed.
  */
 class TrendingProductIds implements ResolverInterface
 {
@@ -28,7 +28,7 @@ class TrendingProductIds implements ResolverInterface
     /**
      * {@inheritdoc}
      */
-    public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
+    public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null)
     {
         $limit      = max(1, min((int)($args['limit'] ?? 8), 50));
         $minViews   = max(0, (int)($args['minViews'] ?? 0));

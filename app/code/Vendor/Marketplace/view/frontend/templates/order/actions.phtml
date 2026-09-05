@@ -29,7 +29,7 @@ if (!$vendorOrder || !$order) {
                 </a>
             <?php endif; ?>
 
-            <?php if ($order->canCancel()): ?>
+            <?php if ($block->canVendorCancel()): ?>
                 <a href="<?= $block->getCancelUrl() ?>" class="action-btn danger action-cancel"
                     onclick="return confirm('Are you sure you want to cancel this order?');">
                     <i class="fas fa-times-circle"></i>
@@ -61,8 +61,8 @@ if (!$vendorOrder || !$order) {
         <span class="order-date">
             <?= date('M d, Y g:i A', strtotime($order->getCreatedAt())) ?>
         </span>
-        <span class="order-status status-<?= strtolower($order->getStatus()) ?>">
-            <?= $order->getStatusLabel() ?>
+        <span class="order-status status-<?= strtolower($block->getVendorOrderStatus() ?: $order->getStatus()) ?>">
+            <?= $block->getVendorOrderStatusLabel() ?>
         </span>
     </div>
 

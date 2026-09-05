@@ -58,8 +58,18 @@ class CreatePost extends Action
             return $resultRedirect->setPath('*/*/create');
         }
 
+        $formKeyValidator = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Framework\Data\Form\FormKey\Validator::class);
+        if (!$formKeyValidator->validate($this->getRequest())) {
+            $this->messageManager->addErrorMessage(__('Invalid form key. Please refresh the page and try again.'));
+            return $resultRedirect->setPath('*/*/create');
+        }
+
         $shopUrl = isset($post['shop_url']) ? trim($post['shop_url']) : '';
         $shopName = isset($post['shop_name']) ? trim($post['shop_name']) : '';
+
+        if (empty($shopUrl) && !empty($shopName)) {
+            $shopUrl = strtolower(preg_replace('/[^a-zA-Z0-9_]+/', '_', trim($shopName)));
+        }
         $phone = isset($post['phone']) ? trim($post['phone']) : '';
 
         try {
@@ -72,8 +82,8 @@ class CreatePost extends Action
             }
 
             // Validate Phone Number
-            if (!preg_match('/^\d{10}$/', $phone)) {
-                throw new InputException(__('Please enter a valid 10-digit phone number.'));
+            if (!preg_match('/^\+?\d{10,12}$/', $phone)) {
+                throw new InputException(__('Please enter a valid mobile number (e.g. +919876543210 or 10-12 digits).'));
             }
 
             // Create Customer

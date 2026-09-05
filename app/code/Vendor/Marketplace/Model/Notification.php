@@ -10,6 +10,7 @@ class Notification extends AbstractModel
      */
     const TYPE_NEW_ORDER = 'new_order';
     const TYPE_NEW_REVIEW = 'new_review';
+    const TYPE_WALLET_RECHARGE = 'wallet_recharge';
 
     /**
      * Initialize resource model

@@ -8,62 +8,218 @@ if ($rule === false) {
     echo '<div class="message error"><span>' . __('You do not have permission to view this coupon.') . '</span></div>';
     return;
 }
+
+$isNew = !$rule->getId();
+$pageTitle = $isNew ? __('Create New Coupon') : __('Edit Coupon: %1', $rule->getName());
 ?>
 
-<div class="row">
-    <div class="col-md-12">
-        <form class="form-horizontal" action="<?= $saveUrl ?>" method="post" id="coupon-form"
-            data-mage-init='{"validation":{}}'>
-            <input type="hidden" name="rule_id" value="<?= $rule->getId() ?: '' ?>" />
+<style>
+.coupon-form-container {
+    max-width: 100%;
+    margin: 0 auto;
+}
+.coupon-header-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.coupon-header-banner h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.coupon-header-banner h2 i {
+    color: #0b9b3e;
+}
+.coupon-header-banner p {
+    margin: 4px 0 0 0;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+.form-grid-2col {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+.form-grid-3col {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+.coupon-field-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 18px;
+}
+.coupon-field-group label {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: #334155;
+    margin-bottom: 6px;
+}
+.coupon-field-group label.required::after {
+    content: ' *';
+    color: #e11d48;
+}
+.coupon-field-group .input-text,
+.coupon-field-group .select,
+.coupon-field-group select {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background-color: #ffffff;
+    font-size: 0.95rem;
+    color: #1e293b;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+.coupon-field-group input[type="date"] {
+    height: 44px;
+    padding: 0 12px;
+}
+.coupon-field-group .input-text:focus,
+.coupon-field-group .select:focus,
+.coupon-field-group select:focus {
+    border-color: #0b9b3e;
+    box-shadow: 0 0 0 3px rgba(11, 155, 62, 0.15);
+    outline: none;
+}
+.coupon-field-group .field-note {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 4px;
+}
+.coupon-code-wrap {
+    display: flex;
+    gap: 8px;
+}
+.coupon-code-wrap .input-text {
+    flex: 1;
+    font-family: monospace;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.coupon-generate-btn {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    border-radius: 6px;
+    padding: 0 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+}
+.coupon-generate-btn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+.coupon-actions-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+</style>
 
-            <fieldset class="fieldset">
-                <legend class="legend"><span>
-                        <?= __('Coupon Information') ?>
-                    </span></legend>
-                <div class="field required">
-                    <label class="label" for="name"><span>
-                            <?= __('Rule Name') ?>
-                        </span></label>
-                    <div class="control">
+<div class="coupon-form-container">
+    <div class="coupon-header-banner">
+        <div>
+            <h2><i class="fas fa-ticket-alt"></i> <?= $pageTitle ?></h2>
+            <p><?= __('Configure discount rules, promotional coupon codes, and select products.') ?></p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="<?= $backUrl ?>" class="action-btn secondary">
+                <i class="fas fa-arrow-left"></i> <span><?= __('Back to Coupons') ?></span>
+            </a>
+            <button type="button" class="action-btn primary large" onclick="document.getElementById('coupon-form').submit();">
+                <i class="fas fa-save"></i> <span><?= __('Save Coupon') ?></span>
+            </button>
+        </div>
+    </div>
+
+    <form class="form" action="<?= $saveUrl ?>" method="post" id="coupon-form" data-mage-init='{"validation":{}}'>
+        <?= $block->getBlockHtml('formkey') ?>
+        <input type="hidden" name="rule_id" value="<?= $rule->getId() ?: '' ?>" />
+
+        <!-- Card 1: Coupon Information -->
+        <div class="dashboard-card shadow-sm mb-6" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h3><i class="fas fa-info-circle"></i> <?= __('Coupon Information') ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="form-grid-2col">
+                    <div class="coupon-field-group">
+                        <label for="name" class="required"><?= __('Rule Name') ?></label>
                         <input name="name" id="name" title="<?= __('Rule Name') ?>"
-                            value="<?= $block->escapeHtml($rule->getName()) ?>" class="input-text" type="text"
-                            data-validate="{required:true}" />
+                               value="<?= $block->escapeHtml($rule->getName()) ?>" 
+                               class="input-text" type="text"
+                               placeholder="<?= __('e.g. Summer Sale 20% Off') ?>"
+                               data-validate="{required:true}" />
+                        <div class="field-note"><?= __('Internal name for your discount campaign.') ?></div>
                     </div>
-                </div>
 
-                <div class="field required">
-                    <label class="label" for="code"><span>
-                            <?= __('Coupon Code') ?>
-                        </span></label>
-                    <div class="control">
-                        <input name="code" id="code" title="<?= __('Coupon Code') ?>"
-                            value="<?= $block->escapeHtml($rule->getCouponCode()) ?>" class="input-text" type="text"
-                            data-validate="{required:true}" />
-                    </div>
-                </div>
-
-                <div class="field required">
-                    <label class="label" for="discount_amount"><span>
-                            <?= __('Discount Amount') ?>
-                        </span></label>
-                    <div class="control">
-                        <input name="discount_amount" id="discount_amount" title="<?= __('Discount Amount') ?>"
-                            value="<?= (float) $rule->getDiscountAmount() ?>" class="input-text" type="text"
-                            data-validate="{required:true, 'validate-number':true}" />
-                        <div class="note">
-                            <?= __('Enter percentage or fixed amount.') ?>
+                    <div class="coupon-field-group">
+                        <label for="code" class="required"><?= __('Coupon Code') ?></label>
+                        <div class="coupon-code-wrap">
+                            <input name="code" id="code" title="<?= __('Coupon Code') ?>"
+                                   value="<?= $block->escapeHtml($rule->getCouponCode()) ?>" 
+                                   class="input-text" type="text"
+                                   placeholder="<?= __('e.g. SUMMER20') ?>"
+                                   data-validate="{required:true}" />
+                            <button type="button" class="coupon-generate-btn" id="generate-code-btn">
+                                <i class="fas fa-magic"></i> <?= __('Generate') ?>
+                            </button>
                         </div>
+                        <div class="field-note"><?= __('The promo code customers will enter at checkout.') ?></div>
                     </div>
                 </div>
 
-                <div class="field required">
-                    <label class="label" for="simple_action"><span>
-                            <?= __('Discount Type') ?>
-                        </span></label>
-                    <div class="control">
+                <div class="form-grid-2col" style="margin-top: 10px;">
+                    <div class="coupon-field-group">
+                        <label for="is_active"><?= __('Status') ?></label>
+                        <select name="is_active" id="is_active" class="select">
+                            <option value="1" <?= $rule->getIsActive() == 1 || $isNew ? 'selected' : '' ?>>
+                                <?= __('Active (Enabled)') ?>
+                            </option>
+                            <option value="0" <?= ($rule->getIsActive() !== null && $rule->getIsActive() == 0 && !$isNew) ? 'selected' : '' ?>>
+                                <?= __('Inactive (Disabled)') ?>
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Discount & Validity Rules -->
+        <div class="dashboard-card shadow-sm mb-6" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h3><i class="fas fa-tags"></i> <?= __('Discount & Validity') ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="form-grid-2col">
+                    <div class="coupon-field-group">
+                        <label for="simple_action" class="required"><?= __('Discount Type') ?></label>
                         <select name="simple_action" id="simple_action" class="select">
                             <option value="by_percent" <?= $rule->getSimpleAction() == 'by_percent' ? 'selected' : '' ?>>
-                                <?= __('Percent of product price discount') ?>
+                                <?= __('Percent of product price discount (%)') ?>
                             </option>
                             <option value="by_fixed" <?= $rule->getSimpleAction() == 'by_fixed' ? 'selected' : '' ?>>
                                 <?= __('Fixed Amount (Per Product)') ?>
@@ -73,103 +229,95 @@ if ($rule === false) {
                             </option>
                         </select>
                     </div>
+
+                    <div class="coupon-field-group">
+                        <label for="discount_amount" class="required"><?= __('Discount Amount') ?></label>
+                        <input name="discount_amount" id="discount_amount" title="<?= __('Discount Amount') ?>"
+                               value="<?= (float) $rule->getDiscountAmount() ?>" 
+                               class="input-text" type="text"
+                               placeholder="10"
+                               data-validate="{required:true, 'validate-number':true}" />
+                        <div class="field-note"><?= __('Enter percentage value (e.g. 15 for 15%) or fixed amount.') ?></div>
+                    </div>
                 </div>
 
-                <div class="field">
-                    <label class="label" for="from_date"><span>
-                            <?= __('From Date') ?>
-                        </span></label>
-                    <div class="control">
+                <div class="form-grid-2col" style="margin-top: 10px;">
+                    <div class="coupon-field-group">
+                        <label for="from_date"><?= __('Valid From Date') ?></label>
                         <input name="from_date" id="from_date" title="<?= __('From Date') ?>"
-                            value="<?= $rule->getFromDate() ?>" class="input-text" type="date" />
+                               value="<?= $rule->getFromDate() ?>" class="input-text" type="date" />
+                        <div class="field-note"><?= __('Leave blank for immediate activation.') ?></div>
                     </div>
-                </div>
 
-                <div class="field">
-                    <label class="label" for="to_date"><span>
-                            <?= __('To Date') ?>
-                        </span></label>
-                    <div class="control">
+                    <div class="coupon-field-group">
+                        <label for="to_date"><?= __('Valid To Date') ?></label>
                         <input name="to_date" id="to_date" title="<?= __('To Date') ?>"
-                            value="<?= $rule->getToDate() ?>" class="input-text" type="date" />
+                               value="<?= $rule->getToDate() ?>" class="input-text" type="date" />
+                        <div class="field-note"><?= __('Leave blank for no expiration.') ?></div>
                     </div>
-                </div>
-
-                <!-- Conditions Block Removed per Request -->
-
-                <div class="field">
-                    <?= $block->getLayout()->createBlock(\Vendor\Marketplace\Block\Coupon\ProductList::class)
-                        ->setTemplate('Vendor_Marketplace::coupon/product_selector.phtml')
-                        ->toHtml() ?>
-                </div>
-
-                <div class="field">
-                    <label class="label" for="uses_per_coupon"><span>
-                            <?= __('Uses per Coupon') ?>
-                        </span></label>
-                    <div class="control">
-                        <input name="uses_per_coupon" id="uses_per_coupon" title="<?= __('Uses per Coupon') ?>"
-                            value="<?= (int) $rule->getUsesPerCoupon() ?>" class="input-text" type="text"
-                            data-validate="{'validate-number':true}" />
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label class="label" for="uses_per_customer"><span>
-                            <?= __('Uses per Customer') ?>
-                        </span></label>
-                    <div class="control">
-                        <input name="uses_per_customer" id="uses_per_customer" title="<?= __('Uses per Customer') ?>"
-                            value="<?= (int) $rule->getUsesPerCustomer() ?>" class="input-text" type="text"
-                            data-validate="{'validate-number':true}" />
-                        <div class="note">
-                            <?= __('Usage limit enforced for logged in customers only.') ?>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label class="label" for="is_active"><span>
-                            <?= __('Active') ?>
-                        </span></label>
-                    <div class="control">
-                        <select name="is_active" id="is_active" class="select">
-                            <option value="1" <?= $rule->getIsActive() == 1 ? 'selected' : '' ?>>
-                                <?= __('Yes') ?>
-                            </option>
-                            <option value="0" <?= $rule->getIsActive() == 0 ? 'selected' : '' ?>>
-                                <?= __('No') ?>
-                            </option>
-                        </select>
-                    </div>
-                </div>
-
-            </fieldset>
-
-            <div class="actions-toolbar">
-                <div class="primary">
-                    <button type="submit" class="action save primary" title="<?= __('Save Coupon') ?>">
-                        <span>
-                            <?= __('Save Coupon') ?>
-                        </span>
-                    </button>
-                </div>
-                <div class="secondary">
-                    <a href="<?= $backUrl ?>" class="action back">
-                        <span>
-                            <?= __('Back') ?>
-                        </span>
-                    </a>
                 </div>
             </div>
-        </form>
-    </div>
+        </div>
+
+        <!-- Card 3: Usage Restrictions -->
+        <div class="dashboard-card shadow-sm mb-6" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h3><i class="fas fa-users-cog"></i> <?= __('Usage Limits') ?></h3>
+            </div>
+            <div class="card-content">
+                <div class="form-grid-2col">
+                    <div class="coupon-field-group">
+                        <label for="uses_per_coupon"><?= __('Uses per Coupon (Total)') ?></label>
+                        <input name="uses_per_coupon" id="uses_per_coupon" title="<?= __('Uses per Coupon') ?>"
+                               value="<?= (int) $rule->getUsesPerCoupon() ?>" class="input-text" type="text"
+                               placeholder="0"
+                               data-validate="{'validate-number':true}" />
+                        <div class="field-note"><?= __('Total times this coupon can be used across all customers (0 or empty = unlimited).') ?></div>
+                    </div>
+
+                    <div class="coupon-field-group">
+                        <label for="uses_per_customer"><?= __('Uses per Customer') ?></label>
+                        <input name="uses_per_customer" id="uses_per_customer" title="<?= __('Uses per Customer') ?>"
+                               value="<?= (int) $rule->getUsesPerCustomer() ?>" class="input-text" type="text"
+                               placeholder="0"
+                               data-validate="{'validate-number':true}" />
+                        <div class="field-note"><?= __('Maximum times a single customer can use this coupon (applies to logged-in customers).') ?></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: Applicable Products Selection -->
+        <?= $block->getLayout()->createBlock(\Vendor\Marketplace\Block\Coupon\ProductList::class)
+            ->setTemplate('Vendor_Marketplace::coupon/product_selector.phtml')
+            ->toHtml() ?>
+
+        <!-- Footer Actions -->
+        <div class="coupon-actions-footer">
+            <a href="<?= $backUrl ?>" class="action-btn secondary">
+                <i class="fas fa-arrow-left"></i> <span><?= __('Back') ?></span>
+            </a>
+            <button type="submit" class="action-btn primary large" title="<?= __('Save Coupon') ?>">
+                <i class="fas fa-save"></i> <span><?= __('Save Coupon') ?></span>
+            </button>
+        </div>
+    </form>
 </div>
-<script>
-    require([
-        'Magento_Rule/rules',
-        'prototype'
-    ], function () {
-        // VarienRulesForm is loaded
+
+<script type="text/javascript">
+require(['jquery'], function ($) {
+    'use strict';
+    $(document).ready(function () {
+        $('#generate-code-btn').on('click', function () {
+            var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            var prefix = ($('#name').val() || 'PROMO').replace(/[^a-zA-Z]/g, '').substring(0, 4).toUpperCase();
+            if (!prefix) prefix = 'SALE';
+            var randomPart = '';
+            for (var i = 0; i < 6; i++) {
+                randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            $('#code').val(prefix + randomPart);
+        });
     });
+});
 </script>

@@ -18,6 +18,7 @@ class AddTrack extends Action
     protected $shipmentRepository;
     protected $trackFactory;
     protected $shipmentNotifier;
+    protected $vendorHelper;
 
     public function __construct(
         Context $context,
@@ -26,7 +27,8 @@ class AddTrack extends Action
         VendorOrderFactory $vendorOrderFactory,
         ShipmentRepositoryInterface $shipmentRepository,
         TrackFactory $trackFactory,
-        ShipmentNotifier $shipmentNotifier
+        ShipmentNotifier $shipmentNotifier,
+        ?\Vendor\Marketplace\Helper\Data $vendorHelper = null
     ) {
         $this->customerSession = $customerSession;
         $this->vendorFactory = $vendorFactory;
@@ -34,6 +36,7 @@ class AddTrack extends Action
         $this->shipmentRepository = $shipmentRepository;
         $this->trackFactory = $trackFactory;
         $this->shipmentNotifier = $shipmentNotifier;
+        $this->vendorHelper = $vendorHelper ?: \Magento\Framework\App\ObjectManager::getInstance()->get(\Vendor\Marketplace\Helper\Data::class);
         parent::__construct($context);
     }
 
@@ -73,6 +76,26 @@ class AddTrack extends Action
             // Basic validation to ensure shipment belongs to the order
             if ($shipment->getOrderId() != $vendorOrder->getOrderId()) {
                 throw new \Exception(__('Access Denied (Shipment mismatch).'));
+            }
+
+            // Verify shipment belongs to this vendor's items (prevent multi-vendor cross-shipment IDOR)
+            $order = $shipment->getOrder();
+            $vendorItems = $this->vendorHelper->getVendorOrderItems($order, $vendor->getId());
+            $vendorOrderItemIds = [];
+            foreach ($vendorItems as $vItem) {
+                $vendorOrderItemIds[] = (int)$vItem->getId();
+            }
+
+            $shipmentBelongsToVendor = false;
+            foreach ($shipment->getAllItems() as $sItem) {
+                if (in_array((int)$sItem->getOrderItemId(), $vendorOrderItemIds, true)) {
+                    $shipmentBelongsToVendor = true;
+                    break;
+                }
+            }
+
+            if (!$shipmentBelongsToVendor) {
+                throw new \Exception(__('Access Denied: This shipment does not contain items from your vendor account.'));
             }
 
             $track = $this->trackFactory->create();

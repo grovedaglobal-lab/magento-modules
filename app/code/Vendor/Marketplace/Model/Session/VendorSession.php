@@ -39,7 +39,7 @@ class VendorSession
      */
     public function isLoggedIn()
     {
-        return $this->customerSession->isLoggedIn() && $this->getVendorId();
+        return $this->customerSession->isLoggedIn() && (bool) $this->getVendorId();
     }
 
     /**
@@ -56,7 +56,10 @@ class VendorSession
     public function getVendorId()
     {
         $vendor = $this->getVendor();
-        return $vendor ? $vendor->getEntityId() : null;
+        if ($vendor) {
+            return $vendor->getEntityId() ?: $vendor->getId();
+        }
+        return null;
     }
 
     /**
@@ -67,8 +70,12 @@ class VendorSession
         if ($this->vendor === null && $this->getCustomerId()) {
             try {
                 $this->vendor = $this->vendorRepository->getByCustomerId($this->getCustomerId());
-            } catch (NoSuchEntityException $e) {
-                $this->vendor = false;
+            } catch (\Exception $e) {
+                // Direct fallback load if repository does not locate entity
+                $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+                $vendorFactory = $objectManager->create(\Vendor\Marketplace\Model\VendorFactory::class);
+                $loaded = $vendorFactory->create()->load($this->getCustomerId(), 'customer_id');
+                $this->vendor = ($loaded && $loaded->getId()) ? $loaded : false;
             }
         }
         return $this->vendor ?: null;

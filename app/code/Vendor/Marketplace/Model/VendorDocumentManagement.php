@@ -63,9 +63,13 @@ class VendorDocumentManagement implements VendorDocumentManagementInterface
             throw new LocalizedException(__('Invalid file extension. Allowed: jpg, jpeg, png, pdf'));
         }
 
-        // 3. Save File
+        // 3. Save File (Sanitize filename to prevent directory traversal)
         $mediaDir = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
-        $relativePath = 'vendor/documents/' . $vendorId . '/' . time() . '_' . $fileName;
+        $cleanFileName = preg_replace('/[^a-zA-Z0-9._-]/', '', basename($fileName));
+        if (empty($cleanFileName)) {
+            $cleanFileName = 'doc_' . uniqid() . '.' . $extension;
+        }
+        $relativePath = 'vendor/documents/' . (int)$vendorId . '/' . time() . '_' . $cleanFileName;
         $mediaDir->writeFile($relativePath, $fileContent);
 
         // 4. Save Record

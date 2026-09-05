@@ -40,19 +40,7 @@ $formData = $block->getFormData();
         <fieldset class="fieldset create vendor" data-hasrequired="<?= $escaper->escapeHtmlAttr(__('* Required Fields')) ?>">
             <legend class="legend"><span><?= $escaper->escapeHtml(__('Vendor Information')) ?></span></legend>
 
-        <div class="field required">
-            <label for="shop_url" class="label"><span>
-                    <?= $escaper->escapeHtml(__('Shop URL')) ?>
-                </span></label>
-            <div class="control">
-                <input type="text" name="shop_url" id="shop_url" title="<?= $escaper->escapeHtmlAttr(__('Shop URL')) ?>"
-                    class="input-text" data-validate="{required:true, 'validate-alphanum-with-dashes':true}"
-                    autocomplete="off">
-                <div class="note">
-                    <?php echo __('Your shop URL will be domain.com/marketplace/seller/index/id/your-url'); ?>
-                </div>
-            </div>
-        </div>
+
 
         <div class="field required">
             <label for="shop_name" class="label"><span>
@@ -66,12 +54,27 @@ $formData = $block->getFormData();
         </div>
 
         <div class="field required">
+            <label for="shop_url" class="label"><span>
+                    <?= $escaper->escapeHtml(__('Shop URL')) ?>
+                </span></label>
+            <div class="control">
+                <input type="text" name="shop_url" id="shop_url" title="<?= $escaper->escapeHtmlAttr(__('Shop URL')) ?>"
+                    class="input-text" data-validate="{required:true}"
+                    readonly="readonly" style="background-color: #f1f5f9; color: #334155; cursor: not-allowed;"
+                    autocomplete="off">
+                <div class="note">
+                    <?php echo __('Your shop URL will be automatically generated from your shop name (spaces replaced with underscores).'); ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="field required">
             <label for="phone" class="label"><span><?= $escaper->escapeHtml(__('Phone Number')) ?></span></label>
             <div class="control">
                 <input type="text" name="phone" id="phone" title="<?= $escaper->escapeHtmlAttr(__('Phone Number')) ?>"
-                    class="input-text" minlength="10" maxlength="10"
-                    data-validate="{required:true, 'validate-digits':true}" autocomplete="off">
-                <div class="note"><?php echo __('Please enter a valid 10-digit mobile number.'); ?></div>
+                    class="input-text" minlength="10" maxlength="13" placeholder="+919876543210"
+                    data-validate="{required:true}" autocomplete="off">
+                <div class="note"><?php echo __('Please enter a valid mobile number (10 to 12 digits, e.g. +919876543210).'); ?></div>
             </div>
         </div>
         </fieldset>
@@ -80,15 +83,27 @@ $formData = $block->getFormData();
             <legend class="legend"><span><?= $escaper->escapeHtml(__('Sign-in Information')) ?></span></legend>
 
         <div class="field password required">
-            <label for="password" class="label"><span>
+            <label for="password-visible" class="label"><span>
                     <?= $escaper->escapeHtml(__('Password')) ?>
                 </span></label>
-            <div class="control">
+            <div class="control" style="position: relative;">
+                <!-- Hidden actual password input for Magento validation & form submission -->
                 <input type="password" name="password" id="password"
-                    title="<?= $escaper->escapeHtmlAttr(__('Password')) ?>" class="input-text"
+                    style="display:none;" tabindex="-1" aria-hidden="true"
                     data-password-min-length="<?= $escaper->escapeHtmlAttr($block->getMinimumPasswordLength()) ?>"
                     data-password-min-character-sets="<?= $escaper->escapeHtmlAttr($block->getRequiredCharacterClassesNumber()) ?>"
-                    data-validate="{required:true, 'validate-customer-password':true}" autocomplete="off">
+                    data-validate="{required:true, 'validate-customer-password':true}"
+                    autocomplete="new-password">
+                <!-- Visible text input masked via CSS -->
+                <input type="text" id="password-visible"
+                    class="input-text reg-pass-visible" style="padding-right: 40px;"
+                    title="<?= $escaper->escapeHtmlAttr(__('Password')) ?>"
+                    autocomplete="off" spellcheck="false">
+                <button type="button" class="btn-toggle-password" data-target="password-visible" data-hidden="password"
+                    style="position: absolute; right: 10px; top: 10px; background: none; border: none; cursor: pointer; color: #64748b; padding: 4px; z-index: 10;"
+                    aria-label="Toggle password visibility">
+                    <i class="fa fa-eye eye-icon" style="font-size: 16px;"></i>
+                </button>
                 <div id="password-strength-meter-container" data-role="password-strength-meter" aria-live="polite">
                     <div id="password-strength-meter" class="password-strength-meter">
                         <?= $escaper->escapeHtml(__('Password Strength')) ?>:
@@ -100,15 +115,26 @@ $formData = $block->getFormData();
             </div>
         </div>
         <div class="field confirmation required">
-            <label for="password-confirmation" class="label">
+            <label for="password-confirmation-visible" class="label">
                 <span>
                     <?= $escaper->escapeHtml(__('Confirm Password')) ?>
                 </span>
             </label>
-            <div class="control">
-                <input type="password" name="password_confirmation"
-                    title="<?= $escaper->escapeHtmlAttr(__('Confirm Password')) ?>" id="password-confirmation"
-                    class="input-text" data-validate="{required:true, equalTo:'#password'}" autocomplete="off">
+            <div class="control" style="position: relative;">
+                <!-- Hidden actual confirm input -->
+                <input type="password" name="password_confirmation" id="password-confirmation"
+                    style="display:none;" tabindex="-1" aria-hidden="true"
+                    data-validate="{required:true, equalTo:'#password'}" autocomplete="new-password">
+                <!-- Visible text input masked via CSS -->
+                <input type="text" id="password-confirmation-visible"
+                    class="input-text reg-pass-visible" style="padding-right: 40px;"
+                    title="<?= $escaper->escapeHtmlAttr(__('Confirm Password')) ?>"
+                    autocomplete="off" spellcheck="false">
+                <button type="button" class="btn-toggle-password" data-target="password-confirmation-visible" data-hidden="password-confirmation"
+                    style="position: absolute; right: 10px; top: 10px; background: none; border: none; cursor: pointer; color: #64748b; padding: 4px; z-index: 10;"
+                    aria-label="Toggle confirm password visibility">
+                    <i class="fa fa-eye eye-icon" style="font-size: 16px;"></i>
+                </button>
             </div>
         </div>
     </fieldset>
@@ -139,4 +165,98 @@ $formData = $block->getFormData();
             }
         }
     }
+</script>
+
+<style>
+/* Mask visible password inputs via CSS text-security */
+.reg-pass-visible {
+    -webkit-text-security: disc;
+    text-security: disc;
+}
+.reg-pass-visible.show-password {
+    -webkit-text-security: none;
+    text-security: none;
+}
+</style>
+
+<script>
+function initPasswordToggle() {
+    var toggleBtns = document.querySelectorAll('.btn-toggle-password');
+    toggleBtns.forEach(function (btn) {
+        if (btn.dataset.initialized) return;
+        btn.dataset.initialized = 'true';
+
+        var visibleId = btn.getAttribute('data-target');
+        var hiddenId  = btn.getAttribute('data-hidden');
+        var visibleInput = document.getElementById(visibleId);
+        var hiddenInput  = hiddenId ? document.getElementById(hiddenId) : null;
+
+        // Sync visible -> hidden on every keystroke
+        if (visibleInput && hiddenInput) {
+            visibleInput.addEventListener('input', function () {
+                hiddenInput.value = visibleInput.value;
+            });
+        }
+
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var icon = btn.querySelector('.eye-icon');
+            if (visibleInput) {
+                visibleInput.classList.toggle('show-password');
+                if (icon) {
+                    icon.classList.toggle('fa-eye');
+                    icon.classList.toggle('fa-eye-slash');
+                }
+            }
+        });
+    });
+}
+
+function initShopUrlAuto() {
+    var shopNameInput = document.getElementById('shop_name');
+    var shopUrlInput = document.getElementById('shop_url');
+
+    if (shopNameInput && shopUrlInput) {
+        function generateShopUrl() {
+            var val = shopNameInput.value || '';
+            var urlKey = val
+                .trim()
+                .toLowerCase()
+                .replace(/[\s-]+/g, '_')
+                .replace(/[^a-z0-9_]/g, '');
+            shopUrlInput.value = urlKey;
+        }
+
+        shopNameInput.addEventListener('input', generateShopUrl);
+        shopNameInput.addEventListener('keyup', generateShopUrl);
+        shopNameInput.addEventListener('change', generateShopUrl);
+    }
+}
+
+// Sync all visible inputs to hidden on form submit
+document.addEventListener('DOMContentLoaded', function() {
+    initPasswordToggle();
+    initShopUrlAuto();
+
+    var form = document.getElementById('form-validate');
+    if (form) {
+        form.addEventListener('submit', function () {
+            var pairs = [
+                ['password-visible', 'password'],
+                ['password-confirmation-visible', 'password-confirmation']
+            ];
+            pairs.forEach(function(pair) {
+                var vis = document.getElementById(pair[0]);
+                var hid = document.getElementById(pair[1]);
+                if (vis && hid) hid.value = vis.value;
+            });
+        });
+    }
+});
+
+if (document.readyState !== 'loading') {
+    initPasswordToggle();
+    initShopUrlAuto();
+}
 </script>

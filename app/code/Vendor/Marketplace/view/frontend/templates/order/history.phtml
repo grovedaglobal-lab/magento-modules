@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /** @var \Vendor\Marketplace\Block\Order\History $block */
 $orders = $block->getOrders();
 $stats = $block->getOrderStats();
@@ -49,19 +49,110 @@ $stats = $block->getOrderStats();
             <span class="records-found"><?= __('%1 records found', $orders ? $orders->getSize() : 0) ?></span>
         </div>
         <div class="toolbar-right">
-            <!-- Existing filters functionality -->
-            <button class="tool-btn" onclick="toggleFilters()"><i class="fas fa-filter"></i>
-                <?= __('Filters') ?></button>
-            <div class="view-select">
-                <i class="fas fa-eye"></i> <?= __('Default View') ?> <i class="fas fa-caret-down"></i>
-            </div>
-            <button class="tool-btn"><i class="fas fa-cog"></i> <?= __('Columns') ?> <i
-                    class="fas fa-caret-down"></i></button>
+            <!-- Filters Button -->
+            <button class="tool-btn" id="btn-filters" onclick="togglePanel('filters-panel', 'btn-filters')">
+                <i class="fas fa-filter"></i> <?= __('Filters') ?> <i class="fas fa-caret-down btn-caret"></i>
+            </button>
+            <!-- Default View Button -->
+            <button class="tool-btn" id="btn-default-view" onclick="togglePanel('default-view-panel', 'btn-default-view')">
+                <i class="fas fa-eye"></i> <?= __('Default View') ?> <i class="fas fa-caret-down btn-caret"></i>
+            </button>
+            <!-- Columns Button -->
+            <button class="tool-btn" id="btn-columns" onclick="togglePanel('columns-panel', 'btn-columns')">
+                <i class="fas fa-cog"></i> <?= __('Columns') ?> <i class="fas fa-caret-down btn-caret"></i>
+            </button>
 
-            <div class="pagination-controls">
-                <?php if ($block->getPagerHtml()): ?>
-                    <?= $block->getPagerHtml() ?>
-                <?php endif ?>
+
+        </div>
+    </div>
+
+    <!-- â”€â”€ FILTERS PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <div class="slide-panel" id="filters-panel">
+        <div class="panel-inner">
+            <div class="panel-title"><i class="fas fa-filter"></i> <?= __('Filter Orders') ?></div>
+            <div class="filters-grid">
+                <div class="filter-field">
+                    <label><?= __('Order ID') ?></label>
+                    <input type="text" id="fp-increment-id" name="increment_id" class="fp-input"
+                           placeholder="e.g. 000000016"
+                           value="<?= $block->escapeHtml($block->getRequest()->getParam('increment_id')) ?>">
+                </div>
+                <div class="filter-field">
+                    <label><?= __('Date From') ?></label>
+                    <input type="date" id="fp-date-from" name="date_from" class="fp-input"
+                           value="<?= $block->escapeHtml($block->getRequest()->getParam('date_from')) ?>">
+                </div>
+                <div class="filter-field">
+                    <label><?= __('Date To') ?></label>
+                    <input type="date" id="fp-date-to" name="date_to" class="fp-input"
+                           value="<?= $block->escapeHtml($block->getRequest()->getParam('date_to')) ?>">
+                </div>
+                <div class="filter-field">
+                    <label><?= __('Customer') ?></label>
+                    <input type="text" id="fp-customer" name="customer" class="fp-input"
+                           placeholder="Customer name"
+                           value="<?= $block->escapeHtml($block->getRequest()->getParam('customer')) ?>">
+                </div>
+                <div class="filter-field">
+                    <label><?= __('Status') ?></label>
+                    <select id="fp-status" name="status" class="fp-input">
+                        <option value=""><?= __('All') ?></option>
+                        <option value="pending" <?= $block->getRequest()->getParam('status') == 'pending' ? 'selected' : '' ?>><?= __('Pending') ?></option>
+                        <option value="processing" <?= $block->getRequest()->getParam('status') == 'processing' ? 'selected' : '' ?>><?= __('Processing') ?></option>
+                        <option value="complete" <?= $block->getRequest()->getParam('status') == 'complete' ? 'selected' : '' ?>><?= __('Complete') ?></option>
+                        <option value="closed" <?= $block->getRequest()->getParam('status') == 'closed' ? 'selected' : '' ?>><?= __('Closed') ?></option>
+                        <option value="canceled" <?= $block->getRequest()->getParam('status') == 'canceled' ? 'selected' : '' ?>><?= __('Canceled') ?></option>
+                    </select>
+                </div>
+            </div>
+            <div class="panel-actions">
+                <button class="panel-btn-apply" onclick="applyFiltersPanel()"><?= __('Apply Filters') ?></button>
+                <button class="panel-btn-clear" onclick="clearFilters()"><?= __('Clear All') ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- â”€â”€ DEFAULT VIEW PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <div class="slide-panel" id="default-view-panel">
+        <div class="panel-inner">
+            <div class="panel-title"><i class="fas fa-eye"></i> <?= __('Default View') ?></div>
+            <div class="view-options-grid">
+                <label class="view-option active-view">
+                    <input type="radio" name="grid-view" value="default" checked>
+                    <span class="view-icon"><i class="fas fa-table"></i></span>
+                    <span><?= __('Default') ?></span>
+                </label>
+                <label class="view-option">
+                    <input type="radio" name="grid-view" value="compact">
+                    <span class="view-icon"><i class="fas fa-th-list"></i></span>
+                    <span><?= __('Compact') ?></span>
+                </label>
+            </div>
+            <p class="panel-note"><?= __('View preferences are saved in your browser.') ?></p>
+            <div class="panel-actions">
+                <button class="panel-btn-apply" onclick="applyView()"><?= __('Apply View') ?></button>
+                <button class="panel-btn-clear" onclick="closePanel('default-view-panel', 'btn-default-view')"><?= __('Cancel') ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- â”€â”€ COLUMNS PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <div class="slide-panel" id="columns-panel">
+        <div class="panel-inner">
+            <div class="panel-title"><i class="fas fa-cog"></i> <?= __('Visible Columns') ?></div>
+            <div class="columns-grid">
+                <label class="col-toggle locked"><input type="checkbox" checked disabled> <?= __('Order ID') ?> <span class="lock-icon"><i class="fas fa-lock"></i></span></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-date" checked> <?= __('Purchased On') ?></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-base-total" checked> <?= __('Base Total') ?></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-products" checked> <?= __('Products') ?></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-total" checked> <?= __('Purchased Total') ?></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-customer" checked> <?= __('Customer') ?></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-status" checked> <?= __('Status') ?></label>
+                <label class="col-toggle locked"><input type="checkbox" checked disabled> <?= __('View') ?> <span class="lock-icon"><i class="fas fa-lock"></i></span></label>
+            </div>
+            <div class="panel-actions">
+                <button class="panel-btn-apply" onclick="applyColumns()"><?= __('Apply') ?></button>
+                <button class="panel-btn-clear" onclick="resetColumns()"><?= __('Reset') ?></button>
             </div>
         </div>
     </div>
@@ -83,43 +174,6 @@ $stats = $block->getOrderStats();
                         <th class="col-status"><?= __('Status') ?></th>
                         <th class="col-action"><?= __('View') ?></th>
                     </tr>
-                    <!-- Filter Row -->
-                    <tr class="filter-row" id="order-filter-row" style="display:none; background-color: #f8f9fa;">
-                        <th></th>
-                        <th><input type="text" name="increment_id" class="input-text admin__control-text"
-                                placeholder="ID" style="width:100%"
-                                value="<?= $block->escapeHtml($block->getRequest()->getParam('increment_id')) ?>"></th>
-                        <th>
-                            <input type="date" name="date_from" class="input-text admin__control-text"
-                                style="width: 100%; font-size: 10px; margin-bottom: 2px;"
-                                value="<?= $block->escapeHtml($block->getRequest()->getParam('date_from')) ?>">
-                            <input type="date" name="date_to" class="input-text admin__control-text"
-                                style="width: 100%; font-size: 10px;"
-                                value="<?= $block->escapeHtml($block->getRequest()->getParam('date_to')) ?>">
-                        </th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th><input type="text" name="customer" class="input-text admin__control-text"
-                                placeholder="Customer" style="width:100%"
-                                value="<?= $block->escapeHtml($block->getRequest()->getParam('customer')) ?>"></th>
-                        <th>
-                            <select name="status" class="admin__control-select" style="width:100%">
-                                <option value="">All</option>
-                                <option value="pending" <?= $block->getRequest()->getParam('status') == 'pending' ? 'selected' : '' ?>>Pending</option>
-                                <option value="processing" <?= $block->getRequest()->getParam('status') == 'processing' ? 'selected' : '' ?>>Processing</option>
-                                <option value="complete" <?= $block->getRequest()->getParam('status') == 'complete' ? 'selected' : '' ?>>Complete</option>
-                                <option value="closed" <?= $block->getRequest()->getParam('status') == 'closed' ? 'selected' : '' ?>>Closed</option>
-                                <option value="canceled" <?= $block->getRequest()->getParam('status') == 'canceled' ? 'selected' : '' ?>>Canceled</option>
-                            </select>
-                        </th>
-                        <th>
-                            <div class="filter-actions">
-                                <button type="button" class="filter-btn-go" onclick="applyFilters()">Go</button>
-                                <button type="button" class="filter-btn-clear" onclick="clearFilters()">X</button>
-                            </div>
-                        </th>
-                    </tr>
                 </thead>
                 <tbody>
                     <?php if ($orders && $orders->getSize()): ?>
@@ -140,7 +194,7 @@ $stats = $block->getOrderStats();
                                     <?php $products = $block->getProductInfo($order); ?>
                                     <?php foreach ($products as $product): ?>
                                         <div class="product-entry">
-                                            <a href="#" class="product-name"><?= $block->escapeHtml($product['name']) ?></a>
+                                            <span class="product-name"><?= $block->escapeHtml($product['name']) ?></span>
                                             <div class="product-qtys">
                                                 <span><?= __('Ordered') ?>: <strong><?= $product['qty_ordered'] ?></strong></span>
                                                 <?php if ($product['qty_canceled']): ?>
@@ -164,8 +218,10 @@ $stats = $block->getOrderStats();
                                     $status = strtolower($order->getOrderStatus());
                                     $dotClass = 'dot-' . $status;
                                     ?>
-                                    <span class="status-indicator <?= $dotClass ?>"></span>
-                                    <?= $block->escapeHtml(ucfirst($order->getOrderStatus())) ?>
+                                    <span class="status-badge <?= $dotClass ?>">
+                                        <span class="status-dot"></span>
+                                        <?= $block->escapeHtml(ucfirst($order->getOrderStatus())) ?>
+                                    </span>
                                 </td>
                                 <td class="col-action">
                                     <a href="<?= $block->getViewUrl($order) ?>" class="action-view"><?= __('Order') ?></a>
@@ -182,18 +238,97 @@ $stats = $block->getOrderStats();
         </div>
     </form>
 
-    <!-- Pagination Footer -->
+    <!-- Pagination Bar -->
     <?php if ($block->getPagerHtml()): ?>
-        <div class="order-products-toolbar toolbar bottom"><?= $block->getPagerHtml() ?></div>
+        <div class="order-pagination-bar">
+            <?= $block->getPagerHtml() ?>
+        </div>
     <?php endif ?>
 </div>
 
 <style>
-    /* Scope styles to ensure they override and use theme variables */
+    /* â”€â”€â”€ Base â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .vendor-order-history-container {
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
 
+    /* â”€â”€â”€ Summary Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .order-summary-bar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+
+    .summary-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px 18px;
+        background: #fff;
+        border: 1px solid var(--border-light, #e3e6f0);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        min-width: 80px;
+    }
+
+    .summary-item:hover {
+        border-color: var(--brand-primary, #113321);
+        box-shadow: 0 2px 8px rgba(17,51,33,0.08);
+    }
+
+    .summary-item.active {
+        border-color: var(--brand-primary, #113321) !important;
+        box-shadow: 0 0 10px rgba(17, 51, 33, 0.1) !important;
+    }
+
+    .summary-item .count {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--brand-primary, #113321) !important;
+    }
+
+    .summary-item .label {
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 2px;
+    }
+
+    /* â”€â”€â”€ Toolbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .order-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 12px 16px;
+        background: #fff;
+        border: 1px solid var(--border-light, #e3e6f0);
+        border-radius: 10px;
+        margin-bottom: 4px;
+    }
+
+    .toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .records-found {
+        font-size: 13px;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    /* â”€â”€â”€ Actions Dropdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .actions-dropdown {
         position: relative;
         display: inline-block;
@@ -208,23 +343,39 @@ $stats = $block->getOrderStats();
         left: 0;
     }
 
+    .action-btn {
+        background-color: var(--brand-primary, #113321);
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.2s;
+    }
+
+    .action-btn:hover {
+        background-color: var(--brand-secondary, #1a4a2f);
+    }
+
     .actions-dropdown .dropdown-content {
         display: none;
         position: absolute;
         top: 100%;
         left: 0;
         margin-top: 4px;
-        /* Slight gap */
         min-width: 180px;
         background-color: var(--bg-card, #ffffff);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         border: 1px solid var(--border-light, #e3e6f0);
         border-radius: 6px;
-        /* Softer corners */
         z-index: 1000;
         padding: 6px 0;
         overflow: hidden;
-        /* Contains hover effects */
     }
 
     .actions-dropdown:hover .dropdown-content {
@@ -248,134 +399,528 @@ $stats = $block->getOrderStats();
 
     .dropdown-content a:hover {
         background-color: #f0fdf4;
-        /* Very light green background */
         color: var(--brand-primary, #113321);
-        /* Theme Green */
         padding-left: 20px;
         border-left: 3px solid var(--brand-primary, #113321);
     }
 
-    /* Filter Row Styling */
-    .filter-row th {
-        padding: 10px !important;
-        background-color: #f8fafc !important;
-        /* Lighter background */
-        vertical-align: top;
-        border-bottom: 1px solid var(--border-light, #e3e6f0);
+    /* â”€â”€â”€ Tool Buttons (Filters / Default View / Columns) */
+    .tool-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background: #fff;
+        border: 1px solid var(--border-light, #d1d3e2);
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
     }
 
-    .filter-row .input-text,
-    .filter-row select {
-        font-size: 13px;
-        padding: 8px 10px;
-        border: 1px solid var(--border-light, #d1d3e2);
-        border-radius: 4px;
+    .tool-btn:hover,
+    .tool-btn.panel-open {
+        border-color: var(--brand-primary, #113321);
+        color: var(--brand-primary, #113321);
+        background: #f0fdf4;
+    }
+
+    .tool-btn .btn-caret {
+        font-size: 10px;
+        transition: transform 0.25s;
+    }
+
+    .tool-btn.panel-open .btn-caret {
+        transform: rotate(180deg);
+    }
+
+    /* â”€â”€â”€ Slide Panels â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .slide-panel {
+        display: none;
+        background: #fff;
+        border: 1px solid var(--border-light, #e3e6f0);
+        border-radius: 10px;
+        margin-bottom: 8px;
+        overflow: hidden;
+        animation: slideDown 0.22s ease;
+    }
+
+    .slide-panel.panel-visible {
+        display: block;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel-inner {
+        padding: 20px 24px;
+    }
+
+    .panel-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--brand-primary, #113321);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 12px;
+    }
+
+    /* â”€â”€ Filters Grid â”€â”€ */
+    .filters-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 14px;
+        margin-bottom: 16px;
+    }
+
+    .filter-field label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        margin-bottom: 6px;
+    }
+
+    .fp-input {
         width: 100%;
         box-sizing: border-box;
-        color: var(--text-main, #1e293b);
-        background-color: #fff;
+        padding: 8px 10px;
+        border: 1px solid var(--border-light, #d1d3e2);
+        border-radius: 6px;
+        font-size: 13px;
+        color: #1e293b;
+        background: #fff;
         transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    .filter-row .input-text:focus,
-    .filter-row select:focus {
+    .fp-input:focus {
         border-color: var(--brand-primary, #113321);
         box-shadow: 0 0 0 3px rgba(17, 51, 33, 0.1);
-        /* Green glow */
         outline: none;
     }
 
-
-
-    /* Override Blue Accents to Match Brand Green */
-    .summary-item.active {
-        border-color: var(--brand-primary, #113321) !important;
-        box-shadow: 0 0 10px rgba(17, 51, 33, 0.1) !important;
+    /* â”€â”€ Panel Actions â”€â”€ */
+    .panel-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid #f1f5f9;
     }
 
-    .summary-item .count {
-        color: var(--brand-primary, #113321) !important;
+    .panel-btn-apply {
+        padding: 8px 20px;
+        background: var(--brand-primary, #113321);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
     }
 
-    /* Target ONLY the main header row for dark background */
-    .data-grid.history thead>tr:first-child>th {
+    .panel-btn-apply:hover {
+        background: var(--brand-secondary, #1a4a2f);
+    }
+
+    .panel-btn-clear {
+        padding: 8px 20px;
+        background: #fff;
+        color: #64748b;
+        border: 1px solid #d1d3e2;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .panel-btn-clear:hover {
+        background: #f8fafc;
+        color: #374151;
+        border-color: #94a3b8;
+    }
+
+    /* â”€â”€ Default View Panel â”€â”€ */
+    .view-options-grid {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+    }
+
+    .view-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 20px;
+        border: 2px solid var(--border-light, #e3e6f0);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+        transition: all 0.2s;
+        min-width: 100px;
+    }
+
+    .view-option input[type="radio"] {
+        display: none;
+    }
+
+    .view-option .view-icon {
+        font-size: 22px;
+        color: #94a3b8;
+        transition: color 0.2s;
+    }
+
+    .view-option:hover,
+    .view-option.active-view {
+        border-color: var(--brand-primary, #113321);
+        background: #f0fdf4;
+        color: var(--brand-primary, #113321);
+    }
+
+    .view-option:hover .view-icon,
+    .view-option.active-view .view-icon {
+        color: var(--brand-primary, #113321);
+    }
+
+    .panel-note {
+        font-size: 12px;
+        color: #94a3b8;
+        margin: 0;
+    }
+
+    /* â”€â”€ Columns Panel â”€â”€ */
+    .columns-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 10px;
+        margin-bottom: 6px;
+    }
+
+    .col-toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border: 1px solid var(--border-light, #e3e6f0);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+        transition: all 0.2s;
+        background: #fafafa;
+        user-select: none;
+    }
+
+    .col-toggle:hover {
+        border-color: var(--brand-primary, #113321);
+        background: #f0fdf4;
+        color: var(--brand-primary, #113321);
+    }
+
+    .col-toggle input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--brand-primary, #113321);
+        cursor: pointer;
+    }
+
+    .col-toggle.locked {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .col-toggle .lock-icon {
+        margin-left: auto;
+        font-size: 11px;
+        color: #94a3b8;
+    }
+
+    /* â”€â”€â”€ Table Styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .table-wrapper.orders-history {
+        width: 100% !important;
+        overflow-x: auto !important;
+        border: 1px solid var(--border-light, #e3e6f0);
+        border-radius: 12px;
+        margin-bottom: 25px;
+        background: #fff;
+        box-shadow: var(--shadow-sm);
+        margin-top: 8px;
+    }
+
+    .table-wrapper.orders-history::-webkit-scrollbar { height: 8px; }
+    .table-wrapper.orders-history::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 0 0 12px 12px; }
+    .table-wrapper.orders-history::-webkit-scrollbar-thumb { background: var(--brand-primary, #113321); border-radius: 10px; }
+
+    .data-grid.history {
+        min-width: 1000px;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    /* Header row - dark green */
+    .data-grid.history thead > tr:first-child > th {
         background-color: var(--brand-primary, #113321) !important;
         color: #ffffff !important;
         border-bottom: none !important;
         padding: 12px 10px !important;
         font-weight: 600;
         vertical-align: middle;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
     }
 
-    /* Ensure Filter Row stays light */
-    .data-grid.history thead tr.filter-row th {
-        background-color: #f8fafc !important;
-        padding: 10px !important;
-        border-bottom: 2px solid #e3e6f0 !important;
+    /* Body rows */
+    .data-grid.history tbody tr {
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.15s;
     }
 
-    /* Fix Filter Buttons */
-    .filter-actions {
-        display: flex;
-        gap: 4px;
+    .data-grid.history tbody tr:hover {
+        background: #f8fffe;
     }
 
-    .filter-btn-go {
-        background-color: var(--brand-primary, #113321) !important;
-        color: #fff !important;
-        border: 1px solid var(--brand-primary, #113321) !important;
-        padding: 6px 12px !important;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-        width: auto !important;
+    .data-grid.history tbody td {
+        padding: 12px 10px;
+        font-size: 13px;
+        color: #374151;
+        vertical-align: middle;
     }
 
-    .filter-btn-clear {
-        background-color: #fff !important;
-        color: #666 !important;
-        border: 1px solid #ccc !important;
-        padding: 6px 12px !important;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-        width: auto !important;
+    /* Product cell */
+    .product-entry + .product-entry {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px dashed #e3e6f0;
     }
 
-    .filter-btn-go:hover {
-        background-color: var(--brand-secondary, #1a4a2f) !important;
-    }
-
-    .filter-btn-clear:hover {
-        background-color: #f1f1f1 !important;
-        color: #333 !important;
-    }
-
-    .col-id,
-    .product-name,
-    .action-view {
+    .product-name {
+        display: block;
+        font-weight: 600;
         color: var(--brand-primary, #113321) !important;
+        font-size: 13px;
+        text-decoration: none;
+        margin-bottom: 4px;
+    }
+
+    .product-name:hover {
+        color: var(--brand-secondary, #1a4a2f) !important;
+        text-decoration: underline;
+    }
+
+    .product-qtys {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .product-qtys span {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        background: #f1f5f9;
+        color: #475569;
         font-weight: 500;
     }
 
-    .tool-btn:hover {
-        border-color: var(--brand-primary, #113321) !important;
+    .product-qtys span strong {
+        color: #1e293b;
+    }
+
+    /* Order ID link */
+    .col-id {
+        font-weight: 700;
         color: var(--brand-primary, #113321) !important;
     }
 
-    /* Pager/Link Hovers */
-    a:hover {
-        color: var(--brand-secondary, #1a4a2f) !important;
+    /* Status Badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
     }
+
+    .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+
+    .status-badge.dot-complete  { background: #ecfdf5; color: #059669; }
+    .status-badge.dot-complete .status-dot  { background: #10b981; }
+    .status-badge.dot-processing { background: #eff6ff; color: #2563eb; }
+    .status-badge.dot-processing .status-dot { background: #3b82f6; }
+    .status-badge.dot-pending   { background: #fffbeb; color: #d97706; }
+    .status-badge.dot-pending .status-dot   { background: #f59e0b; }
+    .status-badge.dot-canceled  { background: #fef2f2; color: #dc2626; }
+    .status-badge.dot-canceled .status-dot  { background: #ef4444; }
+    .status-badge.dot-closed    { background: #f8fafc; color: #475569; }
+    .status-badge.dot-closed .status-dot    { background: #94a3b8; }
+    .status-badge.dot-holded    { background: #f5f3ff; color: #7c3aed; }
+    .status-badge.dot-holded .status-dot    { background: #8b5cf6; }
+
+    /* Action link */
+    .action-view {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--brand-primary, #113321) !important;
+        font-weight: 600;
+        font-size: 13px;
+        text-decoration: none;
+        padding: 5px 12px;
+        border: 1px solid var(--brand-primary, #113321);
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+
+    .action-view:hover {
+        background: var(--brand-primary, #113321);
+        color: #fff !important;
+    }
+
+    /* Checkbox column */
+    .col-check { width: 36px; text-align: center; }
+    #select-all-orders, .order-checkbox {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--brand-primary, #113321);
+        cursor: pointer;
+    }
+
+    /* Empty state */
+    .empty-message {
+        text-align: center;
+        padding: 40px 20px !important;
+        color: #94a3b8;
+        font-size: 14px;
+    }
+
+    /* Pager hover */
+    a:hover { color: var(--brand-secondary, #1a4a2f) !important; }
+
+    /* ─── Pagination Bar ─────────────────────────────── */
+    .order-pagination-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 12px 16px;
+        background: #fff;
+        border: 1px solid var(--border-light, #e3e6f0);
+        border-radius: 10px;
+        margin-top: 8px;
+    }
+
+    /* Limiter (Show X per page) */
+    .order-pagination-bar .limiter {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: #64748b;
+    }
+    .order-pagination-bar .limiter-label { font-weight: 500; white-space: nowrap; }
+    .order-pagination-bar .limiter-options {
+        padding: 6px 10px;
+        border: 1px solid var(--border-light, #d1d3e2);
+        border-radius: 6px;
+        font-size: 13px;
+        color: #374151;
+        background: #fff;
+        cursor: pointer;
+        transition: border-color 0.2s;
+    }
+    .order-pagination-bar .limiter-options:focus {
+        border-color: var(--brand-primary, #113321);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(17,51,33,0.1);
+    }
+    .order-pagination-bar .limiter-text { white-space: nowrap; color: #64748b; font-size: 13px; }
+
+    /* Amount (X-Y of Z) */
+    .order-pagination-bar .toolbar-amount {
+        font-size: 13px;
+        color: #64748b;
+        font-weight: 500;
+    }
+    .order-pagination-bar .toolbar-amount .toolbar-number { font-weight: 700; color: #374151; }
+
+    /* Pages nav */
+    .order-pagination-bar .pages-label { display: none; }
+    .order-pagination-bar .items.pages-items {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    .order-pagination-bar .pages-items .item a,
+    .order-pagination-bar .pages-items .item strong {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 34px;
+        height: 34px;
+        padding: 0 8px;
+        border: 1px solid var(--border-light, #e3e6f0);
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        text-decoration: none;
+        color: #374151;
+        background: #fff;
+        transition: all 0.2s;
+    }
+    .order-pagination-bar .pages-items .item a:hover {
+        border-color: var(--brand-primary, #113321);
+        color: var(--brand-primary, #113321);
+        background: #f0fdf4;
+    }
+    .order-pagination-bar .pages-items .item.current strong {
+        background: var(--brand-primary, #113321);
+        border-color: var(--brand-primary, #113321);
+        color: #fff;
+        font-weight: 600;
+    }
+    .order-pagination-bar .action.previous .label,
+    .order-pagination-bar .action.next .label { display: none; }
 </style>
 
 <script>
+    /* â”€â”€â”€ Mass Action â”€â”€â”€ */
     function submitMassAction(url) {
         var form = document.getElementById('mass-action-form');
-        if (!form) {
-            console.error('Mass action form not found');
-            return;
-        }
+        if (!form) { console.error('Mass action form not found'); return; }
         var checkboxes = form.querySelectorAll('input[name="order_ids[]"]:checked');
         if (checkboxes.length === 0) {
             alert('<?= __('Please select at least one order.') ?>');
@@ -385,121 +930,141 @@ $stats = $block->getOrderStats();
         form.submit();
     }
 
-    function toggleFilters() {
-        var row = document.getElementById('order-filter-row');
-        if (row.style.display === 'none') {
-            row.style.display = 'table-row';
+    /* â”€â”€â”€ Panel Toggle Logic â”€â”€â”€ */
+    var openPanel = null;
+    var openBtn   = null;
+
+    function togglePanel(panelId, btnId) {
+        var panel = document.getElementById(panelId);
+        var btn   = document.getElementById(btnId);
+
+        // Close currently open panel if different
+        if (openPanel && openPanel !== panel) {
+            openPanel.classList.remove('panel-visible');
+            if (openBtn) openBtn.classList.remove('panel-open');
+        }
+
+        if (panel.classList.contains('panel-visible')) {
+            panel.classList.remove('panel-visible');
+            btn.classList.remove('panel-open');
+            openPanel = null;
+            openBtn   = null;
         } else {
-            row.style.display = 'none';
+            panel.classList.add('panel-visible');
+            btn.classList.add('panel-open');
+            openPanel = panel;
+            openBtn   = btn;
         }
     }
 
-    function applyFilters() {
-        var url = '<?= $block->getUrl('marketplace/order/history') ?>';
-        var params = [];
-        var inputs = document.querySelectorAll('#order-filter-row input, #order-filter-row select');
+    function closePanel(panelId, btnId) {
+        var panel = document.getElementById(panelId);
+        var btn   = document.getElementById(btnId);
+        if (panel) panel.classList.remove('panel-visible');
+        if (btn)   btn.classList.remove('panel-open');
+        openPanel = null;
+        openBtn   = null;
+    }
 
-        inputs.forEach(function (input) {
-            if (input.value) {
-                params.push(input.name + '=' + encodeURIComponent(input.value));
+    /* â”€â”€â”€ Filters â”€â”€â”€ */
+    function applyFiltersPanel() {
+        var url    = '<?= $block->getUrl('marketplace/order/history') ?>';
+        var params = [];
+        var fields = ['fp-increment-id', 'fp-date-from', 'fp-date-to', 'fp-customer', 'fp-status'];
+        var names  = ['increment_id', 'date_from', 'date_to', 'customer', 'status'];
+
+        fields.forEach(function(id, i) {
+            var el = document.getElementById(id);
+            if (el && el.value) {
+                params.push(names[i] + '=' + encodeURIComponent(el.value));
             }
         });
 
-        if (params.length > 0) {
-            url += '?' + params.join('&');
-        } else {
-            url = '<?= $block->getUrl('marketplace/order/history') ?>';
-        }
-        window.location.href = url;
+        window.location.href = params.length ? url + '?' + params.join('&') : url;
     }
 
     function clearFilters() {
         window.location.href = '<?= $block->getUrl('marketplace/order/history') ?>';
     }
 
+    /* â”€â”€â”€ Columns Toggle â”€â”€â”€ */
+    function applyColumns() {
+        var checkboxes = document.querySelectorAll('.col-toggle input[data-col]');
+        checkboxes.forEach(function(cb) {
+            var colClass = cb.getAttribute('data-col');
+            var cells = document.querySelectorAll('.' + colClass);
+            cells.forEach(function(cell) {
+                cell.style.display = cb.checked ? '' : 'none';
+            });
+        });
+        closePanel('columns-panel', 'btn-columns');
+    }
+
+    function resetColumns() {
+        var checkboxes = document.querySelectorAll('.col-toggle input[data-col]');
+        checkboxes.forEach(function(cb) {
+            cb.checked = true;
+        });
+        applyColumns();
+    }
+
+    /* â”€â”€â”€ Default View â”€â”€â”€ */
+    function applyView() {
+        var selected = document.querySelector('input[name="grid-view"]:checked');
+        if (selected) {
+            document.querySelectorAll('.view-option').forEach(function(el) {
+                el.classList.remove('active-view');
+            });
+            selected.closest('.view-option').classList.add('active-view');
+            localStorage.setItem('order-grid-view', selected.value);
+        }
+        closePanel('default-view-panel', 'btn-default-view');
+    }
+
+    /* â”€â”€â”€ jQuery extras â”€â”€â”€ */
     require(['jquery'], function ($) {
         $('#select-all-orders').change(function () {
             $('.order-checkbox').prop('checked', $(this).prop('checked'));
         });
 
-        // Handle Enter key in filter fields
-        $('#order-filter-row input').keypress(function (e) {
-            if (e.which == 13) {
-                applyFilters();
+        // Enter key on filter inputs
+        $('#filters-panel input').keypress(function (e) {
+            if (e.which == 13) { applyFiltersPanel(); }
+        });
+
+        // Close panels when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.slide-panel, .tool-btn').length && openPanel) {
+                openPanel.classList.remove('panel-visible');
+                if (openBtn) openBtn.classList.remove('panel-open');
+                openPanel = null;
+                openBtn   = null;
             }
         });
+
+        // Click on view card instantly selects it
+        $(document).on('click', '.view-option', function () {
+            $('.view-option').removeClass('active-view');
+            $(this).addClass('active-view');
+            $(this).find('input[type="radio"]').prop('checked', true);
+        });
+
+        // Restore saved view
+        var savedView = localStorage.getItem('order-grid-view');
+        if (savedView) {
+            var radio = document.querySelector('input[name="grid-view"][value="' + savedView + '"]');
+            if (radio) {
+                radio.checked = true;
+                document.querySelectorAll('.view-option').forEach(function(el) { el.classList.remove('active-view'); });
+                radio.closest('.view-option').classList.add('active-view');
+            }
+        }
     });
 </script>
 
-<style>
-    /* Responsive Table Wrapper */
-    .table-wrapper.orders-history {
-        width: 100% !important;
-        overflow-x: auto !important;
-        border: 1px solid var(--border-light);
-        border-radius: 12px;
-        margin-bottom: 25px;
-        background: #fff;
-        box-shadow: var(--shadow-sm);
-    }
 
-    /* Standard Scrollbar for Order Table */
-    .table-wrapper.orders-history::-webkit-scrollbar {
-        height: 8px;
-    }
 
-    .table-wrapper.orders-history::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 0 0 12px 12px;
-    }
 
-    .table-wrapper.orders-history::-webkit-scrollbar-thumb {
-        background: var(--brand-primary);
-        border-radius: 10px;
-    }
 
-    .data-grid.history {
-        min-width: 1000px;
-        /* Minimum width to prevent cramping, but not aggressive 1600px */
-    }
 
-    .col-id,
-    .product-name,
-    .action-view {
-        color: var(--brand-primary) !important;
-        font-weight: 800 !important;
-        text-decoration: none;
-    }
 
-    .col-id:hover,
-    .product-name:hover,
-    .action-view:hover {
-        color: var(--brand-secondary) !important;
-        /* Brighter green on hover */
-        text-decoration: underline;
-    }
-
-    .status-indicator {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        margin-right: 8px;
-    }
-
-    .dot-complete {
-        background-color: #10b981;
-    }
-
-    .dot-processing {
-        background-color: #3b82f6;
-    }
-
-    .dot-pending {
-        background-color: #f59e0b;
-    }
-
-    .dot-canceled {
-        background-color: #ef4444;
-    }
-</style>

@@ -26,11 +26,11 @@ class DownloadTemplate extends Action
     public function __construct(
     \Magento\Framework\App\Action\Context $context,
     \Magento\Framework\App\Response\Http\FileFactory $fileFactory,
-    \Magento\Framework\App\Filesystem\DirectoryList $directoryList = null,
-    \Magento\Catalog\Api\ProductRepositoryInterface $productRepository = null,
-    \Magento\Catalog\Model\CategoryFactory $categoryFactory = null,
-    \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory $categoryCollectionFactory = null,
-    AttributeSetCollection $attributeSetCollection = null
+    ?\Magento\Framework\App\Filesystem\DirectoryList $directoryList = null,
+    ?\Magento\Catalog\Api\ProductRepositoryInterface $productRepository = null,
+    ?\Magento\Catalog\Model\CategoryFactory $categoryFactory = null,
+    ?\Magento\Catalog\Model\ResourceModel\Category\CollectionFactory $categoryCollectionFactory = null,
+    ?AttributeSetCollection $attributeSetCollection = null
 ) {
     parent::__construct($context);
     $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
@@ -1118,32 +1118,20 @@ class DownloadTemplate extends Action
             $rates = [];
             foreach ($collection as $item) {
                 $totalRate = $item->getData('total_rate');
-                $taxName = $item->getData('tax_name') ?: 'GST';
-                $taxCode = $item->getData('tax_code') ?: '';
-                
                 if ($totalRate === null || $totalRate === '') {
-                    // fallback if total_rate missing
                     $totalRate = $item->getData('igst_rate') ?: ($item->getData('cgst_rate') + $item->getData('sgst_rate'));
                 }
                 
-                $totalRate = (string) $totalRate;
-                if ($totalRate !== '') {
-                    // Create user-friendly label: "18 - IGST" or "18 - Food GST"
-                    $label = $totalRate;
-                    if ($taxCode) {
-                        $label .= ' - ' . $taxCode;
-                    } elseif ($taxName) {
-                        $label .= ' - ' . $taxName;
-                    }
-                    
+                if ($totalRate !== null && $totalRate !== '') {
+                    $label = (string)(float)$totalRate;
                     if (!in_array($label, $rates, true)) {
                         $rates[] = $label;
                     }
                 }
             }
-            return $rates;
+            return !empty($rates) ? $rates : ['0', '3', '5', '12', '18', '28'];
         } catch (\Exception $e) {
-            return [];
+            return ['0', '3', '5', '12', '18', '28'];
         }
     }
 
@@ -1286,21 +1274,10 @@ class DownloadTemplate extends Action
     protected function buildGstLabel($rateItem)
     {
         $totalRate = $rateItem->getData('total_rate');
-        $taxName = $rateItem->getData('tax_name') ?: 'GST';
-        $taxCode = $rateItem->getData('tax_code') ?: '';
-        
         if ($totalRate === null || $totalRate === '') {
             $totalRate = $rateItem->getData('igst_rate') ?: 
                 ($rateItem->getData('cgst_rate') + $rateItem->getData('sgst_rate'));
         }
-        
-        $label = (string) $totalRate;
-        if ($taxCode) {
-            $label .= ' - ' . $taxCode;
-        } elseif ($taxName) {
-            $label .= ' - ' . $taxName;
-        }
-        
-        return $label;
+        return (string)(float)$totalRate;
     }
 }

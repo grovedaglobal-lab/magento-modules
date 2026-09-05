@@ -77,3 +77,18 @@ interface ProductInterface {
     vendor_average_rating: Float @doc(description: "Vendor Average Rating") @resolver(class: "Vendor\\Marketplace\\Model\\Resolver\\Product\\VendorAverageRating")
     vendor_review_count: Int @doc(description: "Vendor Review Count") @resolver(class: "Vendor\\Marketplace\\Model\\Resolver\\Product\\VendorReviewCount")
 }
+
+extend type Cart {
+    vendor_shipping_packages: [VendorShippingPackage] @resolver(class: "Vendor\\Marketplace\\Model\\Resolver\\Cart\\VendorShippingPackages") @doc(description: "Amazon-style vendor-wise packages with individual shipping amounts and free shipping eligibility")
+}
+
+type VendorShippingPackage @doc(description: "Package details for a specific vendor in the cart") {
+    vendor_id: Int! @doc(description: "Vendor ID")
+    vendor_name: String @doc(description: "Vendor shop name")
+    item_uids: [String] @doc(description: "List of cart item UIDs in this package")
+    subtotal: Float @doc(description: "Subtotal of items from this vendor")
+    shipping_amount: Float @doc(description: "Shipping fee for this vendor package")
+    is_free_shipping: Boolean @doc(description: "Whether free shipping applies to this vendor package")
+    free_shipping_threshold: Float @doc(description: "Free shipping threshold set by the vendor")
+    amount_needed_for_free_shipping: Float @doc(description: "Remaining amount to qualify for free shipping")
+}

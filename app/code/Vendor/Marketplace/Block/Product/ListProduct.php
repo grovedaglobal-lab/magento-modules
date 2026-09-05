@@ -17,6 +17,7 @@ class ListProduct extends Template
     protected $products;
 
     protected $orderItemCollectionFactory;
+    protected $cachedSalesStats = null;
 
     public function __construct(
         Context $context,
@@ -67,24 +68,52 @@ class ListProduct extends Template
             try {
                 $vendor = $this->vendorFactory->create()->load($customerId, 'customer_id');
                 if (!$vendor->getId()) {
-                    // Log warning but don't crash
                     error_log("VendorMarketplace: No vendor found for customer ID " . $customerId);
                     return false;
                 }
 
                 $collection = $this->productCollectionFactory->create();
-                $collection->addAttributeToSelect('*');
+                // Crucial: Bypass frontend stock filter so out-of-stock / qty 0 products are visible in vendor portal
+                $collection->setFlag('has_stock_status_filter', true);
+
+                $collection->addAttributeToSelect([
+                    "name",
+                    "sku",
+                    "price",
+                    "status",
+                    "thumbnail",
+                    "small_image",
+                    "image",
+                    "vendor_id",
+                    "type_id"
+                ]);
                 $collection->addAttributeToFilter('vendor_id', $vendor->getId());
                 $collection->addAttributeToFilter('sku', ['neq' => 'wallet-recharge']);
                 $collection->setOrder('created_at', 'DESC');
 
-                // Join Stock Quantity (Legacy) before stock-based filters
+                // Join MSI and legacy stock accurately
+                $sourceItemTable = $collection->getTable('inventory_source_item');
+                $legacyStockTable = $collection->getTable('cataloginventory_stock_item');
+
+                $collection->getSelect()->joinLeft(
+                    ['isi' => $sourceItemTable],
+                    'isi.sku = e.sku',
+                    ['msi_qty' => 'isi.quantity', 'msi_status' => 'isi.status']
+                )->joinLeft(
+                    ['csi' => $legacyStockTable],
+                    'csi.product_id = e.entity_id AND csi.stock_id = 1',
+                    ['legacy_qty' => 'csi.qty', 'legacy_is_in_stock' => 'csi.is_in_stock']
+                )->columns([
+                    'qty' => new \Zend_Db_Expr('COALESCE(isi.quantity, csi.qty, 0)')
+                ])->group('e.entity_id');
+
+                // Join Attribute Set Name
                 $collection->joinField(
-                    'qty',
-                    'cataloginventory_stock_item',
-                    'qty',
-                    'product_id=entity_id',
-                    '{{table}}.stock_id=1',
+                    'attribute_set_name',
+                    'eav_attribute_set',
+                    'attribute_set_name',
+                    'attribute_set_id=attribute_set_id',
+                    null,
                     'left'
                 );
 
@@ -113,36 +142,16 @@ class ListProduct extends Template
 
                 // Stock Filters
                 if (!empty($params['low_stock'])) {
-                    // Configurable parents do not carry direct stock.
-                    $collection->addAttributeToFilter('type_id', ['neq' => 'configurable']);
-                    $collection->addAttributeToFilter('qty', ['lt' => 5]);
-                    $collection->addAttributeToFilter('qty', ['gt' => 0]);
+                    $collection->getSelect()->having('`qty` > 0 AND `qty` < 5 AND e.type_id != "configurable"');
                 }
                 if (!empty($params['out_of_stock'])) {
-                    // Configurable parents do not carry direct stock.
-                    $collection->addAttributeToFilter('type_id', ['neq' => 'configurable']);
-                    $collection->addAttributeToFilter('qty', ['lteq' => 0]);
+                    $collection->getSelect()->having('`qty` <= 0 AND e.type_id != "configurable"');
                 }
-
-                // Join Attribute Set Name
-                $collection->joinField(
-                    'attribute_set_name',
-                    'eav_attribute_set',
-                    'attribute_set_name',
-                    'attribute_set_id=attribute_set_id',
-                    null,
-                    'left'
-                );
-
-                // Force load to catch SQL errors here
-                $collection->getSize();
 
                 $this->products = $collection;
             } catch (\Exception $e) {
                 error_log("VendorMarketplace Error in getVendorProducts: " . $e->getMessage());
-                // Return empty collection object to prevent template crash
                 $this->products = $this->productCollectionFactory->create();
-                // Actually, if we return empty collection, getSize() returns 0.
             }
         }
         return $this->products;
@@ -161,93 +170,66 @@ class ListProduct extends Template
         }
 
         $vendor = $this->getVendor();
-        $vendorId = $vendor ? (int) $vendor->getId() : 0;
+        $vendorId = $vendor ? (int)$vendor->getId() : 0;
 
         $hierarchical = [];
+        $configChildrenMap = [];
         $childProductIds = [];
 
-        // First pass: identify all child products of configurables
+        // Load all linked variants with MSI stock regardless of salability
         foreach ($products as $product) {
-            if ($product->getTypeId() == 'configurable') {
-                $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-                $configurableProduct = $objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable');
-                $children = $configurableProduct->getUsedProducts($product);
+            if ($product->getTypeId() === "configurable") {
+                $pId = (int)$product->getId();
+                $childCollection = $product->getTypeInstance()->getUsedProductCollection($product)
+                    ->setFlag('has_stock_status_filter', true)
+                    ->addAttributeToSelect(['name', 'sku', 'price', 'status', 'vendor_id', 'thumbnail', 'small_image', 'image']);
+                
+                $sourceItemTable = $childCollection->getTable('inventory_source_item');
+                $legacyStockTable = $childCollection->getTable('cataloginventory_stock_item');
 
-                foreach ($children as $child) {
-                    if ($vendorId > 0 && (int) $child->getData('vendor_id') !== $vendorId) {
+                $childCollection->getSelect()->joinLeft(
+                    ['isi' => $sourceItemTable],
+                    'isi.sku = e.sku',
+                    ['msi_qty' => 'isi.quantity']
+                )->joinLeft(
+                    ['csi' => $legacyStockTable],
+                    'csi.product_id = e.entity_id AND csi.stock_id = 1',
+                    ['legacy_qty' => 'csi.qty']
+                )->columns([
+                    'qty' => new \Zend_Db_Expr('COALESCE(isi.quantity, csi.qty, 0)')
+                ])->group('e.entity_id');
+
+                $validChildren = [];
+                foreach ($childCollection as $child) {
+                    if ($vendorId > 0 && (int)$child->getData("vendor_id") !== $vendorId && (int)$child->getData("vendor_id") !== 0) {
                         continue;
                     }
-
                     if (!$this->passesStockFilter($child)) {
                         continue;
                     }
-
-                    $childProductIds[] = $child->getId();
+                    $validChildren[] = $child;
+                    $childProductIds[(int)$child->getId()] = true;
                 }
+                $configChildrenMap[$pId] = $validChildren;
             }
         }
 
-        // Second pass: build hierarchical structure
         foreach ($products as $product) {
-            // Skip if this is a child product (will be shown under parent)
-            if (in_array($product->getId(), $childProductIds)) {
+            $pId = (int)$product->getId();
+            // Skip if this is a variant child belonging to a parent in the list
+            if (isset($childProductIds[$pId])) {
                 continue;
             }
 
-            $productData = [
-                'product' => $product,
-                'children' => []
+            $hierarchical[] = [
+                "product" => $product,
+                "children" => $configChildrenMap[$pId] ?? []
             ];
-
-            // If configurable, load children
-            if ($product->getTypeId() == 'configurable') {
-                $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-                $configurableProduct = $objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable');
-                $children = $configurableProduct->getUsedProducts($product);
-
-                foreach ($children as $child) {
-                    if ($vendorId > 0 && (int) $child->getData('vendor_id') !== $vendorId) {
-                        continue;
-                    }
-
-                    if (!$this->passesStockFilter($child)) {
-                        continue;
-                    }
-
-                    $productData['children'][] = $child;
-                }
-            }
-
-            $hierarchical[] = $productData;
         }
-
-        // Keep configurable parents visible near the top so variant groups do not look missing
-        usort($hierarchical, function (array $left, array $right) {
-            $leftType = isset($left['product']) ? $left['product']->getTypeId() : '';
-            $rightType = isset($right['product']) ? $right['product']->getTypeId() : '';
-
-            $leftPriority = ($leftType === 'configurable') ? 0 : 1;
-            $rightPriority = ($rightType === 'configurable') ? 0 : 1;
-
-            if ($leftPriority !== $rightPriority) {
-                return $leftPriority <=> $rightPriority;
-            }
-
-            $leftCreated = isset($left['product']) ? (string) $left['product']->getCreatedAt() : '';
-            $rightCreated = isset($right['product']) ? (string) $right['product']->getCreatedAt() : '';
-
-            return strcmp($rightCreated, $leftCreated);
-        });
 
         return $hierarchical;
     }
 
-    /**
-     * Apply active stock filter params to product rows in hierarchical rendering.
-     *
-     * @param \Magento\Catalog\Model\Product $product
-     * @return bool
-     */
     protected function passesStockFilter($product)
     {
         $params = $this->getRequest()->getParams();
@@ -266,39 +248,35 @@ class ListProduct extends Template
 
     public function getSalesStats($product)
     {
-        $stats = [
-            'sold' => 0,
-            'confirmed' => 0,
-            'pending' => 0
-        ];
+        if ($this->cachedSalesStats === null) {
+            $this->cachedSalesStats = [];
+            try {
+                $collection = $this->orderItemCollectionFactory->create();
+                $collection->getSelect()->columns([
+                    "total_sold" => new \Zend_Db_Expr("SUM(main_table.qty_ordered)"),
+                    "total_confirmed" => new \Zend_Db_Expr("SUM(main_table.qty_invoiced)"),
+                    "total_canceled" => new \Zend_Db_Expr("SUM(main_table.qty_canceled)")
+                ])->group("main_table.product_id");
 
-        try {
-            $collection = $this->orderItemCollectionFactory->create();
-            $collection->addFieldToFilter('product_id', $product->getId());
-
-            // Filter by vendor if needed (though product ID should be unique enough for simple products)
-            // If it's a configurable product, we might need to look at parent/child logic, 
-            // but for now strict product ID match is safest for the grid listing.
-
-            foreach ($collection as $item) {
-                // Qty Sold: Total ordered
-                $stats['sold'] += $item->getQtyOrdered();
-
-                // Qty Confirmed: Total invoiced
-                $stats['confirmed'] += $item->getQtyInvoiced();
-
-                // Qty Pending: Ordered - Invoiced - Canceled - Refunded
-                // Alternatively, just (Ordered - Invoiced - Canceled)
-                $pending = $item->getQtyOrdered() - $item->getQtyInvoiced() - $item->getQtyCanceled();
-                if ($pending > 0) {
-                    $stats['pending'] += $pending;
+                foreach ($collection as $item) {
+                    $pId = (int)$item->getProductId();
+                    $sold = (float)$item->getData("total_sold");
+                    $confirmed = (float)$item->getData("total_confirmed");
+                    $canceled = (float)$item->getData("total_canceled");
+                    $pending = max(0, $sold - $confirmed - $canceled);
+                    $this->cachedSalesStats[$pId] = [
+                        "sold" => $sold,
+                        "confirmed" => $confirmed,
+                        "pending" => $pending
+                    ];
                 }
+            } catch (\Exception $e) {
+                // Fallback to empty
             }
-        } catch (\Exception $e) {
-            // Fallback to 0
         }
 
-        return $stats;
+        $productId = (int)$product->getId();
+        return $this->cachedSalesStats[$productId] ?? ["sold" => 0, "confirmed" => 0, "pending" => 0];
     }
 
     public function formatPrice($price)
@@ -322,92 +300,93 @@ class ListProduct extends Template
     }
 
     /**
-     * Get Product Quantity (Supports MSI)
+     * Get Product Quantity (Supports MSI & Configurable Children Sum)
      * @param \Magento\Catalog\Model\Product $product
+     * @param array $children
      * @return float|int
      */
-    public function getProductQty($product)
+    public function getProductQty($product, $children = [])
     {
-        try {
-            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            /** @var \Magento\InventorySalesApi\Api\GetProductSalableQtyInterface $saleableQty */
-            $saleableQty = $objectManager->get('Magento\InventorySalesApi\Api\GetProductSalableQtyInterface');
-            /** @var \Magento\InventorySalesApi\Api\StockResolverInterface $stockResolver */
-            $stockResolver = $objectManager->get('Magento\InventorySalesApi\Api\StockResolverInterface');
-            /** @var \Magento\Store\Model\StoreManagerInterface $storeManager */
-            $storeManager = $objectManager->get('Magento\Store\Model\StoreManagerInterface');
-
-            $websiteCode = $storeManager->getWebsite()->getCode();
-            $stockId = $stockResolver->execute(\Magento\InventorySalesApi\Api\Data\SalesChannelInterface::TYPE_WEBSITE, $websiteCode)->getStockId();
-
-            return $saleableQty->execute($product->getSku(), $stockId);
-        } catch (\Exception $e) {
-            // Fallback to legacy qty joined in collection
-            return $product->getQty();
+        if ($product->getTypeId() === 'configurable') {
+            if (!empty($children)) {
+                $sum = 0;
+                foreach ($children as $child) {
+                    $sum += (float)$this->getProductQty($child);
+                }
+                return $sum;
+            }
+            return 0;
         }
+
+        $qty = $product->getData('qty');
+        if ($qty !== null) {
+            return (float)$qty;
+        }
+
+        $msiQty = $product->getData('msi_qty');
+        if ($msiQty !== null) {
+            return (float)$msiQty;
+        }
+
+        return 0;
     }
 
     public function getProductStats()
     {
         $vendor = $this->getVendor();
         if (!$vendor) {
-            return ['enabled' => 0, 'disabled' => 0, 'low_stock' => 0, 'out_of_stock' => 0, 'denied' => 0];
+            return ["enabled" => 0, "disabled" => 0, "low_stock" => 0, "out_of_stock" => 0, "denied" => 0];
         }
 
-        // We use a clone or new collection to avoid messing with the main list pagination
         $collection = $this->productCollectionFactory->create();
-        $collection->addAttributeToFilter('vendor_id', $vendor->getId());
-        $collection->addAttributeToFilter('sku', ['neq' => 'wallet-recharge']);
-        $collection->addAttributeToSelect('status');
+        $collection->setFlag('has_stock_status_filter', true);
+        $collection->addAttributeToFilter("vendor_id", $vendor->getId());
+        $collection->addAttributeToFilter("sku", ["neq" => "wallet-recharge"]);
+        $collection->addAttributeToSelect(["status", "type_id"]);
 
-        // Join stock for stock calculations - assumes legacy index for simplified stats
-        // For strict MSI stats we'd need a complex loop or separate index query
-        // Using legacy stock status for performance here
-        $collection->joinField(
-            'qty',
-            'cataloginventory_stock_item',
-            'qty',
-            'product_id=entity_id',
-            '{{table}}.stock_id=1',
-            'left'
-        );
-        $collection->joinField(
-            'is_in_stock',
-            'cataloginventory_stock_item',
-            'is_in_stock',
-            'product_id=entity_id',
-            '{{table}}.stock_id=1',
-            'left'
-        );
+        // Exclude child simple products belonging to configurable parents from top-level count
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $resource = $objectManager->get(\Magento\Framework\App\ResourceConnection::class);
+        $linkTable = $resource->getTableName("catalog_product_super_link");
+        $collection->getSelect()->where("e.entity_id NOT IN (SELECT product_id FROM " . $linkTable . ")");
+
+        $sourceItemTable = $collection->getTable('inventory_source_item');
+        $legacyStockTable = $collection->getTable('cataloginventory_stock_item');
+
+        $collection->getSelect()->joinLeft(
+            ['isi' => $sourceItemTable],
+            'isi.sku = e.sku',
+            ['msi_qty' => 'isi.quantity']
+        )->joinLeft(
+            ['csi' => $legacyStockTable],
+            'csi.product_id = e.entity_id AND csi.stock_id = 1',
+            ['legacy_qty' => 'csi.qty']
+        )->columns([
+            'qty' => new \Zend_Db_Expr('COALESCE(isi.quantity, csi.qty, 0)')
+        ])->group('e.entity_id');
 
         $stats = [
-            'enabled' => 0,
-            'disabled' => 0,
-            'low_stock' => 0,
-            'out_of_stock' => 0,
-            'denied' => 0
+            "enabled" => 0,
+            "disabled" => 0,
+            "low_stock" => 0,
+            "out_of_stock" => 0,
+            "denied" => 0
         ];
 
         foreach ($collection as $product) {
-            // Status: 1 = Enabled, 2 = Disabled
             if ($product->getStatus() == 1) {
-                $stats['enabled']++;
+                $stats["enabled"]++;
             } else {
-                $stats['disabled']++;
+                $stats["disabled"]++;
             }
 
-            // Configurable parent products do not carry direct stock.
-            if ($product->getTypeId() === 'configurable') {
-                continue;
-            }
-
-            // Use the MSI-aware quantity method
-            $qty = $this->getProductQty($product);
-
-            if ($qty <= 0) {
-                $stats['out_of_stock']++;
-            } elseif ($qty < 5) {
-                $stats['low_stock']++;
+            $qty = (float)$product->getData('qty');
+            if ($product->getTypeId() !== 'configurable') {
+                if ($qty <= 0) {
+                    $stats["out_of_stock"]++;
+                } elseif ($qty < 5) {
+                    $stats["low_stock"]++;
+                }
             }
         }
 

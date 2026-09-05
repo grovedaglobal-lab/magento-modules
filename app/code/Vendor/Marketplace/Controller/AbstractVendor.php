@@ -38,3 +38,4 @@ abstract class AbstractVendor extends Action
         return parent::dispatch($request);
     }
 }
+

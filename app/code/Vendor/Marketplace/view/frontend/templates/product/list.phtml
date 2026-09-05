@@ -1,269 +1,704 @@
-<style>
-/* ── Clean Professional Product Grid & Hierarchy Styling ── */
-#product-grid-table {
-    min-width: 1300px !important;
-    width: 100% !important;
-    border-collapse: separate !important;
-    border-spacing: 0 !important;
-    border: 1px solid #E2E8F0 !important;
-    border-radius: 8px !important;
-    overflow: hidden !important;
-    background: #FFFFFF !important;
-}
-#product-grid-table th {
-    background: #12371e !important;
-    color: #FFFFFF !important;
-    font-size: 11.5px !important;
-    font-weight: 700 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    padding: 12px 14px !important;
-    border: none !important;
-    white-space: nowrap !important;
-}
-#product-grid-table td {
-    padding: 11px 14px !important;
-    font-size: 13px !important;
-    color: #1E293B !important;
-    border-bottom: 1px solid #F1F5F9 !important;
-    border-top: none !important;
-    vertical-align: middle !important;
-}
-
-/* Parent Row */
-.parent-product-row td {
-    background-color: #FFFFFF !important;
-    border-top: 1px solid #E2E8F0 !important;
-}
-.parent-product-row .prod-title {
-    font-size: 13.5px !important;
-    font-weight: 700 !important;
-    color: #0F172A !important;
-}
-
-/* Child Rows (Subtle clean nested tint) */
-.child-product-row td {
-    background-color: #F8FAFC !important;
-    border-bottom: 1px solid #EDF2F7 !important;
-}
-.child-product-row:hover td {
-    background-color: #F1F5F9 !important;
-}
-.child-name-wrap {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-}
-.child-arrow {
-    color: #94A3B8 !important;
-    font-size: 15px !important;
-    font-weight: bold !important;
-    line-height: 1 !important;
-}
-.child-prod-title {
-    font-weight: 500 !important;
-    color: #334155 !important;
-    font-size: 13px !important;
-}
-
-/* Toggle Button */
-.variant-toggle-btn {
-    margin-left: 5px;
-    border: 1px solid #CBD5E1;
-    background: #F8FAFC;
-    color: #475569;
-    border-radius: 4px;
-    padding: 2px 6px;
-    font-size: 11px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    transition: all 0.15s ease;
-    font-weight: 600;
-}
-.variant-toggle-btn:hover {
-    background: #12371e;
-    color: #FFFFFF;
-    border-color: #12371e;
-}
-
-/* Type Pills */
-.type-pill {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 700;
-    line-height: 1;
-}
-.type-pill.type-configurable {
-    background: #EDE9FE;
-    color: #5B21B6;
-}
-.type-pill.type-simple {
-    background: #F1F5F9;
-    color: #475569;
-}
-
-/* Status Badges */
-.status-badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-}
-.status-badge.enabled {
-    background: #ECFDF5;
-    color: #059669;
-    border: 1px solid #A7F3D0;
-}
-.status-badge.disabled {
-    background: #FEF2F2;
-    color: #DC2626;
-    border: 1px solid #FECACA;
-}
-.status-badge.pending {
-    background: #FFFBEB;
-    color: #D97706;
-    border: 1px solid #FDE68A;
-}
-
-/* Pagination Controls */
-.grid-pagination {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-}
-.grid-pagination .pager {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin: 0;
-    padding: 0;
-}
-.grid-pagination .count-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.85rem;
-    color: #64748b;
-    font-weight: 500;
-}
-.grid-pagination .toolbar-amount {
-    display: none !important;
-}
-.grid-pagination .limiter {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin: 0;
-}
-.grid-pagination .limiter-label {
-    font-size: 0.82rem;
-    color: #64748b;
-    font-weight: 600;
-}
-.grid-pagination .limiter-options {
-    padding: 4px 8px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #1e293b;
-    background: #fff;
-    cursor: pointer;
-    outline: none;
-    height: 32px;
-}
-.grid-pagination .limiter-text {
-    font-size: 0.82rem;
-    color: #64748b;
-}
-.grid-pagination .pages {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.grid-pagination .pages-label {
-    display: none !important;
-}
-.grid-pagination .pages-items {
-    display: flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-    list-style: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-.grid-pagination .pages-items .item {
-    margin: 0 !important;
-    padding: 0 !important;
-    list-style: none !important;
-    display: inline-flex !important;
-}
-.grid-pagination .pages-items .item .label {
-    display: none !important;
-}
-.grid-pagination .pages-items .item .page,
-.grid-pagination .pages-items .item .action {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-width: 32px !important;
-    height: 32px !important;
-    padding: 0 8px !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 6px !important;
-    background: #ffffff !important;
-    color: #334155 !important;
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-    text-decoration: none !important;
-    transition: all 0.15s ease !important;
-    box-sizing: border-box !important;
-    line-height: 1 !important;
-}
-.grid-pagination .pages-items .item a.page:hover,
-.grid-pagination .pages-items .item a.action:hover {
-    background: #f1f5f9 !important;
-    border-color: #cbd5e1 !important;
-    color: #0f172a !important;
-}
-.grid-pagination .pages-items .item.current strong.page,
-.grid-pagination .pages-items .item strong.page {
-    background: #12371e !important;
-    border-color: #12371e !important;
-    color: #ffffff !important;
-    cursor: default !important;
-}
-</style>
 <?php
 /** @var \Vendor\Marketplace\Block\Product\ListProduct $block */
+$imageHelper = $this->helper(\Magento\Catalog\Helper\Image::class);
+$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$catCollection = $objectManager->create(\Magento\Catalog\Model\ResourceModel\Category\CollectionFactory::class)->create()
+    ->addAttributeToSelect('name')
+    ->setPageSize(100);
+$categoryNameMap = [];
+foreach ($catCollection as $catItem) {
+    $categoryNameMap[$catItem->getId()] = $catItem->getName();
+}
 $products = $block->getVendorProducts();
 $stats = $block->getProductStats();
 $vendor = $block->getVendor();
 $isApproved = $vendor ? ($vendor->getStatus() == 1) : false;
 ?>
+<style>
+/* â”€â”€â”€ Base Styles & Header â”€â”€â”€ */
+.marketplace-product-list {
+    padding: 0;
+    margin-bottom: 40px;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #1e293b;
+}
+
+.page-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.page-header-actions .page-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.page-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.action-btn-custom {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.action-btn-custom.primary {
+    background: var(--brand-primary, #113321);
+    color: #ffffff;
+    border: 1px solid var(--brand-primary, #113321);
+}
+
+.action-btn-custom.primary:hover {
+    background: var(--brand-secondary, #1a4a2f);
+    border-color: var(--brand-secondary, #1a4a2f);
+    color: #ffffff;
+}
+
+.action-btn-custom.secondary {
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+}
+
+.action-btn-custom.secondary:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+/* â”€â”€â”€ Dashboard Stats Cards â”€â”€â”€ */
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-tile {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    text-decoration: none;
+    color: #1e293b;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.stat-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.06);
+    border-color: #cbd5e1;
+}
+
+.stat-tile.active {
+    border-color: var(--brand-primary, #113321);
+    background: #f0fdf4;
+    box-shadow: 0 0 0 1px var(--brand-primary, #113321);
+}
+
+.stat-count {
+    font-size: 32px;
+    font-weight: 800;
+    color: #113321;
+    line-height: 1.1;
+    margin-bottom: 6px;
+}
+
+.stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #64748b;
+}
+
+/* â”€â”€â”€ Unified Order/Product Toolbar â”€â”€â”€ */
+.order-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+/* Mass Actions Select */
+.mass-action-select {
+    padding: 7px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #113321;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mass-action-select:focus {
+    border-color: var(--brand-primary, #113321);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(17, 51, 33, 0.1);
+}
+
+.records-found {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Interactive Tool Buttons */
+.tool-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.tool-btn:hover,
+.tool-btn.panel-open {
+    border-color: var(--brand-primary, #113321);
+    color: var(--brand-primary, #113321);
+    background: #f0fdf4;
+}
+
+.tool-btn .btn-caret {
+    font-size: 10px;
+    transition: transform 0.25s;
+    margin-left: 2px;
+}
+
+.tool-btn.panel-open .btn-caret {
+    transform: rotate(180deg);
+}
+
+/* â”€â”€â”€ Slide Panels â”€â”€â”€ */
+.slide-panel {
+    display: none;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    animation: slideDown 0.22s ease;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+.slide-panel.panel-visible {
+    display: block;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.panel-inner {
+    padding: 20px 24px;
+}
+
+.panel-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--brand-primary, #113321);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 12px;
+}
+
+/* Filters Grid */
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.filter-field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    margin-bottom: 6px;
+}
+
+.fp-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #1e293b;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.fp-input:focus {
+    border-color: var(--brand-primary, #113321);
+    box-shadow: 0 0 0 3px rgba(17, 51, 33, 0.1);
+    outline: none;
+}
+
+.panel-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.panel-btn-apply {
+    padding: 8px 20px;
+    background: var(--brand-primary, #113321);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.panel-btn-apply:hover {
+    background: var(--brand-secondary, #1a4a2f);
+}
+
+.panel-btn-clear {
+    padding: 8px 20px;
+    background: #fff;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.panel-btn-clear:hover {
+    background: #f8fafc;
+    color: #1e293b;
+}
+
+/* Default View Panel */
+.view-options-grid {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.view-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 24px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #334155;
+    transition: all 0.2s;
+    min-width: 100px;
+}
+
+.view-option input[type="radio"] {
+    display: none;
+}
+
+.view-option .view-icon {
+    font-size: 22px;
+    color: #94a3b8;
+    transition: color 0.2s;
+}
+
+.view-option:hover,
+.view-option.active-view {
+    border-color: var(--brand-primary, #113321);
+    background: #f0fdf4;
+    color: var(--brand-primary, #113321);
+}
+
+.view-option:hover .view-icon,
+.view-option.active-view .view-icon {
+    color: var(--brand-primary, #113321);
+}
+
+.panel-note {
+    font-size: 12px;
+    color: #94a3b8;
+    margin: 0;
+}
+
+/* Columns Panel */
+.columns-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.col-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #334155;
+    transition: all 0.2s;
+    background: #fafafa;
+    user-select: none;
+}
+
+.col-toggle:hover {
+    border-color: var(--brand-primary, #113321);
+    background: #f0fdf4;
+    color: var(--brand-primary, #113321);
+}
+
+.col-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--brand-primary, #113321);
+    cursor: pointer;
+}
+
+.col-toggle.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.col-toggle .lock-icon {
+    margin-left: auto;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+/* â”€â”€â”€ Table Design â”€â”€â”€ */
+.table-wrapper.products-grid-wrapper {
+    width: 100% !important;
+    overflow-x: auto !important;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    margin-bottom: 20px;
+}
+
+.table-wrapper.products-grid-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+.table-wrapper.products-grid-wrapper::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 0 0 12px 12px;
+}
+.table-wrapper.products-grid-wrapper::-webkit-scrollbar-thumb {
+    background: var(--brand-primary, #113321);
+    border-radius: 10px;
+}
+
+.data-grid {
+    width: 100%;
+    min-width: 1100px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.data-grid thead th {
+    background-color: var(--brand-primary, #113321) !important;
+    color: #ffffff !important;
+    padding: 14px 12px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    border: none !important;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.data-grid tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s ease;
+}
+
+.data-grid tbody tr:hover {
+    background-color: #f8fffe;
+}
+
+.data-grid td {
+    padding: 12px;
+    vertical-align: middle;
+    color: #334155;
+}
+
+.col-checkbox {
+    width: 35px;
+    text-align: center;
+}
+
+.col-actions {
+    width: 90px;
+}
+
+.action-select {
+    padding: 5px 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #1e293b;
+    background: #fff;
+    cursor: pointer;
+}
+
+.col-thumbnail img {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.col-name strong {
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+
+.status-badge.enabled {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-badge.disabled {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.status-badge.pending {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+/* Type Pill */
+.type-pill {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.type-pill.type-simple {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.type-pill.type-configurable {
+    background: #f3e8ff;
+    color: #6b21a8;
+}
+
+/* Variant Toggle */
+.variant-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    margin-top: 4px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: #f8fafc;
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+}
+
+.variant-toggle-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+/* Compact Table View Mode */
+.table-compact .data-grid td {
+    padding: 6px 10px;
+    font-size: 12px;
+}
+.table-compact .col-thumbnail img {
+    width: 32px;
+    height: 32px;
+}
+
+/* â”€â”€â”€ Bottom Pagination Bar â”€â”€â”€ */
+.order-pagination-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 18px;
+    margin-top: 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.order-pagination-bar .limiter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.order-pagination-bar .limiter-options {
+    padding: 6px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #1e293b;
+    background: #fff;
+    cursor: pointer;
+}
+
+.order-pagination-bar .items.pages-items {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.order-pagination-bar .pages-items .item a,
+.order-pagination-bar .pages-items .item strong {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    color: #334155;
+    background: #fff;
+    transition: all 0.2s;
+}
+
+.order-pagination-bar .pages-items .item a:hover {
+    border-color: var(--brand-primary, #113321);
+    color: var(--brand-primary, #113321);
+    background: #f0fdf4;
+}
+
+.order-pagination-bar .pages-items .item.current strong {
+    background: var(--brand-primary, #113321);
+    border-color: var(--brand-primary, #113321);
+    color: #fff;
+    font-weight: 600;
+}
+</style>
+
 <div class="marketplace-product-list">
     <div class="page-header-actions">
         <h1 class="page-title"><?= __('Marketplace Product List') ?></h1>
         <?php if ($isApproved): ?>
-            <div class="page-actions" style="display:flex; gap:10px; flex-wrap:wrap; margin-left:auto;">
-                <a href="<?= $block->getUrl('*/*/import') ?>" class="action secondary add-product-btn">
+            <div class="page-actions">
+                <a href="<?= $block->getUrl('*/*/import') ?>" class="action-btn-custom secondary">
                     <i class="fas fa-file-excel"></i> <span><?= __('Import Products') ?></span>
                 </a>
-                <a href="<?= $block->getUrl('*/*/new') ?>" class="action primary add-product-btn">
+                <a href="<?= $block->getUrl('*/*/new') ?>" class="action-btn-custom primary">
                     <i class="fas fa-plus"></i> <span><?= __('Add New Product') ?></span>
                 </a>
             </div>
         <?php else: ?>
-            <div class="message warning"
-                style="margin-left: auto; max-width: 400px; padding: 10px; background: #fff3cd; color: #856404; border-radius: 4px; border: 1px solid #ffeeba; text-align: center;">
+            <div class="message warning" style="margin-left: auto; max-width: 400px; padding: 10px; background: #fff3cd; color: #856404; border-radius: 4px; border: 1px solid #ffeeba; text-align: center;">
                 <span><?= __('Your vendor account is pending approval. You will be able to add products once approved.') ?></span>
             </div>
         <?php endif; ?>
@@ -297,98 +732,120 @@ $isApproved = $vendor ? ($vendor->getStatus() == 1) : false;
         </div>
     </div>
 
-    <!-- Toolbar Controls -->
-    <!-- Filter Form (Hidden by default) -->
-    <div class="grid-filters" id="grid-filters" style="display: none;">
-        <form action="<?= $block->getUrl('*/*/*') ?>" method="get" id="filter-form">
-            <div class="filter-row">
-                <div class="filter-col">
-                    <label><?= __('Name') ?></label>
-                    <input type="text" name="name"
-                        value="<?= $block->escapeHtml($block->getRequest()->getParam('name')) ?>" />
+    <!-- Unified Order/Product Toolbar -->
+    <div class="order-toolbar">
+        <div class="toolbar-left">
+            <select class="mass-action-select" onchange="handleMassAction(this)">
+                <option value=""><?= __('Actions') ?></option>
+                <option value="delete"><?= __('Delete') ?></option>
+            </select>
+            <span class="records-found"><?= __('%1 records found', $products ? $products->getSize() : 0) ?></span>
+        </div>
+        <div class="toolbar-right">
+            <button type="button" class="tool-btn" id="btn-filters" onclick="togglePanel('filters-panel', 'btn-filters')">
+                <i class="fas fa-filter"></i> <span><?= __('Filters') ?></span> <i class="fas fa-caret-down btn-caret"></i>
+            </button>
+            <button type="button" class="tool-btn" id="btn-default-view" onclick="togglePanel('default-view-panel', 'btn-default-view')">
+                <i class="fas fa-eye"></i> <span><?= __('Default View') ?></span> <i class="fas fa-caret-down btn-caret"></i>
+            </button>
+            <button type="button" class="tool-btn" id="btn-columns" onclick="togglePanel('columns-panel', 'btn-columns')">
+                <i class="fas fa-cog"></i> <span><?= __('Columns') ?></span> <i class="fas fa-caret-down btn-caret"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- â”€â”€ FILTERS PANEL â”€â”€ -->
+    <div class="slide-panel" id="filters-panel">
+        <div class="panel-inner">
+            <div class="panel-title"><i class="fas fa-filter"></i> <?= __('Filter Products') ?></div>
+            <div class="filters-grid">
+                <div class="filter-field">
+                    <label><?= __('Keyword (Name or SKU)') ?></label>
+                    <input type="text" id="fp-keyword" class="fp-input" placeholder="e.g. Cardamom or SKU"
+                           value="<?= $block->escapeHtml($block->getRequest()->getParam('keyword')) ?>">
                 </div>
-                <div class="filter-col">
+                <div class="filter-field">
+                    <label><?= __('Product Name') ?></label>
+                    <input type="text" id="fp-name" class="fp-input" placeholder="Name"
+                           value="<?= $block->escapeHtml($block->getRequest()->getParam('name')) ?>">
+                </div>
+                <div class="filter-field">
                     <label><?= __('SKU') ?></label>
-                    <input type="text" name="sku"
-                        value="<?= $block->escapeHtml($block->getRequest()->getParam('sku')) ?>" />
+                    <input type="text" id="fp-sku" class="fp-input" placeholder="SKU"
+                           value="<?= $block->escapeHtml($block->getRequest()->getParam('sku')) ?>">
                 </div>
-                <div class="filter-col">
+                <div class="filter-field">
                     <label><?= __('Status') ?></label>
-                    <select name="status">
-                        <option value=""><?= __('Any') ?></option>
-                        <option value="1" <?= $block->getRequest()->getParam('status') == '1' ? 'selected' : '' ?>>
-                            <?= __('Enabled') ?>
-                        </option>
-                        <option value="2" <?= $block->getRequest()->getParam('status') == '2' ? 'selected' : '' ?>>
-                            <?= __('Disabled') ?>
-                        </option>
+                    <select id="fp-status" class="fp-input">
+                        <option value=""><?= __('All') ?></option>
+                        <option value="1" <?= $block->getRequest()->getParam('status') == '1' ? 'selected' : '' ?>><?= __('Enabled') ?></option>
+                        <option value="2" <?= $block->getRequest()->getParam('status') == '2' ? 'selected' : '' ?>><?= __('Disabled') ?></option>
                     </select>
                 </div>
-                <div class="filter-col actions">
-                    <button type="submit" class="action primary"><span><?= __('Apply Filters') ?></span></button>
-                    <a href="<?= $block->getUrl('*/*/*') ?>"
-                        class="action secondary"><span><?= __('Reset') ?></span></a>
-                </div>
             </div>
-        </form>
-    </div>
-
-    <!-- Search Bar -->
-    <div class="grid-search-bar">
-        <form action="<?= $block->getUrl('*/*/*') ?>" method="get" id="search-form">
-            <?php if ($block->getRequest()->getParam('status')): ?>
-                <input type="hidden" name="status"
-                    value="<?= $block->escapeHtmlAttr($block->getRequest()->getParam('status')) ?>" />
-            <?php endif; ?>
-            <div class="search-input-wrapper">
-                <input type="text" name="keyword" placeholder="<?= __('Search by Name or SKU...') ?>"
-                    value="<?= $block->escapeHtmlAttr($block->getRequest()->getParam('keyword')) ?>" />
-                <button type=" submit" class="action primary">
-                    <span><?= __('Search') ?></span>
-                </button>
-                <?php if ($block->getRequest()->getParam('keyword')): ?>
-                    <a href="<?= $block->getUrl('*/*/*', ['status' => $block->getRequest()->getParam('status')]) ?>"
-                        class="action secondary clear-btn">
-                        <span><?= __('Clear') ?></span>
-                    </a>
-                <?php endif; ?>
-            </div>
-        </form>
-    </div>
-
-    <form action="<?= $block->getUrl('*/*/massDelete') ?>" method="post" id="product-grid-form"
-        onsubmit="return confirm('<?= __('Are you sure you want to delete selected products?') ?>');">
-        <?= $block->getBlockHtml('formkey') ?>
-
-        <div class="grid-controls">
-            <div class="grid-actions">
-                <div class="actions-dropdown-wrapper">
-                    <select class="action-select mass-action-select" style="width: auto; padding-right: 30px;"
-                        onchange="handleMassAction(this)">
-                        <option value=""><?= __('Actions') ?></option>
-                        <option value="delete"><?= __('Delete') ?></option>
-                    </select>
-                </div>
-                <div class="records-found">
-                    <?= $products ? $products->getSize() : 0 ?> <?= __('records found') ?>
-                </div>
-            </div>
-            <div class="grid-tools">
-                <button type="button" class="tool-btn filters" onclick="toggleFilters()">
-                    <i class="fas fa-filter"></i> <span><?= __('Filters') ?></span>
-                </button>
-                <a href="<?= $block->getUrl('*/*/*') ?>" class="tool-btn view">
-                    <i class="fas fa-eye"></i> <span><?= __('Default View') ?></span>
-                </a>
-            </div>
-            <div class="grid-pagination">
-                <?php if ($block->getPagerHtml()): ?>
-                    <?= $block->getPagerHtml() ?>
-                <?php endif ?>
+            <div class="panel-actions">
+                <button type="button" class="panel-btn-apply" onclick="applyFiltersPanel()"><?= __('Apply Filters') ?></button>
+                <button type="button" class="panel-btn-clear" onclick="clearFilters()"><?= __('Clear All') ?></button>
             </div>
         </div>
+    </div>
 
-        <div class="table-wrapper products-grid-wrapper">
+    <!-- â”€â”€ DEFAULT VIEW PANEL â”€â”€ -->
+    <div class="slide-panel" id="default-view-panel">
+        <div class="panel-inner">
+            <div class="panel-title"><i class="fas fa-eye"></i> <?= __('Default View') ?></div>
+            <div class="view-options-grid">
+                <label class="view-option" onclick="selectViewOption('default')">
+                    <input type="radio" name="grid-view" value="default" checked>
+                    <span class="view-icon"><i class="fas fa-table"></i></span>
+                    <span><?= __('Default') ?></span>
+                </label>
+                <label class="view-option" onclick="selectViewOption('compact')">
+                    <input type="radio" name="grid-view" value="compact">
+                    <span class="view-icon"><i class="fas fa-th-list"></i></span>
+                    <span><?= __('Compact') ?></span>
+                </label>
+            </div>
+            <p class="panel-note"><?= __('View preferences are saved in your browser.') ?></p>
+            <div class="panel-actions">
+                <button type="button" class="panel-btn-apply" onclick="applyView()"><?= __('Apply View') ?></button>
+                <button type="button" class="panel-btn-clear" onclick="closePanel('default-view-panel', 'btn-default-view')"><?= __('Cancel') ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- â”€â”€ COLUMNS PANEL â”€â”€ -->
+    <div class="slide-panel" id="columns-panel">
+        <div class="panel-inner">
+            <div class="panel-title"><i class="fas fa-cog"></i> <?= __('Visible Columns') ?></div>
+            <div class="columns-grid">
+                <label class="col-toggle locked"><input type="checkbox" checked disabled> <?= __('Action') ?> <span class="lock-icon"><i class="fas fa-lock"></i></span></label>
+                <label class="col-toggle locked"><input type="checkbox" checked disabled> <?= __('ID') ?> <span class="lock-icon"><i class="fas fa-lock"></i></span></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-thumbnail" checked> <?= __('Thumbnail') ?></label>
+                <label class="col-toggle locked"><input type="checkbox" checked disabled> <?= __('Name') ?> <span class="lock-icon"><i class="fas fa-lock"></i></span></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-categories" checked> <?= __('Categories') ?></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-attr-set" checked> <?= __('Attribute Set') ?></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-status" checked> <?= __('Status') ?></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-type" checked> <?= __('Type') ?></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-price" checked> <?= __('Price') ?></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-sku" checked> <?= __('SKU') ?></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-qty" checked> <?= __('Qty') ?></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-sold" checked> <?= __('Qty Sold') ?></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-confirmed" checked> <?= __('Qty Confirmed') ?></label>
+                <label class="col-toggle"><input type="checkbox" data-col="col-pending" checked> <?= __('Qty Pending') ?></label>
+            </div>
+            <div class="panel-actions">
+                <button type="button" class="panel-btn-apply" onclick="applyColumns()"><?= __('Apply') ?></button>
+                <button type="button" class="panel-btn-clear" onclick="resetColumns()"><?= __('Reset') ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Grid Form -->
+    <form action="<?= $block->getUrl('*/*/massDelete') ?>" method="post" id="product-grid-form">
+        <?= $block->getBlockHtml('formkey') ?>
+
+        <div class="table-wrapper products-grid-wrapper" id="products-table-wrapper">
             <table class="data-grid" id="product-grid-table">
                 <thead>
                     <tr>
@@ -444,34 +901,24 @@ $isApproved = $vendor ? ($vendor->getStatus() == 1) : false;
                                 </td>
                                 <td class="col-thumbnail">
                                     <?php
-                                    $imageUrl = $this->helper('Magento\Catalog\Helper\Image')
-                                        ->init($product, 'product_small_image')
-                                        ->resize(44)
-                                        ->getUrl();
+                                    $productImage = $imageHelper->init($product, 'product_thumbnail_image')->resize(44, 44);
                                     ?>
-                                    <img src="<?= $imageUrl ?>" alt="Thumbnail" width="44" height="44" style="border-radius: 6px; border: 1px solid #E2E8F0; object-fit: contain;" />
+                                    <img src="<?= $block->escapeUrl($productImage->getUrl()) ?>" alt="<?= $block->escapeHtmlAttr($product->getName()) ?>" width="44" height="44" loading="lazy" />
                                 </td>
                                 <td class="col-name">
-                                    <strong class="prod-title"><?= $block->escapeHtml($product->getName()) ?></strong>
+                                    <strong><?= $block->escapeHtml($product->getName()) ?></strong>
                                 </td>
                                 <td class="col-categories">
                                     <?php
-                                    $categoryIds = $product->getCategoryIds();
-                                    $categoryNames = [];
-                                    if (!empty($categoryIds)) {
-                                        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-                                        $categoryRepository = $objectManager->get('\Magento\Catalog\Api\CategoryRepositoryInterface');
-                                        foreach ($categoryIds as $categoryId) {
-                                            try {
-                                                $category = $categoryRepository->get($categoryId);
-                                                if ($category->getId()) {
-                                                    $categoryNames[] = $category->getName();
-                                                }
-                                            } catch (\Exception $e) {
-                                                // Skip invalid categories
+                                    $catIds = $product->getCategoryIds();
+                                    if (!empty($catIds)) {
+                                        $catNames = [];
+                                        foreach ($catIds as $cId) {
+                                            if (isset($categoryNameMap[$cId])) {
+                                                $catNames[] = $categoryNameMap[$cId];
                                             }
                                         }
-                                        echo $block->escapeHtml(implode(', ', $categoryNames));
+                                        echo !empty($catNames) ? $block->escapeHtml(implode(', ', $catNames)) : '-';
                                     } else {
                                         echo '-';
                                     }
@@ -499,7 +946,7 @@ $isApproved = $vendor ? ($vendor->getStatus() == 1) : false;
                                 </td>
                                 <td class="col-sku font-mono"><?= $block->escapeHtml($product->getSku()) ?></td>
                                 <td class="col-qty">
-                                    <span class="qty-number"><?= (float) $block->getProductQty($product) ?></span>
+                                    <span class="qty-number"><?= (float) $block->getProductQty($product, $children) ?></span>
                                 </td>
                                 <td class="col-sold"><?= $salesStats['sold'] ?></td>
                                 <td class="col-confirmed"><?= $salesStats['confirmed'] ?></td>
@@ -508,33 +955,29 @@ $isApproved = $vendor ? ($vendor->getStatus() == 1) : false;
 
                             <?php if (!empty($children)): ?>
                                 <?php foreach ($children as $cIdx => $child): ?>
-                                    <?php 
-                                    $childSalesStats = $block->getSalesStats($child);
-                                    ?>
-                                    <tr class="child-product-row child-of-<?= $product->getId() ?>" data-parent-id="<?= $product->getId() ?>">
+                                    <?php $childSalesStats = $block->getSalesStats($child); ?>
+                                    <tr class="child-product-row child-of-<?= $product->getId() ?>" style="background: #fbfcfd;">
                                         <td class="col-checkbox">
                                             <input type="checkbox" name="product_ids[]" value="<?= $child->getId() ?>" />
                                         </td>
                                         <td class="col-actions">
-                                            <span style="color: #94a3b8; font-weight: 500;">-</span>
+                                            <select class="action-select"
+                                                onchange="handleRowAction(this, '<?= $block->getEditProductUrl($child) ?>', '<?= $block->getUrl('*/*/delete', ['id' => $child->getId()]) ?>')">
+                                                <option value=""><?= __('Select') ?></option>
+                                                <option value="edit"><?= __('Edit') ?></option>
+                                                <option value="delete"><?= __('Delete') ?></option>
+                                            </select>
                                         </td>
-                                        <td class="col-id" style="color: #64748B; font-size: 12.5px;">
-                                            <?= $child->getId() ?>
-                                        </td>
+                                        <td class="col-id" style="color: #64748b;"><?= $child->getId() ?></td>
                                         <td class="col-thumbnail">
                                             <?php
-                                            $childImageUrl = $this->helper('Magento\Catalog\Helper\Image')
-                                                ->init($child, 'product_small_image')
-                                                ->resize(38)
-                                                ->getUrl();
+                                            $childImg = $imageHelper->init($child, 'product_thumbnail_image')->resize(32, 32);
                                             ?>
-                                            <img src="<?= $childImageUrl ?>" alt="Thumbnail" width="38" height="38" style="border-radius: 4px; border: 1px solid #E2E8F0; object-fit: contain;" />
+                                            <img src="<?= $block->escapeUrl($childImg->getUrl()) ?>" alt="<?= $block->escapeHtmlAttr($child->getName()) ?>" width="32" height="32" loading="lazy" />
                                         </td>
-                                        <td class="col-name">
-                                            <div class="child-name-wrap">
-                                                <span class="child-arrow">↳</span>
-                                                <span class="child-prod-title"><?= $block->escapeHtml($child->getName()) ?></span>
-                                            </div>
+                                        <td class="col-name" style="padding-left: 20px;">
+                                            <i class="fas fa-level-up-alt fa-rotate-90" style="color: #94a3b8; margin-right: 6px; font-size: 11px;"></i>
+                                            <?= $block->escapeHtml($child->getName()) ?>
                                         </td>
                                         <td class="col-categories" style="color: #94A3B8;">-</td>
                                         <td class="col-attr-set" style="color: #94A3B8;">-</td>
@@ -564,16 +1007,21 @@ $isApproved = $vendor ? ($vendor->getStatus() == 1) : false;
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="15" class="empty-text"><?= __('No products found.') ?></td>
+                            <td colspan="15" style="text-align: center; padding: 40px; color: #94a3b8; font-size: 14px; font-weight: 500;">
+                                <?= __('No products found.') ?>
+                            </td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
-        
+
         <?php if ($block->getPagerHtml()): ?>
-            <div class="grid-controls bottom" style="margin-top: 15px; display: flex; justify-content: flex-end; align-items: center;">
-                <div class="grid-pagination">
+            <div class="order-pagination-bar">
+                <div class="pagination-left">
+                    <span class="records-found"><?= __('%1 records found', $products ? $products->getSize() : 0) ?></span>
+                </div>
+                <div class="pagination-right">
                     <?= $block->getPagerHtml() ?>
                 </div>
             </div>
@@ -582,7 +1030,154 @@ $isApproved = $vendor ? ($vendor->getStatus() == 1) : false;
 </div>
 
 <script>
-    
+    /* â”€â”€â”€ Panel Toggle Logic â”€â”€â”€ */
+    var openPanel = null;
+    var openBtn   = null;
+
+    function togglePanel(panelId, btnId) {
+        var panel = document.getElementById(panelId);
+        var btn   = document.getElementById(btnId);
+
+        if (openPanel && openPanel !== panel) {
+            openPanel.classList.remove('panel-visible');
+            if (openBtn) openBtn.classList.remove('panel-open');
+        }
+
+        if (panel.classList.contains('panel-visible')) {
+            panel.classList.remove('panel-visible');
+            btn.classList.remove('panel-open');
+            openPanel = null;
+            openBtn   = null;
+        } else {
+            panel.classList.add('panel-visible');
+            btn.classList.add('panel-open');
+            openPanel = panel;
+            openBtn   = btn;
+        }
+    }
+
+    function closePanel(panelId, btnId) {
+        var panel = document.getElementById(panelId);
+        var btn   = document.getElementById(btnId);
+        if (panel) panel.classList.remove('panel-visible');
+        if (btn)   btn.classList.remove('panel-open');
+        openPanel = null;
+        openBtn   = null;
+    }
+
+    /* â”€â”€â”€ Filters â”€â”€â”€ */
+    function applyFiltersPanel() {
+        var url    = '<?= $block->getUrl('*/*/*') ?>';
+        var params = [];
+        var fields = ['fp-keyword', 'fp-name', 'fp-sku', 'fp-status'];
+        var names  = ['keyword', 'name', 'sku', 'status'];
+
+        fields.forEach(function(id, i) {
+            var el = document.getElementById(id);
+            if (el && el.value) {
+                params.push(names[i] + '=' + encodeURIComponent(el.value));
+            }
+        });
+
+        window.location.href = params.length ? url + '?' + params.join('&') : url;
+    }
+
+    function clearFilters() {
+        window.location.href = '<?= $block->getUrl('*/*/*') ?>';
+    }
+
+    /* â”€â”€â”€ Default View Options â”€â”€â”€ */
+    function selectViewOption(view) {
+        document.querySelectorAll('.view-option').forEach(function(el) {
+            el.classList.remove('active-view');
+        });
+        var targetRadio = document.querySelector('input[name="grid-view"][value="' + view + '"]');
+        if (targetRadio) {
+            targetRadio.checked = true;
+            targetRadio.closest('.view-option').classList.add('active-view');
+        }
+    }
+
+    function applyView() {
+        var selected = document.querySelector('input[name="grid-view"]:checked');
+        if (selected) {
+            localStorage.setItem('product-grid-view', selected.value);
+            var wrapper = document.getElementById('products-table-wrapper');
+            if (selected.value === 'compact') {
+                wrapper.classList.add('table-compact');
+            } else {
+                wrapper.classList.remove('table-compact');
+            }
+        }
+        closePanel('default-view-panel', 'btn-default-view');
+    }
+
+    // Load saved view on page load
+    (function initView() {
+        var savedView = localStorage.getItem('product-grid-view') || 'default';
+        selectViewOption(savedView);
+        var wrapper = document.getElementById('products-table-wrapper');
+        if (wrapper && savedView === 'compact') {
+            wrapper.classList.add('table-compact');
+        }
+    })();
+
+    /* â”€â”€â”€ Columns Toggle â”€â”€â”€ */
+    function applyColumns() {
+        var checkboxes = document.querySelectorAll('.col-toggle input[data-col]');
+        var hiddenCols = [];
+        checkboxes.forEach(function(cb) {
+            var colClass = cb.getAttribute('data-col');
+            var cells = document.querySelectorAll('.' + colClass);
+            cells.forEach(function(cell) {
+                cell.style.display = cb.checked ? '' : 'none';
+            });
+            if (!cb.checked) {
+                hiddenCols.push(colClass);
+            }
+        });
+        localStorage.setItem('product-hidden-cols', JSON.stringify(hiddenCols));
+        closePanel('columns-panel', 'btn-columns');
+    }
+
+    function resetColumns() {
+        var checkboxes = document.querySelectorAll('.col-toggle input[data-col]');
+        checkboxes.forEach(function(cb) {
+            cb.checked = true;
+        });
+        localStorage.removeItem('product-hidden-cols');
+        applyColumns();
+    }
+
+    // Restore column visibility
+    (function initColumns() {
+        try {
+            var hiddenCols = JSON.parse(localStorage.getItem('product-hidden-cols') || '[]');
+            hiddenCols.forEach(function(colClass) {
+                var cb = document.querySelector('.col-toggle input[data-col="' + colClass + '"]');
+                if (cb) cb.checked = false;
+                var cells = document.querySelectorAll('.' + colClass);
+                cells.forEach(function(cell) {
+                    cell.style.display = 'none';
+                });
+            });
+        } catch (e) {}
+    })();
+
+    /* â”€â”€â”€ Outside Click to Close Panels â”€â”€â”€ */
+    document.addEventListener('click', function(e) {
+        if (!openPanel) return;
+        var inPanel = openPanel.contains(e.target);
+        var inBtn   = openBtn && openBtn.contains(e.target);
+        if (!inPanel && !inBtn) {
+            openPanel.classList.remove('panel-visible');
+            if (openBtn) openBtn.classList.remove('panel-open');
+            openPanel = null;
+            openBtn   = null;
+        }
+    });
+
+    /* â”€â”€â”€ Variant Toggling â”€â”€â”€ */
     function toggleVariants(parentId, btn) {
         var rows = document.querySelectorAll('.child-of-' + parentId);
         var isHidden = false;
@@ -601,17 +1196,10 @@ $isApproved = $vendor ? ($vendor->getStatus() == 1) : false;
         }
     }
 
-    function toggleFilters() {
-        var el = document.getElementById('grid-filters');
-        el.style.display = (el.style.display === 'none') ? 'block' : 'none';
-    }
-
-
-
+    /* â”€â”€â”€ Actions Handlers â”€â”€â”€ */
     function handleRowAction(select, editUrl, deleteUrl) {
         var val = select.value;
-        select.value = ""; // Reset selection
-
+        select.value = "";
         if (val === 'edit') {
             window.location.href = editUrl;
         } else if (val === 'delete') {
@@ -621,36 +1209,27 @@ $isApproved = $vendor ? ($vendor->getStatus() == 1) : false;
         }
     }
 
-
-
     function handleMassAction(select) {
         if (select.value === 'delete') {
+            var checkboxes = document.querySelectorAll('input[name="product_ids[]"]:checked');
+            if (checkboxes.length === 0) {
+                alert('<?= __('Please select at least one product.') ?>');
+                select.value = "";
+                return;
+            }
             if (confirm('<?= __('Are you sure you want to delete selected products?') ?>')) {
                 document.getElementById('product-grid-form').submit();
             } else {
-                select.value = ""; // Reset if cancelled
+                select.value = "";
             }
         }
     }
 
     function toggleAll(source) {
         var checkboxes = document.getElementsByName('product_ids[]');
-        for (var i = 0, n = checkboxes.length; i < n; i++) {
+        for (var i = 0; i < checkboxes.length; i++) {
             checkboxes[i].checked = source.checked;
         }
     }
-
-    // Close dropdowns if clicked outside
-    window.onclick = function (event) {
-        if (!event.target.closest('.actions-dropdown-wrapper') && !event.target.closest('.row-actions-wrapper')) {
-            var dropdowns = document.getElementsByClassName("actions-menu");
-            for (var i = 0; i < dropdowns.length; i++) {
-                dropdowns[i].style.display = 'none';
-            }
-            var rowDropdowns = document.getElementsByClassName("row-actions-menu");
-            for (var i = 0; i < rowDropdowns.length; i++) {
-                rowDropdowns[i].style.display = 'none';
-            }
-        }
-    }
 </script>
+

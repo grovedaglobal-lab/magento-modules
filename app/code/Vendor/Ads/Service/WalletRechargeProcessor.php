@@ -164,14 +164,14 @@ class WalletRechargeProcessor
 
     public function processCapturedPayment(string $razorpayOrderId, string $razorpayPaymentId, ?int $vendorId = null, ?int $customerId = null): array
     {
-        file_put_contents('/tmp/ads_debug.log', "DEBUG: processCapturedPayment started. Order: $razorpayOrderId, Payment: $razorpayPaymentId\n", FILE_APPEND);
+        \Magento\Framework\App\ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class)->debug("DEBUG: processCapturedPayment started. Order: $razorpayOrderId, Payment: $razorpayPaymentId\n");
         $connection = $this->resource->getConnection();
         $paymentTable = $this->resource->getTableName('vendor_ads_payment');
         $row = [];
 
         $connection->beginTransaction();
         try {
-            file_put_contents('/tmp/ads_debug.log', "DEBUG: fetchRow started\n", FILE_APPEND);
+            \Magento\Framework\App\ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class)->debug("DEBUG: fetchRow started\n");
             $row = $connection->fetchRow(
                 $connection->select()
                     ->from($paymentTable)
@@ -180,11 +180,11 @@ class WalletRechargeProcessor
             );
 
             if (!$row) {
-                file_put_contents('/tmp/ads_debug.log', "DEBUG: row not found\n", FILE_APPEND);
+                \Magento\Framework\App\ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class)->debug("DEBUG: row not found\n");
                 throw new LocalizedException(__('Payment record not found.'));
             }
 
-            file_put_contents('/tmp/ads_debug.log', "DEBUG: row found. status: " . $row['status'] . "\n", FILE_APPEND);
+            \Magento\Framework\App\ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class)->debug("DEBUG: row found. status: " . $row['status'] . "\n");
 
             if ($vendorId !== null && (int)$row['vendor_id'] !== $vendorId) {
                 throw new LocalizedException(__('Vendor mismatch for this payment.'));
@@ -196,7 +196,7 @@ class WalletRechargeProcessor
 
             if ($row['status'] === 'success') {
                 $connection->commit();
-                file_put_contents('/tmp/ads_debug.log', "DEBUG: already success\n", FILE_APPEND);
+                \Magento\Framework\App\ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class)->debug("DEBUG: already success\n");
                 return ['status' => 'already_processed', 'payment' => $row];
             }
 
@@ -206,10 +206,10 @@ class WalletRechargeProcessor
                 ['id = ?' => (int)$row['id']]
             );
             $connection->commit();
-            file_put_contents('/tmp/ads_debug.log', "DEBUG: committed initial status update\n", FILE_APPEND);
+            \Magento\Framework\App\ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class)->debug("DEBUG: committed initial status update\n");
 
             $paymentData = $this->razorpayGateway->fetchPayment($razorpayPaymentId);
-            file_put_contents('/tmp/ads_debug.log', "DEBUG: rzp fetchPayment done. status: " . ($paymentData['status'] ?? 'unknown') . "\n", FILE_APPEND);
+            \Magento\Framework\App\ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class)->debug("DEBUG: rzp fetchPayment done. status: " . ($paymentData['status'] ?? 'unknown') . "\n");
 
             if ((string)($paymentData['order_id'] ?? '') !== $razorpayOrderId) {
                 throw new LocalizedException(__('Razorpay order mismatch.'));
@@ -227,9 +227,9 @@ class WalletRechargeProcessor
 
             $row['razorpay_payment_id'] = $razorpayPaymentId;
 
-            file_put_contents('/tmp/ads_debug.log', "DEBUG: Before Wallet Credit\n", FILE_APPEND);
+            \Magento\Framework\App\ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class)->debug("DEBUG: Before Wallet Credit\n");
             $this->ensureWalletCredit($row);
-            file_put_contents('/tmp/ads_debug.log', "DEBUG: Wallet credited successfully\n", FILE_APPEND);
+            \Magento\Framework\App\ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class)->debug("DEBUG: Wallet credited successfully\n");
 
             // Update status promptly so the user sees 'Success' even if order generation is slow
             $connection->update(
@@ -244,7 +244,7 @@ class WalletRechargeProcessor
             // Try to generate order/invoice, but don't fail the recharge if it fails
             $magentoOrderId = null;
             try {
-                file_put_contents('/tmp/ads_debug.log', "DEBUG: Attempting to ensureOrderAndInvoice\n", FILE_APPEND);
+                \Magento\Framework\App\ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class)->debug("DEBUG: Attempting to ensureOrderAndInvoice\n");
                 $magentoOrderId = $this->ensureOrderAndInvoice($row, $razorpayPaymentId);
                 
                 // If order created, update the payment record with order ID
@@ -260,14 +260,14 @@ class WalletRechargeProcessor
                         (int)$magentoOrderId
                     );
                 }
-                file_put_contents('/tmp/ads_debug.log', "DEBUG: Invoicing completed. Order ID: $magentoOrderId\n", FILE_APPEND);
+                \Magento\Framework\App\ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class)->debug("DEBUG: Invoicing completed. Order ID: $magentoOrderId\n");
             } catch (\Exception $invoicingError) {
                 \Magento\Framework\App\ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class)
                     ->error('Wallet Recharge Invoicing Error (Recharge succeeded, but order/invoice failed): ' . $invoicingError->getMessage(), [
                         'payment_id' => $row['id'],
                         'razorpay_payment_id' => $razorpayPaymentId
                     ]);
-                file_put_contents('/tmp/ads_debug.log', "DEBUG: Invoicing failed but recharge is success. Error: " . $invoicingError->getMessage() . "\n", FILE_APPEND);
+                \Magento\Framework\App\ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class)->debug("DEBUG: Invoicing failed but recharge is success. Error: " . $invoicingError->getMessage() . "\n");
             }
 
             return [
@@ -411,6 +411,7 @@ class WalletRechargeProcessor
         
         $quote->collectTotals();
         $quote->setSendConfirmation(false);
+        $quote->setData("is_wallet_recharge", 1);
         $this->cartRepository->save($quote);
 
         try {
@@ -464,6 +465,25 @@ class WalletRechargeProcessor
 
         // Send Custom Wallet Recharge Confirmation Email
         $this->sendOrderEmail($orderId);
+
+        // Send In-App Bell Notification: "New Wallet Recharge"
+        try {
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $notifManagement = $objectManager->get(\Vendor\Marketplace\Model\NotificationManagement::class);
+            $amountFormatted = $order->getOrderCurrency()->formatTxt($order->getGrandTotal());
+            $title = __("Wallet Recharged #%1", $order->getIncrementId());
+            $message = __("Your advertising wallet has been credited with %1.", $amountFormatted);
+            $link = "vendor_ads/vendor/wallet";
+            $notifManagement->addNotification(
+                $vendorId,
+                \Vendor\Marketplace\Model\Notification::TYPE_WALLET_RECHARGE,
+                $title,
+                $message,
+                $link
+            );
+        } catch (\Throwable $e) {
+            // Keep silent if notifications module is unavailable
+        }
 
         return $orderId;
     }

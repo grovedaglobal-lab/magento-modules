@@ -54,6 +54,12 @@ class ProfilePost extends \Magento\Framework\App\Action\Action
             return $this->resultRedirectFactory->create()->setPath('customer/account/login');
         }
 
+        $formKeyValidator = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Framework\Data\Form\FormKey\Validator::class);
+        if (!$formKeyValidator->validate($this->getRequest())) {
+            $this->messageManager->addErrorMessage(__('Invalid form key. Please refresh the page and try again.'));
+            return $this->resultRedirectFactory->create()->setPath('*/*/profile');
+        }
+
         try {
             $customerId = $this->customerSession->getCustomerId();
             $vendor = $this->vendorRepository->getByCustomerId($customerId);
@@ -225,6 +231,12 @@ class ProfilePost extends \Magento\Framework\App\Action\Action
                             }
                             if (!empty($docData['issuer'])) {
                                 $document->setIssuer($docData['issuer']);
+                            }
+                            if (!empty($docData['product_name'])) {
+                                $document->setData('product_name', $docData['product_name']);
+                            }
+                            if (!empty($docData['product_desc'])) {
+                                $document->setData('product_desc', $docData['product_desc']);
                             }
 
                             $document->setFilePath($uploadedFileName);

@@ -5,6 +5,7 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Event\Observer;
 use Vendor\Marketplace\Model\NotificationManagement;
 use Vendor\Marketplace\Model\Notification;
+use Magento\Sales\Model\Order;
 
 class NotifyNewOrder implements ObserverInterface
 {
@@ -32,6 +33,20 @@ class NotifyNewOrder implements ObserverInterface
         $order = $observer->getEvent()->getOrder();
 
         if ($vendorOrder && $order) {
+            $payment = $order->getPayment();
+            $method = $payment ? $payment->getMethod() : '';
+            $isOffline = in_array($method, ['cashondelivery', 'checkmo', 'banktransfer', 'purchaseorder']);
+
+            if (!$isOffline) {
+                $state = $order->getState();
+                $status = $order->getStatus();
+                $isPaid = ($state === Order::STATE_PROCESSING || $state === Order::STATE_COMPLETE || (float)$order->getTotalPaid() > 0);
+
+                if (!$isPaid || $state === Order::STATE_PENDING_PAYMENT || $status === 'pending_payment') {
+                    return;
+                }
+            }
+
             $vendorId = $vendorOrder->getVendorId();
             $orderIncrementId = $order->getIncrementId();
 

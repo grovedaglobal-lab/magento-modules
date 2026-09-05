@@ -60,7 +60,7 @@ class AddAttributeOptionCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $attribute = $input->getArgument(self::ARGUMENT_ATTRIBUTE);
         $value = $input->getArgument(self::ARGUMENT_VALUE);

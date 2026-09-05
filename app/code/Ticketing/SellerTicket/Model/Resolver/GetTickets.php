@@ -33,8 +33,11 @@ class GetTickets implements ResolverInterface
             return [];
         }
 
+        $currentUserId = (int)$context->getUserId();
+
         $collection = $this->ticketCollectionFactory->create();
         $collection->addFieldToFilter('vendor_id', (int)$vendorId);
+        $collection->addFieldToFilter('customer_id', $currentUserId);
         $collection->setOrder('created_at', 'DESC');
 
         $tickets = [];

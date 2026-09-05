@@ -20,27 +20,43 @@ class SkuMatcher
         foreach ($extractedFiles as $filePath) {
             $filename = basename($filePath);
             $mime = @mime_content_type($filePath);
-            if ($mime !== 'image/jpeg') { $result->addSkippedFile($filename, "Not a JPEG."); continue; }
+            $allowedMimes = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/png', 'image/x-png', 'image/webp'];
+            if (!in_array($mime, $allowedMimes)) {
+                $result->addSkippedFile($filename, "Unsupported image type (" . ($mime ?: 'unknown') . "). Allowed: JPEG, PNG, WEBP.");
+                continue;
+            }
 
             $imgSize = @getimagesize($filePath);
-            if (!$imgSize || $imgSize[0] < 500 || $imgSize[1] < 500) { $result->addSkippedFile($filename, "Invalid dimension or corrupt."); continue; }
+            if (!$imgSize || $imgSize[0] < 500 || $imgSize[1] < 500) {
+                $dims = ($imgSize && isset($imgSize[0], $imgSize[1])) ? "{$imgSize[0]}x{$imgSize[1]}px" : "unknown";
+                $result->addSkippedFile($filename, "Image dimensions ({$dims}) too small or corrupt. Minimum 500x500px required.");
+                continue;
+            }
             
-            if (preg_match('/^(.+?)(?:_(\d+))?\.jpe?g$/i', $filename, $matches)) {
+            if (preg_match('/^(.+?)(?:_(\d+))?\.(?:jpe?g|png|webp)$/i', $filename, $matches)) {
                 $sku = $matches[1];
                 $isGallery = isset($matches[2]) && $matches[2] !== '';
-                if (!isset($skuGroups[$sku])) { $skuGroups[$sku] = ['base' => null, 'gallery' => []]; $skusToVerify[] = $sku; }
-                if ($isGallery) $skuGroups[$sku]['gallery'][] = $filePath;
-                else $skuGroups[$sku]['base'] = $filePath;
+                if (!isset($skuGroups[$sku])) {
+                    $skuGroups[$sku] = ['base' => null, 'gallery' => []];
+                    $skusToVerify[] = $sku;
+                }
+                if ($isGallery) {
+                    $skuGroups[$sku]['gallery'][] = $filePath;
+                } else {
+                    $skuGroups[$sku]['base'] = $filePath;
+                }
             } else {
-                $result->addSkippedFile($filename, "Does not match SKU format.");
+                $result->addSkippedFile($filename, "Filename does not match SKU format (expected <SKU>.jpg or <SKU>_1.jpg).");
             }
         }
 
-        if (empty($skusToVerify)) return [];
+        if (empty($skusToVerify)) {
+            return [];
+        }
 
         $collection = $this->productCollectionFactory->create()
             ->addAttributeToSelect('vendor_id')
-            ->addFieldToFilter('sku', ['in' => $skusToVerify]);
+            ->addFieldToFilter('sku', ['in' => array_unique($skusToVerify)]);
             
         $ownedSkus = [];
         $allFoundSkus = [];
@@ -54,9 +70,18 @@ class SkuMatcher
 
         $finalGroups = [];
         foreach ($skuGroups as $sku => $data) {
-            if (!in_array($sku, $allFoundSkus)) { $result->addNotFoundSku($sku); continue; }
-            if (!in_array($sku, $ownedSkus)) { $result->addUnauthorizedSku($sku); continue; }
-            if (empty($data['base'])) { $result->addSkippedSku($sku, 'No base image.'); continue; }
+            if (!in_array($sku, $allFoundSkus)) {
+                $result->addNotFoundSku($sku);
+                continue;
+            }
+            if (!in_array($sku, $ownedSkus)) {
+                $result->addUnauthorizedSku($sku);
+                continue;
+            }
+            if (empty($data['base'])) {
+                $result->addSkippedSku($sku, "No base image found (e.g. '{$sku}.jpg' is required as the main image).");
+                continue;
+            }
             $finalGroups[$sku] = $data;
         }
 

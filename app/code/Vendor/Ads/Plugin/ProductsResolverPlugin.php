@@ -26,8 +26,8 @@ class ProductsResolverPlugin
         Field $field,
         $context,
         ResolveInfo $info,
-        array $value = null,
-        array $args = null
+        ?array $value = null,
+        ?array $args = null
     ) {
         // Core Magento throws "search or filter is required" if both are missing.
         // We ensure $args['search'] is at least an empty string if both are absent, 

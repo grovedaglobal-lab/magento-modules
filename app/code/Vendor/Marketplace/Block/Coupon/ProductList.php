@@ -6,6 +6,8 @@ use Magento\Framework\View\Element\Template\Context;
 use Vendor\Marketplace\Model\VendorFactory;
 use Magento\Customer\Model\Session;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
+use Magento\Catalog\Helper\Image as ImageHelper;
+use Magento\Framework\Pricing\Helper\Data as PricingHelper;
 
 class ProductList extends Template
 {
@@ -13,6 +15,8 @@ class ProductList extends Template
     protected $customerSession;
     protected $productCollectionFactory;
     protected $ruleRegistry;
+    protected $imageHelper;
+    protected $pricingHelper;
 
     public function __construct(
         Context $context,
@@ -26,6 +30,8 @@ class ProductList extends Template
         $this->customerSession = $customerSession;
         $this->productCollectionFactory = $productCollectionFactory;
         $this->ruleRegistry = $registry;
+        $this->imageHelper = \Magento\Framework\App\ObjectManager::getInstance()->get(ImageHelper::class);
+        $this->pricingHelper = \Magento\Framework\App\ObjectManager::getInstance()->get(PricingHelper::class);
         parent::__construct($context, $data);
     }
 
@@ -39,12 +45,10 @@ class ProductList extends Template
         }
 
         $collection = $this->productCollectionFactory->create();
-        $collection->addAttributeToSelect(['name', 'sku', 'price', 'thumbnail', 'visibility', 'status']);
+        $collection->addAttributeToSelect(['name', 'sku', 'price', 'thumbnail', 'small_image', 'image', 'visibility', 'status']);
         $collection->addAttributeToFilter('vendor_id', $vendor->getId());
-
-        // Filter to show only parents (Visible in Catalog/Search) in main list list
-        // 1 = Not Visible Individually
         $collection->addAttributeToFilter('visibility', ['neq' => \Magento\Catalog\Model\Product\Visibility::VISIBILITY_NOT_VISIBLE]);
+        $collection->setOrder('name', 'ASC');
 
         return $collection;
     }
@@ -52,11 +56,25 @@ class ProductList extends Template
     public function getChildProducts($product)
     {
         if ($product->getTypeId() == \Magento\ConfigurableProduct\Model\Product\Type\Configurable::TYPE_CODE) {
-            // Get children that are enabled and belong to this vendor (usually implicit)
-            // Function returns collection of used products
             return $product->getTypeInstance()->getUsedProducts($product);
         }
         return [];
+    }
+
+    public function getProductImageUrl($product, $width = 48, $height = 48)
+    {
+        try {
+            return $this->imageHelper->init($product, 'product_thumbnail_image')
+                ->resize($width, $height)
+                ->getUrl();
+        } catch (\Exception $e) {
+            return $this->imageHelper->getDefaultPlaceholderUrl('thumbnail');
+        }
+    }
+
+    public function getFormattedPrice($price)
+    {
+        return $this->pricingHelper->currency((float)$price, true, false);
     }
 
     public function getSelectedProductIds()
@@ -66,18 +84,10 @@ class ProductList extends Template
             return [];
         }
 
-        // Parse rule conditions to find selected SKUs
-        // This is tricky because conditions are serialized.
-        // We look for: Product attribute combination -> SKU is one of ...
-
-        $pIds = [];
         $conditions = $rule->getActions()->getConditions();
         foreach ($conditions as $condition) {
             if ($condition->getType() == 'Magento\SalesRule\Model\Rule\Condition\Product' && $condition->getAttribute() == 'sku') {
                 $skus = explode(',', $condition->getValue());
-                // Map SKUs back to IDs? Or just use SKUs in the form? 
-                // Using SKUs is safer for the rule condition, but we need to check checkboxes.
-                // Let's return SKUs and use SKUs in the checkbox value.
                 return array_map('trim', $skus);
             }
         }

@@ -72,23 +72,38 @@ class VendorPayoutManagement implements VendorPayoutManagementInterface
     public function requestPayout($amount)
     {
         $vendorId = $this->getVendorId();
-        $balance = $this->getEarnings();
 
         if ($amount <= 0) {
             throw new \Magento\Framework\Exception\LocalizedException(__('Invalid amount.'));
         }
 
-        if ($amount > $balance) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Insufficient balance.'));
+        $connection = $this->resourcePayout->getConnection();
+        $connection->beginTransaction();
+        try {
+            // Pessimistic row lock to prevent concurrency double-spending race conditions
+            $vendorTable = $connection->getTableName('vendor_entity');
+            $connection->fetchRow(
+                $connection->select()->from($vendorTable)->where('entity_id = ?', (int)$vendorId)->forUpdate(true)
+            );
+
+            $balance = $this->getEarnings();
+
+            if ($amount > $balance) {
+                throw new \Magento\Framework\Exception\LocalizedException(__('Insufficient balance.'));
+            }
+
+            $payout = $this->payoutFactory->create();
+            $payout->setVendorId($vendorId);
+            $payout->setAmount($amount);
+            $payout->setStatus('pending');
+
+            $this->resourcePayout->save($payout);
+            $connection->commit();
+
+            return $payout;
+        } catch (\Exception $e) {
+            $connection->rollBack();
+            throw $e;
         }
-
-        $payout = $this->payoutFactory->create();
-        $payout->setVendorId($vendorId);
-        $payout->setAmount($amount);
-        $payout->setStatus('pending');
-
-        $this->resourcePayout->save($payout);
-
-        return $payout;
     }
 }

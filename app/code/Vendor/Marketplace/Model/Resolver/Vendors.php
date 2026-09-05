@@ -6,9 +6,6 @@ use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Vendor\Marketplace\Model\ResourceModel\Vendor\CollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Review\Model\ResourceModel\Review\CollectionFactory as ReviewCollectionFactory;
-use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
-
 use Vendor\Marketplace\Helper\Rating as RatingHelper;
 
 class Vendors implements ResolverInterface
@@ -27,6 +24,11 @@ class Vendors implements ResolverInterface
      * @var RatingHelper
      */
     private $ratingHelper;
+
+    /**
+     * @var array
+     */
+    private static $ratingCache = [];
 
     /**
      * @param CollectionFactory $vendorCollectionFactory
@@ -63,24 +65,42 @@ class Vendors implements ResolverInterface
 
         $mediaUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
 
+        // Check if expensive rating calculation or media URLs are requested in the query
+        $fields = method_exists($info, 'getFieldSelection') ? $info->getFieldSelection(2) : [];
+        $itemsFields = $fields['items'] ?? [];
+        $needsRating = empty($itemsFields) || isset($itemsFields['average_rating']) || isset($itemsFields['review_count']);
+        $needsLogo = empty($itemsFields) || isset($itemsFields['logo_url']);
+        $needsBanner = empty($itemsFields) || isset($itemsFields['banner_url']);
+
         $items = [];
         foreach ($collection as $vendor) {
             $vendorData = $vendor->getData();
+            $vendorId = (int)$vendor->getId();
+            // Redact legal signatures and tax IDs from bulk vendor listings
+            $vendorData['signature'] = null;
+            $vendorData['signature_url'] = null;
+            $vendorData['pan_number'] = null;
+            $vendorData['business_license'] = null;
 
-            // Add rating data
-            $ratingData = $this->ratingHelper->getVendorRatingData($vendor->getId());
-            $vendorData['average_rating'] = $ratingData['average_rating'];
-            $vendorData['review_count'] = $ratingData['review_count'];
+            if ($needsRating) {
+                if (!isset(self::$ratingCache[$vendorId])) {
+                    self::$ratingCache[$vendorId] = $this->ratingHelper->getVendorRatingData($vendorId);
+                }
+                $vendorData['average_rating'] = self::$ratingCache[$vendorId]['average_rating'];
+                $vendorData['review_count'] = self::$ratingCache[$vendorId]['review_count'];
+            } else {
+                $vendorData['average_rating'] = 0;
+                $vendorData['review_count'] = 0;
+            }
 
-            // Add full URLs for logo and banner
-            if ($vendor->getLogo()) {
-                $vendorData['logo_url'] = $mediaUrl . 'vendor/logo/' . $vendor->getLogo();
+            if ($needsLogo) {
+                $vendorData['logo_url'] = $vendor->getLogo() ? $mediaUrl . 'vendor/logo/' . $vendor->getLogo() : null;
             } else {
                 $vendorData['logo_url'] = null;
             }
 
-            if ($vendor->getBanner()) {
-                $vendorData['banner_url'] = $mediaUrl . 'vendor/banner/' . $vendor->getBanner();
+            if ($needsBanner) {
+                $vendorData['banner_url'] = $vendor->getBanner() ? $mediaUrl . 'vendor/banner/' . $vendor->getBanner() : null;
             } else {
                 $vendorData['banner_url'] = null;
             }

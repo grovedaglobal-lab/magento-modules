@@ -18,8 +18,6 @@
                 id="login-form" data-mage-init='{"validation":{}}'>
                 <?= $block->getBlockHtml('formkey') ?>
 
-                <!-- IMPORTANT: Redirect to Vendor Dashboard after login -->
-                <!-- We trick Magento by setting the referer to the dashboard URL if not set -->
                 <input type="hidden" name="login[redirect_url]"
                     value="<?= $block->escapeUrl($block->getUrl('marketplace/seller/dashboard')) ?>" />
 
@@ -31,19 +29,32 @@
                             </span></label>
                         <div class="control">
                             <input name="login[username]" value="<?= $block->escapeHtmlAttr($block->getUsername()) ?>"
-                                autocomplete="email" id="email" type="email" class="input-text"
+                                autocomplete="username" id="email" type="email" class="input-text"
                                 title="<?= $block->escapeHtmlAttr(__('Email')) ?>"
                                 data-validate="{required:true, 'validate-email':true}">
                         </div>
                     </div>
                     <div class="field password required">
-                        <label class="label" for="pass"><span>
+                        <label class="label" for="pass-visible"><span>
                                 <?= $block->escapeHtml(__('Password')) ?>
                             </span></label>
-                        <div class="control">
-                            <input name="login[password]" type="password" autocomplete="current-password" id="pass"
-                                class="input-text" title="<?= $block->escapeHtmlAttr(__('Password')) ?>"
-                                data-validate="{required:true}">
+                        <div class="control" style="position: relative;">
+                            <!-- Hidden actual password input for form submission -->
+                            <input name="login[password]" type="password" id="pass"
+                                style="display:none;" tabindex="-1" aria-hidden="true"
+                                autocomplete="current-password">
+                            <!-- Visible text input that user types into -->
+                            <input type="text" id="pass-visible"
+                                class="input-text" style="padding-right: 40px;"
+                                title="<?= $block->escapeHtmlAttr(__('Password')) ?>"
+                                autocomplete="off" spellcheck="false"
+                                data-validate="{required:true}"
+                                style="padding-right:40px; -webkit-text-security: disc; text-security: disc;">
+                            <button type="button" class="btn-toggle-password" id="pass-toggle"
+                                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; padding: 4px; z-index: 10;"
+                                aria-label="Toggle password visibility">
+                                <i class="fa fa-eye eye-icon" style="font-size: 16px;"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -78,3 +89,64 @@
         </div>
     </div>
 </div>
+
+<style>
+/* default: mask the visible input using CSS text-security */
+#pass-visible {
+    -webkit-text-security: disc;
+    text-security: disc;
+    font-family: 'Courier New', monospace;
+}
+#pass-visible.show-password {
+    -webkit-text-security: none;
+    text-security: none;
+    font-family: inherit;
+}
+</style>
+
+<script>
+(function() {
+    var visibleInput = document.getElementById('pass-visible');
+    var hiddenInput = document.getElementById('pass');
+    var toggleBtn = document.getElementById('pass-toggle');
+    var icon = toggleBtn ? toggleBtn.querySelector('.eye-icon') : null;
+
+    // Keep hidden input in sync for form submission
+    if (visibleInput && hiddenInput) {
+        visibleInput.addEventListener('input', function() {
+            hiddenInput.value = visibleInput.value;
+        });
+    }
+
+    // Sync hidden input on form submit
+    var form = document.getElementById('login-form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            if (hiddenInput && visibleInput) {
+                hiddenInput.value = visibleInput.value;
+            }
+        });
+    }
+
+    // Toggle show/hide
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (visibleInput) {
+                visibleInput.classList.toggle('show-password');
+                if (icon) {
+                    icon.classList.toggle('fa-eye');
+                    icon.classList.toggle('fa-eye-slash');
+                }
+            }
+        });
+    }
+
+    // Fix Magento validation - point it to the visible input
+    // Override data-validate to work on visible input
+    if (visibleInput) {
+        visibleInput.name = 'login[password_display]';
+    }
+})();
+</script>

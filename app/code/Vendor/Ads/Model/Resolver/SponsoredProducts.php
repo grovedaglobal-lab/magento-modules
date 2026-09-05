@@ -58,7 +58,7 @@ class SponsoredProducts implements ResolverInterface
     /**
      * {@inheritdoc}
      */
-    public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
+    public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null)
     {
         $keyword = trim($args['keyword'] ?? '');
         $limit = max(1, min((int)($args['limit'] ?? 4), 20));

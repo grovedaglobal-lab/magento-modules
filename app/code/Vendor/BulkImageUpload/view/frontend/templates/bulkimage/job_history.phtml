@@ -1,4 +1,92 @@
 <?php $jobs = $block->getJobs(); ?>
+<style>
+.view-job-errors-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    background-color: #fef2f2 !important;
+    color: #b91c1c !important;
+    border: 1px solid #fecaca !important;
+    padding: 5px 12px !important;
+    border-radius: 20px !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+    line-height: 1.3 !important;
+    outline: none !important;
+}
+.view-job-errors-btn:hover {
+    background-color: #fee2e2 !important;
+    border-color: #f87171 !important;
+    color: #991b1b !important;
+    box-shadow: 0 1px 4px rgba(220, 38, 38, 0.15) !important;
+}
+.view-job-errors-btn:focus,
+.view-job-errors-btn:active {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+}
+.view-job-errors-btn i.fa-exclamation-triangle,
+.view-job-errors-btn i.fa-exclamation-circle {
+    color: #dc2626 !important;
+    font-size: 0.85em !important;
+}
+.view-job-errors-btn i.chevron-icon {
+    font-size: 0.75em !important;
+    transition: transform 0.2s ease !important;
+}
+.view-job-errors-btn.is-active i.chevron-icon {
+    transform: rotate(180deg) !important;
+}
+.job-ok-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background-color: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.job-error-details-box {
+    background-color: #ffffff;
+    border: 1px solid #fed7aa;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+.job-error-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin-top: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.job-error-table th {
+    background-color: #f9fafb;
+    color: #4b5563;
+    font-weight: 600;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+.job-error-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: top;
+}
+.job-error-table tr:last-child td {
+    border-bottom: none;
+}
+</style>
+
 <div class="dashboard-card shadow-sm mt-10">
     <div class="card-header">
         <h3><i class="fas fa-history"></i> <?= __('Recent Bulk Upload Jobs') ?></h3>
@@ -12,12 +100,20 @@
                         <th class="col label"><?= __('File') ?></th>
                         <th class="col status text-center"><?= __('Status') ?></th>
                         <th class="col type text-center"><?= __('Progress') ?></th>
+                        <th class="col type text-center"><?= __('Details') ?></th>
                         <th class="col type"><?= __('Submitted') ?></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (count($jobs) > 0): ?>
                         <?php foreach ($jobs as $job): ?>
+                        <?php 
+                            $resultData = $block->getJobResultData($job);
+                            $errorCount = $block->getJobErrorCount($job);
+                            $isFailed = ($job->getStatus() === 'failed');
+                            $hasErrors = ($errorCount > 0 || !empty($resultData['globalErrors']) || $isFailed);
+                            $jobIdAttr = $block->escapeHtmlAttr($job->getJobId());
+                        ?>
                         <tr>
                             <td class="col label" style="font-family: monospace; font-size: 0.9em;"><?= $block->escapeHtml($job->getJobId()) ?></td>
                             <td class="col label font-medium"><?= $block->escapeHtml($job->getZipFilename()) ?></td>
@@ -34,18 +130,153 @@
                                     <div style="font-size: 0.75em; color: #0b9b3e;">
                                         <?= (int)$job->getSuccessCount() ?> Success
                                     </div>
+                                    <?php if ($errorCount > 0): ?>
+                                        <div style="font-size: 0.75em; color: #dc2626; font-weight: bold;">
+                                            <?= $errorCount ?> Issue(s)
+                                        </div>
+                                    <?php endif; ?>
+                                <?php elseif ($isFailed): ?>
+                                    <div style="font-size: 0.85em; font-weight: bold; color: #dc2626;">
+                                        0 / 0 SKUs
+                                    </div>
+                                    <div style="font-size: 0.75em; color: #dc2626;">
+                                        <?= $errorCount > 0 ? $errorCount . ' Issue(s)' : 'No matching SKUs' ?>
+                                    </div>
+                                <?php elseif ($job->getStatus() === 'processing' || $job->getStatus() === 'pending'): ?>
+                                    <span class="text-blue-500 text-sm"><i class="fas fa-spinner fa-spin"></i> <?= ucfirst($job->getStatus()) ?></span>
                                 <?php else: ?>
                                     <span class="text-gray-400">-</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="col type text-center">
+                                <?php if ($hasErrors): ?>
+                                    <button type="button" 
+                                            class="view-job-errors-btn"
+                                            data-job-id="<?= $jobIdAttr ?>">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        <span><?= $errorCount > 0 ? __('View Errors (%1)', $errorCount) : __('View Details') ?></span>
+                                        <i class="fas fa-chevron-down chevron-icon"></i>
+                                    </button>
+                                <?php elseif ($resultData && $job->getStatus() === 'completed'): ?>
+                                    <span class="job-ok-badge">
+                                        <i class="fas fa-check-circle"></i> <?= __('All OK') ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="text-gray-400 text-xs">-</span>
                                 <?php endif; ?>
                             </td>
                             <td class="col type text-sm text-gray-500">
                                 <?= $block->escapeHtml($job->getCreatedAt()) ?>
                             </td>
                         </tr>
+                        <?php if ($hasErrors): ?>
+                        <tr id="job-details-<?= $jobIdAttr ?>" style="display: none; background-color: #fffaf0;">
+                            <td colspan="6" style="padding: 16px 20px; border-bottom: 2px solid #fed7aa;">
+                                <div class="job-error-details-box">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <h5 style="margin: 0; color: #9a3412; font-weight: 700; font-size: 0.95rem;">
+                                            <i class="fas fa-bug mr-1"></i> <?= __('Job Processing Report: %1', $job->getJobId()) ?>
+                                        </h5>
+                                        <span style="font-size: 0.8rem; color: #78350f; font-weight: 600;">
+                                            <?= __('Status: %1', ucfirst($job->getStatus())) ?>
+                                        </span>
+                                    </div>
+                                    
+                                    <?php if (!empty($resultData['globalErrors'])): ?>
+                                        <div style="margin-bottom: 10px; color: #dc2626; background: #fee2e2; padding: 8px 12px; border-radius: 6px; font-size: 0.82rem;">
+                                            <strong><?= __('System / Processing Errors:') ?></strong>
+                                            <ul style="margin: 4px 0 0 18px; list-style-type: disc;">
+                                                <?php foreach ($resultData['globalErrors'] as $gErr): ?>
+                                                    <li><?= $block->escapeHtml($gErr) ?></li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($resultData['errors'])): ?>
+                                        <table class="job-error-table">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 35%;"><?= __('SKU / File') ?></th>
+                                                    <th><?= __('Reason / Error Description') ?></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($resultData['errors'] as $item => $reasons): ?>
+                                                    <tr>
+                                                        <td style="font-family: monospace; font-weight: 600; color: #1f2937;"><?= $block->escapeHtml($item) ?></td>
+                                                        <td style="color: #dc2626;">
+                                                            <?= $block->escapeHtml(is_array($reasons) ? implode('; ', $reasons) : $reasons) ?>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    <?php elseif (!empty($resultData['skippedFiles']) || !empty($resultData['notFoundSkus']) || !empty($resultData['unauthorizedSkus']) || !empty($resultData['skippedSkus']) || !empty($resultData['failedSkus'])): ?>
+                                        <table class="job-error-table">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 35%;"><?= __('SKU / File') ?></th>
+                                                    <th><?= __('Reason / Error Description') ?></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php if (!empty($resultData['skippedFiles'])): ?>
+                                                    <?php foreach ($resultData['skippedFiles'] as $f => $r): ?>
+                                                        <tr>
+                                                            <td style="font-family: monospace; font-weight: 600; color: #1f2937;"><?= $block->escapeHtml($f) ?></td>
+                                                            <td style="color: #dc2626;"><?= $block->escapeHtml($r) ?></td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
+                                                <?php if (!empty($resultData['notFoundSkus'])): ?>
+                                                    <?php foreach ($resultData['notFoundSkus'] as $s): ?>
+                                                        <tr>
+                                                            <td style="font-family: monospace; font-weight: 600; color: #1f2937;"><?= $block->escapeHtml($s) ?></td>
+                                                            <td style="color: #dc2626;"><?= __('SKU not found in catalog.') ?></td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
+                                                <?php if (!empty($resultData['unauthorizedSkus'])): ?>
+                                                    <?php foreach ($resultData['unauthorizedSkus'] as $s): ?>
+                                                        <tr>
+                                                            <td style="font-family: monospace; font-weight: 600; color: #1f2937;"><?= $block->escapeHtml($s) ?></td>
+                                                            <td style="color: #dc2626;"><?= __('SKU does not belong to your vendor account.') ?></td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
+                                                <?php if (!empty($resultData['skippedSkus'])): ?>
+                                                    <?php foreach ($resultData['skippedSkus'] as $s => $r): ?>
+                                                        <tr>
+                                                            <td style="font-family: monospace; font-weight: 600; color: #1f2937;"><?= $block->escapeHtml($s) ?></td>
+                                                            <td style="color: #dc2626;"><?= $block->escapeHtml($r) ?></td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
+                                                <?php if (!empty($resultData['failedSkus'])): ?>
+                                                    <?php foreach ($resultData['failedSkus'] as $s => $r): ?>
+                                                        <tr>
+                                                            <td style="font-family: monospace; font-weight: 600; color: #1f2937;"><?= $block->escapeHtml($s) ?></td>
+                                                            <td style="color: #dc2626;"><?= $block->escapeHtml($r) ?></td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    <?php else: ?>
+                                        <div style="color: #dc2626; font-weight: 500; padding: 10px; background: #fee2e2; border-radius: 4px;">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>
+                                            <?= __('Upload failed: None of the uploaded files matched active product SKUs in your catalog.') ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
                         <?php endforeach; ?>
                     <?php else: ?>
                     <tr>
-                        <td colspan="5" class="text-center py-10 italic text-gray-400">
+                        <td colspan="6" class="text-center py-10 italic text-gray-400">
                             <?= __('No recent jobs found.') ?>
                         </td>
                     </tr>
@@ -55,3 +286,20 @@
         </div>
     </div>
 </div>
+
+<script type="text/javascript">
+require(['jquery'], function ($) {
+    'use strict';
+    $(document).ready(function () {
+        $('.view-job-errors-btn').on('click', function () {
+            var $btn = $(this);
+            var jobId = $btn.data('job-id');
+            var $row = $('#job-details-' + jobId);
+            if ($row.length) {
+                $row.toggle();
+                $btn.toggleClass('is-active', $row.is(':visible'));
+            }
+        });
+    });
+});
+</script>

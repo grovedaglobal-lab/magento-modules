@@ -1,3 +1,4 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
 /* Vendor Account Shared Styling - Login, Register, Forgot Password */
 
 /* Page Title Centering */
@@ -281,4 +282,36 @@ body.vendor_marketplace-account-create .page-title {
         flex-direction: column;
         align-items: flex-start;
     }
+}
+
+
+/* Password toggle button positioning */
+.vendor-login-container .control,
+.vendor-register-container .control {
+    position: relative !important;
+}
+
+.btn-toggle-password {
+    position: absolute !important;
+    right: 10px !important;
+    top: 22px !important;
+    transform: translateY(-50%) !important;
+    z-index: 20 !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+    color: #007bdb !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    padding: 4px 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    line-height: 1 !important;
+}
+
+.vendor-login-container .field.password input.input-text,
+.vendor-register-container .field.password input.input-text,
+.vendor-register-container .field.confirmation input.input-text {
+    padding-right: 80px !important;
 }

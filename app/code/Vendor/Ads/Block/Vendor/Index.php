@@ -51,7 +51,11 @@ class Index extends Template
             ->joinLeft(
                 ['b' => $bidTable],
                 'c.campaign_id = b.campaign_id',
-                ['ad_count' => new \Zend_Db_Expr('COUNT(b.bid_id)')]
+                [
+                    'ad_count'   => new \Zend_Db_Expr('COUNT(b.bid_id)'),
+                    'start_date' => new \Zend_Db_Expr('MIN(b.start_date)'),
+                    'end_date'   => new \Zend_Db_Expr('MAX(b.end_date)'),
+                ]
             )
             ->where('c.vendor_id = ?', $vendorId)
             ->group('c.campaign_id')

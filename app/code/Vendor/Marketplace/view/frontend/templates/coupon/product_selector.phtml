@@ -2,71 +2,266 @@
 /** @var \Vendor\Marketplace\Block\Coupon\ProductList $block */
 $products = $block->getVendorProducts();
 $selectedSkus = $block->getSelectedProductIds();
+$totalProducts = count($products);
 ?>
-<div class="field">
-    <label class="label"><span><?= __('Select Products for Discount') ?></span></label>
-    <div class="control">
-        <div class="admin__data-grid-wrap admin__data-grid-wrap-static">
-            <table class="data-grid">
+<style>
+.coupon-product-selector-card {
+    margin-bottom: 24px;
+}
+.product-selector-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.product-search-box {
+    position: relative;
+    flex: 1;
+    min-width: 260px;
+    max-width: 400px;
+}
+.product-search-box input {
+    width: 100%;
+    height: 40px;
+    padding: 0 14px 0 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+    transition: all 0.2s;
+}
+.product-search-box input:focus {
+    border-color: #0b9b3e;
+    box-shadow: 0 0 0 3px rgba(11, 155, 62, 0.15);
+    outline: none;
+}
+.product-search-box i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+.product-selection-stats {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.selection-count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+.quick-select-btn {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.quick-select-btn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+.coupon-products-table-wrapper {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    max-height: 480px;
+    overflow-y: auto;
+    background: #ffffff;
+}
+.coupon-products-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+.coupon-products-table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 2px solid #e2e8f0;
+    z-index: 2;
+}
+.coupon-products-table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+.coupon-products-table tbody tr.parent-row:hover {
+    background-color: #f8fafc;
+}
+.coupon-products-table tbody tr.child-row {
+    background-color: #fafbfc;
+}
+.coupon-products-table tbody tr.child-row:hover {
+    background-color: #f1f5f9;
+}
+.product-thumb-img {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    display: block;
+}
+.product-sku-badge {
+    display: inline-block;
+    font-family: monospace;
+    font-weight: 600;
+    color: #1e293b;
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.82rem;
+}
+.product-price-tag {
+    font-weight: 700;
+    color: #0f172a;
+}
+.child-indicator {
+    color: #94a3b8;
+    font-weight: bold;
+    margin-right: 6px;
+}
+.custom-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #0b9b3e;
+}
+</style>
+
+<div class="dashboard-card shadow-sm coupon-product-selector-card">
+    <div class="card-header">
+        <h3><i class="fas fa-boxes"></i> <?= __('Select Applicable Products') ?></h3>
+    </div>
+    <div class="card-content">
+        <div class="product-selector-toolbar">
+            <div class="product-search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="coupon_product_search" placeholder="<?= __('Search products by name or SKU...') ?>" autocomplete="off" />
+            </div>
+
+            <div class="product-selection-stats">
+                <button type="button" class="quick-select-btn" id="btn-select-all">
+                    <i class="fas fa-check-square mr-1"></i> <?= __('Select All') ?>
+                </button>
+                <button type="button" class="quick-select-btn" id="btn-deselect-all">
+                    <i class="fas fa-square mr-1"></i> <?= __('Deselect All') ?>
+                </button>
+                <span class="selection-count-badge" id="product_selected_count_badge">
+                    <i class="fas fa-check-circle"></i> <span id="selected_count_text">0</span> <?= __('Selected') ?>
+                </span>
+            </div>
+        </div>
+
+        <div class="coupon-products-table-wrapper">
+            <table class="coupon-products-table" id="coupon-products-table">
                 <thead>
                     <tr>
-                        <th class="data-grid-th" style="width: 50px;">
-                            <input type="checkbox" id="select_all_products" onclick="toggleAllProducts(this)" />
+                        <th style="width: 45px; text-align: center;">
+                            <input type="checkbox" id="select_all_header" class="custom-checkbox" title="<?= __('Toggle All') ?>" />
                         </th>
-                        <th class="data-grid-th"><?= __('ID') ?></th>
-                        <th class="data-grid-th"><?= __('Thumbnail') ?></th>
-                        <th class="data-grid-th"><?= __('Name') ?></th>
-                        <th class="data-grid-th"><?= __('SKU') ?></th>
-                        <th class="data-grid-th"><?= __('Price') ?></th>
+                        <th style="width: 60px;"><?= __('ID') ?></th>
+                        <th style="width: 70px;"><?= __('Image') ?></th>
+                        <th><?= __('Product Name') ?></th>
+                        <th style="width: 150px;"><?= __('SKU') ?></th>
+                        <th style="width: 120px;"><?= __('Price') ?></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (count($products) > 0): ?>
+                    <?php if ($totalProducts > 0): ?>
                         <?php foreach ($products as $product): ?>
-                            <tr class="product-row parent-row">
-                                <td>
+                            <?php 
+                                $isParentSelected = in_array($product->getSku(), $selectedSkus);
+                                $imgUrl = $block->getProductImageUrl($product, 48, 48);
+                                $children = $block->getChildProducts($product);
+                                $hasChildren = count($children) > 0;
+                            ?>
+                            <tr class="product-row parent-row" data-product-id="<?= (int)$product->getId() ?>">
+                                <td style="text-align: center;">
                                     <input type="checkbox" name="product_skus[]"
                                         value="<?= $block->escapeHtmlAttr($product->getSku()) ?>"
-                                        class="product-checkbox parent-checkbox" id="product_<?= $product->getId() ?>"
-                                        onclick="toggleChildren(this, '<?= $product->getId() ?>')"
-                                        <?= in_array($product->getSku(), $selectedSkus) ? 'checked' : '' ?> />
+                                        class="product-checkbox parent-checkbox custom-checkbox" 
+                                        id="product_<?= (int)$product->getId() ?>"
+                                        data-parent-id="<?= (int)$product->getId() ?>"
+                                        <?= $isParentSelected ? 'checked' : '' ?> />
                                 </td>
-                                <td><?= $product->getId() ?></td>
+                                <td style="color: #64748b; font-size: 0.82rem;"><?= (int)$product->getId() ?></td>
                                 <td>
-                                    <img src="<?= $block->escapeUrl($block->getUrl('pub/media/catalog/product') . $product->getThumbnail()) ?>"
-                                        width="50" alt="" />
+                                    <img src="<?= $block->escapeUrl($imgUrl) ?>"
+                                         class="product-thumb-img" 
+                                         alt="<?= $block->escapeHtmlAttr($product->getName()) ?>" 
+                                         loading="lazy" />
                                 </td>
-                                <td><strong><?= $block->escapeHtml($product->getName()) ?></strong></td>
-                                <td><strong><?= $block->escapeHtml($product->getSku()) ?></strong></td>
-                                <td><?= $block->escapeHtml($product->getPrice()) ?></td>
+                                <td>
+                                    <strong style="color: #1e293b; display: block; font-size: 0.92rem;"><?= $block->escapeHtml($product->getName()) ?></strong>
+                                    <?php if ($hasChildren): ?>
+                                        <span style="font-size: 0.75rem; color: #64748b;"><?= __('%1 variants available', count($children)) ?></span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <span class="product-sku-badge"><?= $block->escapeHtml($product->getSku()) ?></span>
+                                </td>
+                                <td>
+                                    <span class="product-price-tag"><?= $block->getFormattedPrice($product->getPrice()) ?></span>
+                                </td>
                             </tr>
 
-                            <?php
-                            $children = $block->getChildProducts($product);
-                            if (count($children) > 0):
-                                ?>
+                            <?php if ($hasChildren): ?>
                                 <?php foreach ($children as $child): ?>
-                                    <tr class="product-row child-row child-of-<?= $product->getId() ?>"
-                                        style="background-color: #fafafa;">
-                                        <td style="padding-left: 20px;">
-                                            <div style="display:flex; align-items:center;">
-                                                <span style="color: #ccc; margin-right:5px;">↳</span>
+                                    <?php 
+                                        $isChildSelected = in_array($child->getSku(), $selectedSkus);
+                                        $childImgUrl = $block->getProductImageUrl($child, 40, 40);
+                                    ?>
+                                    <tr class="product-row child-row child-of-<?= (int)$product->getId() ?>" data-parent-id="<?= (int)$product->getId() ?>">
+                                        <td style="text-align: center;">
+                                            <div style="display:flex; align-items:center; justify-content: center;">
+                                                <span class="child-indicator">↳</span>
                                                 <input type="checkbox" name="product_skus[]"
                                                     value="<?= $block->escapeHtmlAttr($child->getSku()) ?>"
-                                                    class="product-checkbox child-checkbox child-checkbox-<?= $product->getId() ?>"
-                                                    <?= in_array($child->getSku(), $selectedSkus) ? 'checked' : '' ?> />
+                                                    class="product-checkbox child-checkbox child-checkbox-<?= (int)$product->getId() ?> custom-checkbox"
+                                                    data-parent-id="<?= (int)$product->getId() ?>"
+                                                    <?= $isChildSelected ? 'checked' : '' ?> />
                                             </div>
                                         </td>
-                                        <td><?= $child->getId() ?></td>
+                                        <td style="color: #94a3b8; font-size: 0.8rem;"><?= (int)$child->getId() ?></td>
                                         <td>
-                                            <?php if ($child->getThumbnail() && $child->getThumbnail() != 'no_selection'): ?>
-                                                <img src="<?= $block->escapeUrl($block->getUrl('pub/media/catalog/product') . $child->getThumbnail()) ?>"
-                                                    width="40" alt="" />
-                                            <?php endif; ?>
+                                            <img src="<?= $block->escapeUrl($childImgUrl) ?>"
+                                                 class="product-thumb-img" 
+                                                 style="width: 36px; height: 36px;"
+                                                 alt="<?= $block->escapeHtmlAttr($child->getName()) ?>" 
+                                                 loading="lazy" />
                                         </td>
-                                        <td><?= $block->escapeHtml($child->getName()) ?></td>
-                                        <td><?= $block->escapeHtml($child->getSku()) ?></td>
-                                        <td><?= $block->escapeHtml($child->getPrice()) ?></td>
+                                        <td style="color: #334155; padding-left: 20px;">
+                                            <span style="font-size: 0.86rem;"><?= $block->escapeHtml($child->getName()) ?></span>
+                                        </td>
+                                        <td>
+                                            <span class="product-sku-badge" style="background: #e2e8f0;"><?= $block->escapeHtml($child->getSku()) ?></span>
+                                        </td>
+                                        <td>
+                                            <span class="product-price-tag"><?= $block->getFormattedPrice($child->getPrice()) ?></span>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -74,7 +269,10 @@ $selectedSkus = $block->getSelectedProductIds();
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="6"><?= __('No products found.') ?></td>
+                            <td colspan="6" style="text-align: center; padding: 30px; color: #94a3b8;">
+                                <i class="fas fa-box-open" style="font-size: 2rem; margin-bottom: 8px; display: block;"></i>
+                                <?= __('No products found in your catalog.') ?>
+                            </td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -83,42 +281,96 @@ $selectedSkus = $block->getSelectedProductIds();
     </div>
 </div>
 
-<script>
-    function toggleAllProducts(source) {
-        checkboxes = document.getElementsByName('product_skus[]');
-        for (var i = 0, n = checkboxes.length; i < n; i++) {
-            checkboxes[i].checked = source.checked;
-        }
+<script type="text/javascript">
+require(['jquery'], function ($) {
+    'use strict';
+    
+    function updateSelectedCount() {
+        var count = $('input[name="product_skus[]"]:checked').length;
+        $('#selected_count_text').text(count);
+        
+        var total = $('input[name="product_skus[]"]').length;
+        $('#select_all_header').prop('checked', total > 0 && count === total);
     }
 
-    function toggleChildren(source, parentId) {
-        var children = document.getElementsByClassName('child-checkbox-' + parentId);
-        for (var i = 0; i < children.length; i++) {
-            children[i].checked = source.checked;
-        }
-    }
+    $(document).ready(function () {
+        updateSelectedCount();
+
+        // Checkbox change listener
+        $(document).on('change', 'input[name="product_skus[]"]', function () {
+            var $this = $(this);
+            var parentId = $this.data('parent-id');
+            
+            // If parent toggled, toggle all its children
+            if ($this.hasClass('parent-checkbox')) {
+                $('.child-checkbox-' + parentId).prop('checked', $this.is(':checked'));
+            } else if ($this.hasClass('child-checkbox')) {
+                // If all children checked, check parent
+                var allChildren = $('.child-checkbox-' + parentId);
+                var checkedChildren = $('.child-checkbox-' + parentId + ':checked');
+                if (checkedChildren.length > 0) {
+                    $('#product_' + parentId).prop('checked', true);
+                }
+            }
+            updateSelectedCount();
+        });
+
+        // Header checkbox toggle
+        $('#select_all_header').on('change', function () {
+            var isChecked = $(this).is(':checked');
+            $('input[name="product_skus[]"]:visible').prop('checked', isChecked);
+            updateSelectedCount();
+        });
+
+        // Quick action buttons
+        $('#btn-select-all').on('click', function () {
+            $('input[name="product_skus[]"]').prop('checked', true);
+            updateSelectedCount();
+        });
+
+        $('#btn-deselect-all').on('click', function () {
+            $('input[name="product_skus[]"]').prop('checked', false);
+            updateSelectedCount();
+        });
+
+        // Live Product Search
+        $('#coupon_product_search').on('input', function () {
+            var query = $(this).val().toLowerCase().trim();
+            if (!query) {
+                $('.product-row').show();
+                return;
+            }
+
+            $('.parent-row').each(function () {
+                var $parent = $(this);
+                var parentId = $parent.data('product-id');
+                var $children = $('.child-of-' + parentId);
+                
+                var parentText = $parent.text().toLowerCase();
+                var parentMatches = parentText.indexOf(query) !== -1;
+                
+                var childMatches = false;
+                $children.each(function () {
+                    var childText = $(this).text().toLowerCase();
+                    if (childText.indexOf(query) !== -1) {
+                        childMatches = true;
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                if (parentMatches) {
+                    $parent.show();
+                    $children.show();
+                } else if (childMatches) {
+                    $parent.show();
+                } else {
+                    $parent.hide();
+                    $children.hide();
+                }
+            });
+        });
+    });
+});
 </script>
-
-<style>
-    .data-grid {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-
-    .data-grid th,
-    .data-grid td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
-        vertical-align: middle;
-    }
-
-    .data-grid th {
-        background-color: #f5f5f5;
-    }
-
-    .child-row td {
-        font-size: 0.95em;
-    }
-</style>

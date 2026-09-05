@@ -1,38 +1,36 @@
 <?php
 namespace Vendor\Marketplace\Controller\Product;
 
-use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\Action\Context;
-use Magento\Framework\File\UploaderFactory;
-use Magento\Framework\App\Filesystem\DirectoryList;
-use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\ProductFactory;
+use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\File\UploaderFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use Vendor\Marketplace\Controller\AbstractVendor;
+use Vendor\Marketplace\Model\Session\VendorSession;
 
-class Upload extends Action
+class Upload extends AbstractVendor implements \Magento\Framework\App\Action\HttpPostActionInterface
 {
-    /** @var UploaderFactory */
     protected $uploaderFactory;
-
-    /** @var DirectoryList */
     protected $directoryList;
-
-    /** @var JsonFactory */
     protected $resultJsonFactory;
     protected $productRepository;
     protected $productFactory;
 
     public function __construct(
         Context $context,
+        VendorSession $vendorSession,
         UploaderFactory $uploaderFactory,
         DirectoryList $directoryList,
         JsonFactory $resultJsonFactory,
-        ProductRepositoryInterface $productRepository = null,
-        ProductFactory $productFactory = null
+        ?ProductRepositoryInterface $productRepository = null,
+        ?ProductFactory $productFactory = null
     ) {
-        parent::__construct($context);
+        parent::__construct($context, $vendorSession);
         $this->uploaderFactory = $uploaderFactory;
         $this->directoryList = $directoryList;
         $this->resultJsonFactory = $resultJsonFactory;
@@ -41,9 +39,24 @@ class Upload extends Action
         $this->productFactory = $productFactory ?: $objectManager->get(ProductFactory::class);
     }
 
+    protected function logImport($message)
+    {
+        $logFile = $this->directoryList->getPath(DirectoryList::VAR_DIR) . '/log/vendor_product_import.log';
+        $logDir = dirname($logFile);
+        if (!is_dir($logDir)) {
+            @mkdir($logDir, 0755, true);
+        }
+        $formatted = '[' . date('Y-m-d H:i:s') . '] ' . $message . PHP_EOL;
+        @file_put_contents($logFile, $formatted, FILE_APPEND);
+    }
+
     public function execute()
     {
         $resultRedirect = $this->resultRedirectFactory->create();
+        if (!$this->_vendorSession->isLoggedIn()) {
+            $this->messageManager->addErrorMessage(__('Please log in to your vendor account.'));
+            return $resultRedirect->setPath('marketplace/account/login');
+        }
         $redirectPath = '*/*/import';
 
         try {
@@ -73,36 +86,78 @@ class Upload extends Action
             }
 
             $savedPath = $targetDir . DIRECTORY_SEPARATOR . $saveResult['file'];
+            $fileExt = strtolower(pathinfo($savedPath, PATHINFO_EXTENSION));
 
-            // PhpSpreadsheet must be available to parse and import workbook.
-            if (!class_exists('\PhpOffice\PhpSpreadsheet\IOFactory')) {
-                return $resultJson->setData([
-                    'success' => true,
-                    'message' => 'File uploaded',
-                    'path' => $savedPath,
-                    'warning' => 'PhpSpreadsheet not installed; parsing/import skipped. Run `composer require phpoffice/phpspreadsheet` to enable parsing.'
-                ]);
+            $this->logImport("--- NEW IMPORT STARTED: {$saveResult['file']} (Type: $fileExt) ---");
+
+            $rowsData = [];
+            if ($fileExt === 'csv') {
+                if (($handle = fopen($savedPath, "r")) !== false) {
+                    $headerRow = fgetcsv($handle);
+                    if ($headerRow) {
+                        $headers = [];
+                        foreach ($headerRow as $c => $h) {
+                            $h = trim((string)$h);
+                            $headerAliases = ['Variant Weight' => 'variant_value'];
+                            $headers[$c] = $headerAliases[$h] ?? $h;
+                        }
+                        $rIndex = 2;
+                        while (($data = fgetcsv($handle)) !== false) {
+                            $row = [];
+                            foreach ($data as $c => $val) {
+                                $key = $headers[$c] ?? 'col_' . $c;
+                                $row[$key] = $val;
+                            }
+                            $rowsData[$rIndex] = $row;
+                            $rIndex++;
+                        }
+                    }
+                    fclose($handle);
+                }
+            } else {
+                if (!class_exists('\PhpOffice\PhpSpreadsheet\IOFactory')) {
+                    if ($this->getRequest()->isXmlHttpRequest()) {
+                        $resultJson = $this->resultJsonFactory->create();
+                        return $resultJson->setData([
+                            'success' => false,
+                            'message' => 'PhpSpreadsheet not installed on server. You can either upload the .csv version directly or run composer require phpoffice/phpspreadsheet on the server.',
+                            'path' => $savedPath
+                        ]);
+                    }
+                    $this->messageManager->addErrorMessage(__('PhpSpreadsheet is not installed for Excel (.xlsx) files. Please upload the .csv version directly, or run: composer require phpoffice/phpspreadsheet on the server.'));
+                    return $resultRedirect->setPath($redirectPath);
+                }
+
+                $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($savedPath);
+                $worksheet = $spreadsheet->getActiveSheet();
+                $highestColumn = $worksheet->getHighestColumn();
+                $highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
+                $highestRow = $worksheet->getHighestRow();
+
+                $headers = [];
+                for ($c = 1; $c <= $highestColumnIndex; $c++) {
+                    $colLetter = Coordinate::stringFromColumnIndex($c);
+                    $h = trim((string) $worksheet->getCell($colLetter . '1')->getValue());
+                    $headerAliases = ['Variant Weight' => 'variant_value'];
+                    $h = $headerAliases[$h] ?? $h;
+                    $headers[$c] = $h;
+                }
+
+                for ($r = 2; $r <= $highestRow; $r++) {
+                    $row = [];
+                    for ($c = 1; $c <= $highestColumnIndex; $c++) {
+                        $key = $headers[$c] ?? 'col_' . $c;
+                        $colLetter = Coordinate::stringFromColumnIndex($c);
+                        $row[$key] = $worksheet->getCell($colLetter . $r)->getValue();
+                    }
+                    $rowsData[$r] = $row;
+                }
             }
 
-            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($savedPath);
-            $worksheet = $spreadsheet->getActiveSheet();
-
-            $highestColumn = $worksheet->getHighestColumn();
-            $highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
-            $highestRow = $worksheet->getHighestRow();
-
-            // Read header row (1)
-            $headers = [];
-            for ($c = 1; $c <= $highestColumnIndex; $c++) {
-                $colLetter = Coordinate::stringFromColumnIndex($c);
-                $h = trim((string) $worksheet->getCell($colLetter . '1')->getValue());
-                // Normalize friendly column header names to internal keys
-                $headerAliases = ['Variant Weight' => 'variant_value'];
-                $h = $headerAliases[$h] ?? $h;
-                $headers[$c] = $h;
-            }
-
-            $created = 0; $updated = 0; $errors = [];
+            $created = 0;
+            $updated = 0;
+            $errors = [];
+            $variantLinks = []; // Queue for 2nd pass linking: [parent_sku => [ [child_sku, variant_attr, variant_val, row] ]]
 
             // Resolve vendor id once and keep it on every imported product row.
             $vendorId = null;
@@ -120,7 +175,9 @@ class Upload extends Action
                 // keep null if vendor resolution fails
             }
 
-            // Build category display label -> id map for category_names assignment
+            $this->logImport("Vendor ID: " . ($vendorId ?: 'NONE') . " | Total rows to process: " . count($rowsData));
+
+            // Build category display label -> id map
             $categoryMap = [];
             try {
                 $categoryCollectionFactory = \Magento\Framework\App\ObjectManager::getInstance()
@@ -128,58 +185,49 @@ class Upload extends Action
                 $catCollection = $categoryCollectionFactory->create();
                 $catCollection->addAttributeToSelect(['name', 'path', 'level']);
                 $catCollection->addAttributeToFilter('is_active', 1);
-                $catCollection->setOrder('path', 'ASC');
 
-                $categoryNames = [];
-                foreach ($catCollection as $category) {
-                    if ((int) $category->getLevel() < 2) {
-                        continue;
-                    }
+                $byId = [];
+                foreach ($catCollection as $cat) {
+                    $byId[$cat->getId()] = $cat;
+                }
 
-                    $pathIds = array_filter(explode('/', (string) $category->getPath()));
-                    $breadcrumb = [];
-                    foreach (array_slice($pathIds, 2) as $pathId) {
-                        if ((string) $pathId === (string) $category->getId()) {
-                            $breadcrumb[] = $category->getName();
-                        } elseif (isset($categoryNames[$pathId])) {
-                            $breadcrumb[] = $categoryNames[$pathId];
+                foreach ($catCollection as $cat) {
+                    $pathIds = explode('/', (string)$cat->getPath());
+                    $names = [];
+                    foreach ($pathIds as $pId) {
+                        if ($pId <= 2) continue;
+                        if (isset($byId[$pId]) && $byId[$pId]->getName()) {
+                            $names[] = trim((string)$byId[$pId]->getName());
                         }
                     }
-
-                    $displayLabel = !empty($breadcrumb) ? implode(' > ', $breadcrumb) : $category->getName();
-                    $categoryMap[$displayLabel] = (int) $category->getId();
-                    $categoryNames[$category->getId()] = (string) $category->getName();
+                    if (!empty($names)) {
+                        $displayLabel = implode(' > ', $names);
+                        $categoryMap[$displayLabel] = (int)$cat->getId();
+                        $categoryMap[trim((string)$cat->getName())] = (int)$cat->getId();
+                    }
                 }
             } catch (\Exception $e) {
-                // ignore category mapping failures
+                // ignore category map failures
             }
 
-            // Build attribute set name -> id map
+            // Build attribute set map
             $attributeSetMap = [];
             try {
                 $eavSetCollectionFactory = \Magento\Framework\App\ObjectManager::getInstance()
                     ->get(\Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\CollectionFactory::class);
                 $asCollection = $eavSetCollectionFactory->create();
-                $asCollection->setEntityTypeFilter(4); // product entity type
+                $asCollection->setEntityTypeFilter(4);
                 foreach ($asCollection as $aset) {
                     $attributeSetMap[trim((string)$aset->getAttributeSetName())] = (int)$aset->getId();
                 }
             } catch (\Exception $e) {
-                // ignore attribute set mapping failures
+                // ignore
             }
 
-            for ($r = 2; $r <= $highestRow; $r++) {
-                // build associative row by header name
-                $rowData = [];
-                for ($c = 1; $c <= $highestColumnIndex; $c++) {
-                    $key = $headers[$c] ?? 'col_' . $c;
-                    $colLetter = Coordinate::stringFromColumnIndex($c);
-                    $rowData[$key] = $worksheet->getCell($colLetter . $r)->getValue();
-                }
-
+            // PASS 1: Create and update all products
+            foreach ($rowsData as $r => $rowData) {
                 $sku = trim((string) ($rowData['sku'] ?? ''));
                 if ($sku === '') {
-                    // skip empty rows
                     continue;
                 }
 
@@ -187,6 +235,13 @@ class Upload extends Action
                     try {
                         $product = $this->productRepository->get($sku);
                         $isNew = false;
+                        $existingVendorId = (int)$product->getData('vendor_id');
+                        if ($existingVendorId && $vendorId && $existingVendorId !== (int)$vendorId) {
+                            $msg = sprintf('Row %d: SKU "%s" belongs to another vendor (%d) and cannot be modified.', $r, $sku, $existingVendorId);
+                            $errors[] = $msg;
+                            $this->logImport("ERROR: $msg");
+                            continue;
+                        }
                     } catch (NoSuchEntityException $e) {
                         $product = $this->productFactory->create();
                         $isNew = true;
@@ -200,30 +255,30 @@ class Upload extends Action
 
                     $parentSku = isset($rowData['parent_sku']) ? trim((string)$rowData['parent_sku']) : '';
                     $variantVal = isset($rowData['variant_value']) ? trim((string)$rowData['variant_value']) : '';
+                    $variantAttr = isset($rowData['variant_attribute']) ? trim((string)$rowData['variant_attribute']) : ($variantVal !== '' ? 'variant_weight' : '');
+
+                    if ($parentSku !== '' && $typeId === 'simple') {
+                        $variantLinks[$parentSku][] = [
+                            'child_sku' => $sku,
+                            'variant_attr' => $variantAttr,
+                            'variant_val' => $variantVal,
+                            'row' => $r
+                        ];
+                    }
 
                     // Map common fields
                     if ($isNew) {
                         $product->setSku($sku);
                         $product->setTypeId($typeId);
-                        // attribute_set may be provided as name or id; map names to ids
-                        $defaultAttrSetId = 4;
+                        
+                        $defaultAttrSetId = 9; // Grocery, Food & Supplies
                         $attrValue = isset($rowData['attribute_set']) ? trim((string)$rowData['attribute_set']) : '';
                         $attributeSetId = $defaultAttrSetId;
                         if ($attrValue !== '') {
-                            if (is_numeric($attrValue)) {
-                                $maybeId = (int)$attrValue;
-                                // verify id exists in our map
-                                if (in_array($maybeId, $attributeSetMap, true)) {
-                                    $attributeSetId = $maybeId;
-                                } elseif (isset($attributeSetMap[$attrValue])) {
-                                    $attributeSetId = (int)$attributeSetMap[$attrValue];
-                                } else {
-                                    // leave default
-                                }
-                            } else {
-                                if (isset($attributeSetMap[$attrValue])) {
-                                    $attributeSetId = (int)$attributeSetMap[$attrValue];
-                                }
+                            if (isset($attributeSetMap[$attrValue])) {
+                                $attributeSetId = (int)$attributeSetMap[$attrValue];
+                            } elseif (is_numeric($attrValue)) {
+                                $attributeSetId = (int)$attrValue;
                             }
                         }
                         $product->setAttributeSetId($attributeSetId);
@@ -232,29 +287,15 @@ class Upload extends Action
                     $nameValue = isset($rowData['name']) ? trim((string)$rowData['name']) : '';
                     if ($nameValue !== '') {
                         $product->setName($nameValue);
-                    } elseif ($parentSku !== '' && $typeId === 'simple') {
-                        // Auto-generate child name: parent name + variant value.
-                        $parentName = isset($rowData['parent_name']) ? trim((string)$rowData['parent_name']) : '';
-                        if ($parentName === '') {
-                            try {
-                                $parentProductForName = $this->productRepository->get($parentSku);
-                                $parentName = trim((string)$parentProductForName->getName());
-                            } catch (\Exception $e) {
-                                $parentName = '';
-                            }
-                        }
-
-                        if ($parentName !== '' && $variantVal !== '') {
-                            $product->setName($parentName . ' - ' . $variantVal);
-                        } elseif ($parentName !== '') {
-                            $product->setName($parentName);
-                        }
+                    } elseif ($parentSku !== '' && $typeId === 'simple' && $variantVal !== '') {
+                        $product->setName($parentSku . ' - ' . $variantVal);
                     }
+
                     if (isset($rowData['description'])) {
-                        $product->setDescription((string)$rowData['description']);
+                        $product->setDescription($this->sanitizeHtml($rowData['description']));
                     }
                     if (isset($rowData['short_description'])) {
-                        $product->setShortDescription((string)$rowData['short_description']);
+                        $product->setShortDescription($this->sanitizeHtml($rowData['short_description']));
                     }
                     if (isset($rowData['price'])) {
                         $product->setPrice((float)$rowData['price']);
@@ -267,10 +308,16 @@ class Upload extends Action
                     }
                     if (isset($rowData['status'])) {
                         $product->setStatus((int)$rowData['status']);
+                    } else {
+                        $product->setStatus(1);
                     }
+
                     if (isset($rowData['visibility'])) {
                         $product->setVisibility((int)$rowData['visibility']);
+                    } else {
+                        $product->setVisibility($parentSku !== '' ? 1 : 4);
                     }
+
                     if (isset($rowData['meta_title'])) {
                         $product->setMetaTitle((string)$rowData['meta_title']);
                     }
@@ -281,7 +328,11 @@ class Upload extends Action
                         $product->setMetaDescription((string)$rowData['meta_description']);
                     }
                     if (isset($rowData['gst_rate'])) {
-                        $product->setData('gst_rate', (string)$rowData['gst_rate']);
+                        $gstVal = trim((string)$rowData['gst_rate']);
+                        if ($gstVal !== '') {
+                            $resolvedGstId = $this->resolveGstRateOptionId($gstVal);
+                            $product->setData('gst_rate', $resolvedGstId !== null ? $resolvedGstId : $gstVal);
+                        }
                     }
                     if (isset($rowData['hsn_code'])) {
                         $product->setData('hsn_code', (string)$rowData['hsn_code']);
@@ -289,14 +340,12 @@ class Upload extends Action
 
                     $rowQty = isset($rowData['qty']) && $rowData['qty'] !== '' ? (float)$rowData['qty'] : null;
 
-                    // Keep vendor id always for imported products.
                     if ($vendorId) {
                         $product->setData('vendor_id', $vendorId);
                     }
 
-                    // Ensure stock flags allow storefront visibility.
+                    // Stock data
                     if ($typeId === 'configurable') {
-                        // Configurable parents must be marked in stock.
                         $product->setStockData([
                             'use_config_manage_stock' => 0,
                             'manage_stock' => 0,
@@ -312,220 +361,154 @@ class Upload extends Action
                         ]);
                     }
 
-                    // Save product first (base data)
-                    $this->productRepository->save($product);
-
-                    // Handle variant linking: if parent_sku is specified, link this product as a child
-                    if ($parentSku !== '' && $product->getTypeId() === 'simple') {
-                        try {
-                            $parentProduct = $this->productRepository->get($parentSku);
-                            if ($parentProduct && $parentProduct->getTypeId() === 'configurable') {
-                                $variantAttr = isset($rowData['variant_attribute']) ? trim((string)$rowData['variant_attribute']) : '';
-                                $variantVal = isset($rowData['variant_value']) ? trim((string)$rowData['variant_value']) : '';
-
-                                if ($variantAttr !== '' && $variantVal !== '') {
-                                    $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-                                    $eavConfig = $objectManager->get(\Magento\Eav\Model\Config::class);
-                                    $attr = $eavConfig->getAttribute('catalog_product', $variantAttr);
-
-                                    if ($attr && $attr->getId()) {
-                                        $optionId = $this->resolveAttributeOptionId($attr, $variantVal);
-                                        if ($optionId) {
-                                            // Save the child with the actual option ID so Magento can build the configurable association.
-                                            $product->setData($variantAttr, $optionId);
-                                            $product->setVisibility(\Magento\Catalog\Model\Product\Visibility::VISIBILITY_NOT_VISIBLE);
-                                            $this->productRepository->save($product);
-
-                                            // Rebuild configurable linkage using the same service used by the manual save flow.
-                                            $configurableService = $objectManager->get(\Vendor\Marketplace\Model\Product\ConfigurableProductService::class);
-                                            $configurableType = $objectManager->get(\Magento\ConfigurableProduct\Model\Product\Type\Configurable::class);
-                                            $existingChildIds = [];
-                                            try {
-                                                $childrenIds = $configurableType->getChildrenIds($parentProduct->getId());
-                                                if (!empty($childrenIds) && !empty($childrenIds[0])) {
-                                                    $existingChildIds = array_map('intval', $childrenIds[0]);
-                                                }
-                                            } catch (\Exception $e) {
-                                                $existingChildIds = [];
-                                            }
-
-                                            $existingChildIds[] = (int) $product->getId();
-                                            $existingChildIds = array_values(array_unique(array_filter($existingChildIds)));
-
-                                            $configurableService->linkProductsToConfigurable(
-                                                $parentProduct,
-                                                (int) $attr->getAttributeId(),
-                                                $existingChildIds
-                                            );
-
-                                            if ($vendorId) {
-                                                $parentProduct->setData('vendor_id', $vendorId);
-                                                $this->productRepository->save($parentProduct);
-                                            }
-                                        }
-                                    }
-                                }
+                    // Pre-assign variant attribute option on child product
+                    if ($variantAttr !== '' && $variantVal !== '') {
+                        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+                        $eavConfig = $objectManager->get(\Magento\Eav\Model\Config::class);
+                        $attr = $eavConfig->getAttribute('catalog_product', $variantAttr);
+                        if ($attr && $attr->getId()) {
+                            $optId = $this->resolveAttributeOptionId($attr, $variantVal);
+                            if ($optId) {
+                                $product->setData($variantAttr, $optId);
                             }
-                        } catch (\Exception $e) {
-                            // Silently skip variant linking errors—products are still created
                         }
                     }
 
-                    // Category assignment by display label (category_names column)
+                    // Category assignment
                     if (!empty($rowData['category_names'])) {
                         $names = preg_split('/\s*\|\s*/', (string)$rowData['category_names']);
-                        $assignIds = [];
-                        foreach ($names as $n) {
-                            $n = trim($n);
-                            if ($n === '') continue;
-                            if (isset($categoryMap[$n])) {
-                                $assignIds[] = $categoryMap[$n];
+                        $catIds = [];
+                        foreach ($names as $name) {
+                            $name = trim($name);
+                            if (isset($categoryMap[$name])) {
+                                $catIds[] = $categoryMap[$name];
                             }
                         }
-                        if (!empty($assignIds)) {
-                            try {
-                                $product->setCategoryIds($assignIds);
-                                $this->productRepository->save($product);
-                            } catch (\Exception $e) {
-                                // Continue even if category assignment fails
-                                $errors[] = 'Row ' . $r . ' (SKU: ' . $sku . '): failed assigning categories - ' . $e->getMessage();
-                            }
+                        if (!empty($catIds)) {
+                            $product->setCategoryIds(array_values(array_unique($catIds)));
                         }
                     }
 
-                    // Images: download image URLs and add to media gallery
-                    $imageFields = ['image','image_2','image_3','image_4','image_5','image_6','image_7'];
-                    $imageCount = 0;
-                    foreach ($imageFields as $idx => $imgField) {
-                        if (empty($rowData[$imgField])) continue;
-                        $url = trim((string)$rowData[$imgField]);
-                        if ($url === '') continue;
+                    // Save base product
+                    $this->productRepository->save($product);
 
+                    // MSI quantity assignment
+                    if ($rowQty !== null && $product->getTypeId() !== 'configurable') {
                         try {
-                            $tmp = tempnam(sys_get_temp_dir(), 'prodimg_');
-                            $content = @file_get_contents($url, false, stream_context_create(['http' => ['timeout' => 5], 'https' => ['timeout' => 5]]));
-                            
-                            if ($content === false) {
-                                // Skip if image not available—don't error out
-                                @unlink($tmp);
-                                continue;
-                            }
-
-                            file_put_contents($tmp, $content);
-
-                            // Use Magento's product media manager to add image
                             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-                            $mediaManager = $objectManager->get(\Magento\Catalog\Model\Product\Media\Config::class);
-                            $mediaDir = $this->directoryList->getPath(DirectoryList::MEDIA);
-                            
-                            // Create proper media gallery entry with file copy
-                            $gallery = $product->getMediaGallery('images');
-                            if (!is_array($gallery)) {
-                                $gallery = [];
+                            $sourceCode = 'default';
+                            if ($vendorId) {
+                                $vendorSourceManager = $objectManager->get(\Vendor\Marketplace\Model\Inventory\VendorSourceManager::class);
+                                $sourceCode = $vendorSourceManager->getSourceCode((int)$vendorId) ?: 'default';
                             }
-                            
-                            // Generate unique filename
-                            $filename = md5(uniqid() . $sku) . '.jpg';
-                            $destPath = $mediaDir . DIRECTORY_SEPARATOR . 'catalog' . DIRECTORY_SEPARATOR . 'product' . $filename;
-                            
-                            if (!is_dir(dirname($destPath))) {
-                                mkdir(dirname($destPath), 0755, true);
-                            }
-                            
-                            copy($tmp, $destPath);
-                            
-                            // Add to media gallery with roles
-                            $roles = [];
-                            if ($imageCount === 0) {
-                                $roles = ['image', 'small_image', 'thumbnail'];
-                            }
-                            
-                            // Use addImage method for proper integration
-                            $product->addImageToMediaGallery($tmp, $roles, false, false);
-                            $imageCount++;
-                            
-                            @unlink($tmp);
-                        } catch (\Exception $e) {
-                            if (isset($tmp) && file_exists($tmp)) {
-                                @unlink($tmp);
-                            }
-                            // Log but don't fail the row—images are optional
-                        }
-                    }
-
-                    // Save product with images (if any were added)
-                    if ($imageCount > 0) {
-                        try {
-                            $this->productRepository->save($product);
-                        } catch (\Exception $e) {
-                            // Image save errors are non-critical
-                        }
-                    }
-
-                    // MSI: assign qty to vendor source if available and qty provided
-                    try {
-                        $qty = isset($rowData['qty']) ? (float)$rowData['qty'] : null;
-                        // Do not assign source items to configurable parent SKUs.
-                        if ($qty !== null && $qty !== '' && $product->getTypeId() !== 'configurable') {
-                            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-                            $customerSession = $objectManager->get(\Magento\Customer\Model\Session::class);
-                            if ($customerSession && $customerSession->isLoggedIn()) {
-                                $customerId = $customerSession->getCustomerId();
-                                $vendor = $objectManager->get(\Vendor\Marketplace\Model\VendorFactory::class)->create()->load($customerId, 'customer_id');
-                                if ($vendor && $vendor->getId()) {
-                                    $vendorSourceManager = $objectManager->get(\Vendor\Marketplace\Model\Inventory\VendorSourceManager::class);
-                                    $sourceCode = $vendorSourceManager->getSourceCode((int)$vendor->getId());
-                                } else {
-                                    $sourceCode = 'default';
-                                }
-                            } else {
-                                $sourceCode = 'default';
-                            }
-
-                            // Create and save source item
                             $sourceItemFactory = $objectManager->get(\Magento\InventoryApi\Api\Data\SourceItemInterfaceFactory::class);
                             $sourceItemsSave = $objectManager->get(\Magento\InventoryApi\Api\SourceItemsSaveInterface::class);
                             $sourceItem = $sourceItemFactory->create();
                             $sourceItem->setSku($sku);
                             $sourceItem->setSourceCode($sourceCode);
-                            $sourceItem->setQuantity($qty);
-                            $sourceItem->setStatus((int)($qty > 0));
+                            $sourceItem->setQuantity($rowQty);
+                            $sourceItem->setStatus((int)($rowQty > 0));
                             $sourceItemsSave->execute([$sourceItem]);
+                        } catch (\Exception $e) {
+                            // MSI fallback
                         }
-                    } catch (\Exception $e) {
-                        $errors[] = 'Row ' . $r . ' (SKU: ' . $sku . '): MSI assignment failed - ' . $e->getMessage();
                     }
 
                     if ($isNew) {
                         $created++;
+                        $this->logImport("SUCCESS: Created Row $r - SKU: $sku ($typeId)");
                     } else {
                         $updated++;
+                        $this->logImport("SUCCESS: Updated Row $r - SKU: $sku ($typeId)");
                     }
                 } catch (\Exception $e) {
-                    $errors[] = 'Row ' . $r . ' (SKU: ' . $sku . '): ' . $e->getMessage();
+                    $err = "Row $r (SKU: $sku): " . $e->getMessage();
+                    $errors[] = $err;
+                    $this->logImport("ERROR on Row $r (SKU: $sku): " . $e->getMessage());
                 }
             }
 
+            // PASS 2: Link Configurable Products with their Child Variants
+            $this->logImport("--- PASS 2: Configurable Linkage (" . count($variantLinks) . " parent SKUs) ---");
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $configurableService = $objectManager->get(\Vendor\Marketplace\Model\Product\ConfigurableProductService::class);
+            $eavConfig = $objectManager->get(\Magento\Eav\Model\Config::class);
+
+            foreach ($variantLinks as $pSku => $childItems) {
+                try {
+                    $parentProduct = $this->productRepository->get($pSku, true, null, true);
+                    if ($parentProduct->getTypeId() !== 'configurable') {
+                        $this->logImport("NOTICE: Parent $pSku is not configurable (Type: {$parentProduct->getTypeId()}) - skipping linkage.");
+                        continue;
+                    }
+
+                    $childIds = [];
+                    $configuredAttrId = null;
+
+                    foreach ($childItems as $item) {
+                        $cSku = $item['child_sku'];
+                        $vAttr = $item['variant_attr'] ?: 'variant_weight';
+                        $vVal = $item['variant_val'];
+
+                        try {
+                            $childProduct = $this->productRepository->get($cSku, true, null, true);
+                            $attr = $eavConfig->getAttribute('catalog_product', $vAttr);
+                            if ($attr && $attr->getId()) {
+                                $configuredAttrId = (int)$attr->getAttributeId();
+                                $optId = $this->resolveAttributeOptionId($attr, $vVal);
+                                if ($optId) {
+                                    $childProduct->setData($vAttr, $optId);
+                                    $childProduct->setVisibility(\Magento\Catalog\Model\Product\Visibility::VISIBILITY_NOT_VISIBLE);
+                                    if ($vendorId) {
+                                        $childProduct->setData('vendor_id', $vendorId);
+                                    }
+                                    $this->productRepository->save($childProduct);
+                                    $childIds[] = (int)$childProduct->getId();
+                                    $this->logImport("PASS 2: Prepared child $cSku (ID: {$childProduct->getId()}) with $vAttr=$optId for parent $pSku");
+                                } else {
+                                    $this->logImport("PASS 2 WARNING: Option ID could not be resolved for child $cSku with value '$vVal'");
+                                }
+                            }
+                        } catch (\Exception $e) {
+                            $this->logImport("PASS 2 ERROR on child $cSku: " . $e->getMessage());
+                        }
+                    }
+
+                    $childIds = array_values(array_unique(array_filter($childIds)));
+                    if (!empty($childIds) && $configuredAttrId) {
+                        $configurableService->linkProductsToConfigurable(
+                            $parentProduct,
+                            $configuredAttrId,
+                            $childIds
+                        );
+                        if ($vendorId) {
+                            $parentProduct->setData('vendor_id', $vendorId);
+                            $this->productRepository->save($parentProduct);
+                        }
+                        $this->logImport("PASS 2 SUCCESS: Configurable Parent $pSku linked with " . count($childIds) . " children (IDs: " . implode(',', $childIds) . ")");
+                    }
+                } catch (\Exception $e) {
+                    $err = "Configurable Linkage Error ($pSku): " . $e->getMessage();
+                    $errors[] = $err;
+                    $this->logImport("PASS 2 FAILED for parent $pSku: " . $e->getMessage());
+                }
+            }
+
+            $this->logImport("--- IMPORT COMPLETED: Created=$created, Updated=$updated, Errors=" . count($errors) . " ---");
+
             $this->messageManager->addSuccessMessage(__('Import completed. Created: %1, Updated: %2', $created, $updated));
             if (!empty($errors)) {
-                $this->messageManager->addErrorMessage(__('Some rows failed to import: %1', implode(', ', array_slice($errors, 0, 5)) . (count($errors) > 5 ? ' (and ' . (count($errors) - 5) . ' more)' : '')));
+                $this->messageManager->addErrorMessage(__('Some rows had issues: %1', implode(' | ', array_slice($errors, 0, 5)) . (count($errors) > 5 ? ' (and ' . (count($errors) - 5) . ' more - see var/log/vendor_product_import.log)' : '')));
             }
             return $resultRedirect->setPath($redirectPath);
 
-
         } catch (\Exception $e) {
+            $this->logImport("FATAL EXCEPTION: " . $e->getMessage());
             $this->messageManager->addErrorMessage($e->getMessage());
             return $resultRedirect->setPath($redirectPath);
         }
     }
 
-    /**
-     * Resolve a configurable attribute value to its option ID.
-     *
-     * @param \Magento\Eav\Model\Entity\Attribute $attribute
-     * @param string $labelOrValue
-     * @return int|null
-     */
     protected function resolveAttributeOptionId($attribute, $labelOrValue)
     {
         if (!$attribute || !$attribute->getId()) {
@@ -580,9 +563,64 @@ class Upload extends Action
                 }
             }
         } catch (\Exception $e) {
-            // Ignore option creation failures and fall back to no linkage.
+            // fallback
         }
 
         return null;
+    }
+
+    protected function resolveGstRateOptionId($value)
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+
+        if (preg_match('/^\s*(\d+(?:\.\d+)?)/', $value, $m)) {
+            $rateNum = (string)(float)$m[1];
+        } else {
+            $rateNum = $value;
+        }
+
+        try {
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $eavConfig = $objectManager->get(\Magento\Eav\Model\Config::class);
+            $attr = $eavConfig->getAttribute('catalog_product', 'gst_rate');
+            if ($attr && $attr->getId()) {
+                foreach ($attr->getOptions() as $opt) {
+                    $label = trim((string)$opt->getLabel());
+                    $val = (string)$opt->getValue();
+                    if ($val === $value || $label === $rateNum || (is_numeric($label) && (float)$label === (float)$rateNum)) {
+                        return (int)$val;
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // fallback
+        }
+
+        return is_numeric($value) ? (int)$value : null;
+    }
+
+    protected function sanitizeHtml($html)
+    {
+        if (!is_string($html) || strpos($html, '<') === false) {
+            return (string)$html;
+        }
+        $allowed = ['class', 'width', 'height', 'style', 'alt', 'title', 'border', 'id', 'href', 'target', 'role', 'aria-hidden', 'aria-label'];
+        return preg_replace_callback('/<([a-z0-9]+)\s+([^>]+)>/i', function($matches) use ($allowed) {
+            $tag = strtolower($matches[1]);
+            $attrs = $matches[2];
+            preg_match_all('/([a-z0-9_-]+)(?:\s*=\s*(?:\"([^\"]*)\"|\'([^\']*)\'|([^\s>]+)))?/i', $attrs, $attrMatches, PREG_SET_ORDER);
+            $cleanAttrs = [];
+            foreach ($attrMatches as $am) {
+                $attrName = strtolower($am[1]);
+                if (in_array($attrName, $allowed) || strpos($attrName, 'data-pb-') === 0 || strpos($attrName, 'data-element') === 0) {
+                    $val = $am[2] ?? ($am[3] ?? ($am[4] ?? ''));
+                    $cleanAttrs[] = $attrName . '="' . htmlspecialchars($val, ENT_QUOTES) . '"';
+                }
+            }
+            return '<' . $tag . (empty($cleanAttrs) ? '' : ' ' . implode(' ', $cleanAttrs)) . '>';
+        }, $html);
     }
 }

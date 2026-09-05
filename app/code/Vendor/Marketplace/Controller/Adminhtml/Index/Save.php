@@ -458,6 +458,6 @@ class Save extends Action
      */
     protected function _isAllowed()
     {
-        return $this->_authorization->isAllowed('Vendor_Marketplace::dashboard');
+        return $this->_authorization->isAllowed('Vendor_Marketplace::manage_seller');
     }
 }

@@ -8,7 +8,7 @@ use Vendor\Marketplace\Model\VendorDocumentFactory;
 use Vendor\Marketplace\Model\ResourceModel\VendorDocument as VendorDocumentResource;
 use Vendor\Marketplace\Api\VendorRepositoryInterface;
 
-class DeleteDocument extends Action
+class DeleteDocument extends Action implements \Magento\Framework\App\Action\HttpPostActionInterface
 {
     /**
      * @var CustomerSession

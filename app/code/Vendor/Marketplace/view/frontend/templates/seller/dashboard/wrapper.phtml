@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /** @var $block \Magento\Framework\View\Element\Template */
 ?>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -259,3 +259,41 @@
         </div>
     </div>
 </div>
+
+<script>
+    require(['jquery'], function ($) {
+        function setupMessageDismiss() {
+            $('.messages .message, .page.messages .message').each(function () {
+                var $el = $(this);
+                if ($el.attr('data-dismiss-attached')) {
+                    return;
+                }
+                $el.attr('data-dismiss-attached', '1');
+
+                // Auto hide after 5 seconds
+                setTimeout(function () {
+                    $el.fadeOut(600, function () {
+                        $(this).remove();
+                    });
+                }, 5000);
+            });
+        }
+
+        // Run when page is ready
+        $(document).ready(function () {
+            setupMessageDismiss();
+            // Also check after 500ms and 1500ms in case Magento customer-data loads messages asynchronously
+            setTimeout(setupMessageDismiss, 500);
+            setTimeout(setupMessageDismiss, 1500);
+        });
+
+        // Watch for dynamically inserted messages
+        var observer = new MutationObserver(function () {
+            setupMessageDismiss();
+        });
+        var target = document.querySelector('.vendor-messages-container') || document.body;
+        if (target) {
+            observer.observe(target, { childList: true, subtree: true });
+        }
+    });
+</script>

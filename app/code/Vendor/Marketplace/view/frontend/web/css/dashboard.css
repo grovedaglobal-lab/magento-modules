@@ -56,14 +56,21 @@ footer.page-footer,
     margin: 0 !important;
 }
 
+/* Ensure ancestor elements never clip sticky sidebar */
+html, body, .page-wrapper, #maincontent, .columns, .column.main, .page-main {
+    overflow: visible !important;
+}
+
 .vendor-dashboard-wrapper {
     display: flex;
+    align-items: flex-start !important;
     min-height: 100vh;
     width: 100%;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-size: 14px;
     background-color: var(--bg-main);
     color: var(--text-main);
+    position: relative;
 }
 
 /* Fix Header Flex Layout Aggressively */
@@ -90,15 +97,21 @@ footer.page-footer,
 
 /* Sidebar Styling */
 .vendor-sidebar {
-    width: 260px;
-    min-width: 260px;
+    width: 260px !important;
+    min-width: 260px !important;
     background-color: var(--brand-primary);
     color: var(--text-white);
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0 !important;
+    height: 100vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
     box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+    z-index: 1000 !important;
 }
 
 /* Force inner blocks to be transparent to show brand green */
@@ -188,7 +201,7 @@ footer.page-footer,
     transform: rotate(180deg);
 }
 
-/* Sub-menu container — darker tray */
+/* Sub-menu container â€” darker tray */
 .vendor-sidebar .nav-submenu {
     list-style: none;
     max-height: 0;
@@ -206,7 +219,7 @@ footer.page-footer,
     opacity: 1;
 }
 
-/* Sub-item links — override base .nav.item a with higher specificity */
+/* Sub-item links â€” override base .nav.item a with higher specificity */
 .vendor-sidebar ul.nav.items .nav-submenu-item a,
 .vendor-sidebar .nav-submenu .nav-submenu-item a {
     display: flex !important;
@@ -316,7 +329,7 @@ footer.page-footer,
     transition: color 0.18s ease;
 }
 
-/* Hover — inactive tab */
+/* Hover â€” inactive tab */
 .profile-tab-btn:not(.active):hover {
     background-color: #eef2f7;
     color: #113321;
@@ -330,7 +343,7 @@ footer.page-footer,
     color: #113321;
 }
 
-/* Active press — inactive tab */
+/* Active press â€” inactive tab */
 .profile-tab-btn:not(.active):active {
     transform: translateY(0) scale(0.97);
     background-color: #e2eaf0;
@@ -446,7 +459,7 @@ footer.page-footer,
 .social-vimeo     { color: #1AB7EA; }
 .social-pinterest { color: #E60023; }
 
-/* Document File Validation — inline hint below file input */
+/* Document File Validation â€” inline hint below file input */
 .doc-file-hint {
     margin-top: 4px;
     font-size: 11px;
@@ -3328,7 +3341,7 @@ td.col-pending {
 
 /* MARKETPLACE GRID PAGINATION STYLES */
 
-/* ── Product Grid Pagination Styling ── */
+/* â”€â”€ Product Grid Pagination Styling â”€â”€ */
 .grid-pagination {
     display: flex;
     align-items: center;
@@ -3438,3 +3451,159 @@ td.col-pending {
     cursor: default !important;
 }
 
+
+
+
+
+
+/* ─── Global Vendor Product & Order Pagination Bar Styles ─── */
+.order-pagination-bar {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    padding: 12px 18px !important;
+    margin-top: 15px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+    flex-wrap: wrap !important;
+    gap: 15px !important;
+}
+
+.order-pagination-bar .pagination-left {
+    display: flex !important;
+    align-items: center !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+}
+
+.order-pagination-bar .pagination-right {
+    display: flex !important;
+    align-items: center !important;
+    margin-left: auto !important;
+}
+
+.order-pagination-bar .pager {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    flex-wrap: wrap !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.order-pagination-bar .amount,
+.order-pagination-bar .toolbar-amount,
+.order-pagination-bar .pages-label,
+.order-pagination-bar .label,
+.order-pagination-bar .page .label,
+.order-pagination-bar .action .label {
+    display: none !important;
+}
+
+.order-pagination-bar .pages {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin: 0 !important;
+}
+
+.order-pagination-bar .pages-items {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.order-pagination-bar .pages-items .item {
+    display: inline-flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+}
+
+.order-pagination-bar .pages-items .item a.page,
+.order-pagination-bar .pages-items .item a.action,
+.order-pagination-bar .pages-items .item strong.page,
+.order-pagination-bar .pages-items .item span.action,
+.order-pagination-bar .pages-items .item a,
+.order-pagination-bar .pages-items .item strong {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    padding: 0 10px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    color: #334155 !important;
+    background: #ffffff !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-sizing: border-box !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+}
+
+.order-pagination-bar .pages-items .item a.page:hover,
+.order-pagination-bar .pages-items .item a.action:hover,
+.order-pagination-bar .pages-items .item a:hover {
+    border-color: #113321 !important;
+    color: #113321 !important;
+    background: #f0fdf4 !important;
+}
+
+.order-pagination-bar .pages-items .item.current strong.page,
+.order-pagination-bar .pages-items .item strong.page,
+.order-pagination-bar .pages-items .item.current strong,
+.order-pagination-bar .pages-items .item.current span {
+    background: #113321 !important;
+    border-color: #113321 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    cursor: default !important;
+}
+
+.order-pagination-bar .limiter {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 13px !important;
+    color: #64748b !important;
+    font-weight: 500 !important;
+    margin: 0 0 0 12px !important;
+}
+
+.order-pagination-bar .limiter .limiter-label {
+    font-size: 12px !important;
+    color: #64748b !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+}
+
+.order-pagination-bar .limiter-options,
+.order-pagination-bar .limiter .limiter-options {
+    padding: 6px 10px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    background: #fff !important;
+    cursor: pointer !important;
+    height: 34px !important;
+    outline: none !important;
+}
+
+.order-pagination-bar .limiter .limiter-text {
+    font-size: 12px !important;
+    color: #64748b !important;
+    margin: 0 !important;
+}

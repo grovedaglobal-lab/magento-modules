@@ -20,7 +20,7 @@ use Psr\Log\LoggerInterface;
  *
  * Writes a product view into Magento's native report_viewed_product_index table.
  * This is necessary because the headless Next.js frontend bypasses Magento's
- * catalog_controller_product_view event — so views never get tracked natively.
+ * catalog_controller_product_view event â€” so views never get tracked natively.
  *
  * After recording, Magento's existing cron jobs aggregate the data into:
  *   - report_viewed_product_aggregated_daily
@@ -29,7 +29,7 @@ use Psr\Log\LoggerInterface;
  *   - report_viewed_product_aggregated_yearly
  *
  * These are then used by:
- *   - Magento Admin → Most Viewed Products dashboard
+ *   - Magento Admin â†’ Most Viewed Products dashboard
  *   - Our trendingProductIds GraphQL query
  */
 class RecordProductView implements ResolverInterface
@@ -71,7 +71,7 @@ class RecordProductView implements ResolverInterface
     /**
      * {@inheritdoc}
      */
-    public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
+    public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null)
     {
         $productId = (int)($args['product_id'] ?? 0);
 
@@ -89,12 +89,12 @@ class RecordProductView implements ResolverInterface
                 $customerId = (int)$context->getUserId();
             }
 
-            // Resolve visitor_id — Magento generates this per session.
+            // Resolve visitor_id â€” Magento generates this per session.
             // In a headless context we derive a stable visitor from the customer or
             // create an ephemeral one; the important thing is the product_id gets recorded.
             if (!$customerId) {
                 // Use a hash of the product_id as a pseudo-visitor for anonymous views.
-                // This is lightweight — Magento deduplicates on (product_id, visitor_id, store_id).
+                // This is lightweight â€” Magento deduplicates on (product_id, visitor_id, store_id).
                 $visitorId = abs(crc32('headless_' . $productId . '_' . $storeId));
             }
 
@@ -130,7 +130,7 @@ class RecordProductView implements ResolverInterface
 
             return true;
         } catch (\Exception $e) {
-            // Log but never throw — view tracking must never break the product page
+            // Log but never throw â€” view tracking must never break the product page
             $this->logger->error('[RecordProductView] Failed to record product view: ' . $e->getMessage(), [
                 'product_id' => $productId,
                 'exception'  => $e,

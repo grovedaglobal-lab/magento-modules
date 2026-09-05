@@ -79,11 +79,8 @@ class Consumer
 
         } catch (\Throwable $e) {
             $this->logger->error('Failed to send async wallet recharge custom email: ' . $e->getMessage(), ['order_id' => $orderId]);
-            // Fallback to standard order email if custom fails
-            try {
-                $orderSender = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Sales\Model\Order\Email\Sender\OrderSender::class);
-                $orderSender->send($order);
-            } catch (\Throwable $ignore) {}
+            // Do NOT fall back to standard sales order email for wallet recharge
+            $this->logger->critical("Failed to send wallet recharge email via transport. Skipping standard order email fallback to prevent incorrect New Order Placed template.", ["order_id" => $orderId]);
         }
     }
 }

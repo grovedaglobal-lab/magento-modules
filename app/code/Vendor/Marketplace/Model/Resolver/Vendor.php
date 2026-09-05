@@ -106,10 +106,15 @@ class Vendor implements ResolverInterface
             $vendorData['banner_url'] = null;
         }
 
-        if ($vendorData['signature']) {
+        // Restrict sensitive legal PII (signatures & PAN) to authenticated sessions only
+        if ($context->getUserId() && !empty($vendorData['signature'])) {
             $vendorData['signature_url'] = $mediaUrl . 'vendor/signature/' . $vendorData['signature'];
         } else {
+            $vendorData['signature'] = null;
             $vendorData['signature_url'] = null;
+            if (!$context->getUserId()) {
+                $vendorData['pan_number'] = null;
+            }
         }
 
         return $vendorData;

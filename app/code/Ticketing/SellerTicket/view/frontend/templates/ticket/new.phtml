@@ -7,6 +7,7 @@
         <form action="<?= $block->escapeUrl($block->getUrl('sellerticket/ticket/save')) ?>" method="post"
             id="form-ticket-new" class="form" data-mage-init='{"validation":{}}'>
             <fieldset class="fieldset">
+                <?= $block->getBlockHtml('formkey') ?>
 
                 <div class="field subject required">
                     <label class="label" for="subject"><span>

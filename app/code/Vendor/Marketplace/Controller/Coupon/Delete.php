@@ -8,7 +8,7 @@ use Vendor\Marketplace\Model\VendorFactory;
 use Vendor\Marketplace\Model\ResourceModel\VendorSalesRule\CollectionFactory as VendorRuleCollectionFactory;
 use Magento\SalesRule\Model\RuleRepository;
 
-class Delete extends Action
+class Delete extends Action implements \Magento\Framework\App\Action\HttpPostActionInterface
 {
     protected $customerSession;
     protected $vendorFactory;

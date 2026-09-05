@@ -47,14 +47,15 @@ class Consumer
             $extractedDir = $tempDir . '/extracted';
             
             // Extract all zip files into the same extracted directory
+            $extractedFiles = [];
             foreach ($zipPaths as $zipPath) {
                 if (file_exists($zipPath)) {
-                    $this->zipExtractor->extract($zipPath, $extractedDir);
+                    $files = $this->zipExtractor->extract($zipPath, $extractedDir, $result);
+                    $extractedFiles = array_merge($extractedFiles, $files);
                 }
             }
 
-            $extractedFiles = [];
-            if (is_dir($extractedDir)) {
+            if (empty($extractedFiles) && is_dir($extractedDir)) {
                 $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($extractedDir, \FilesystemIterator::SKIP_DOTS));
                 foreach ($iterator as $fileInfo) {
                     if ($fileInfo->isFile()) {
@@ -63,9 +64,18 @@ class Consumer
                 }
             }
 
+            if (empty($extractedFiles)) {
+                $result->addGlobalError("No valid image files found in the uploaded file(s). Allowed formats: .jpg, .jpeg, .png, .webp");
+            }
+
             $groupedSkus = $this->skuMatcher->matchAndValidate($extractedFiles, $vendorId, $result);
+            $totalValidSkus = count($groupedSkus);
             
-            $job->setTotalSkus(count($groupedSkus))->save();
+            if ($totalValidSkus === 0 && count($extractedFiles) > 0 && !$result->hasErrors()) {
+                $result->addGlobalError("No matching product SKUs could be resolved from the uploaded image(s).");
+            }
+
+            $job->setTotalSkus($totalValidSkus)->save();
             $processed = 0;
             
             foreach ($groupedSkus as $sku => $images) {
@@ -77,10 +87,22 @@ class Consumer
                         ->save();
                 }
             }
+
+            // Determine final status
+            $status = 'completed';
+            if ($result->hasErrors()) {
+                if ($result->successCount === 0) {
+                    $status = 'failed';
+                } else {
+                    $status = 'partial';
+                }
+            } elseif ($result->successCount === 0) {
+                $status = 'failed';
+            }
             
             $job->setProcessedSkus($processed)
                 ->setSuccessCount($result->successCount)
-                ->setStatus('completed')
+                ->setStatus($status)
                 ->setResultJson(json_encode($result->toArray()))
                 ->setCompletedAt((new \DateTime())->format('Y-m-d H:i:s'))
                 ->save();
@@ -89,8 +111,8 @@ class Consumer
             $result->addGlobalError($e->getMessage());
             $job->setStatus('failed')
                 ->setResultJson(json_encode($result->toArray()))
+                ->setCompletedAt((new \DateTime())->format('Y-m-d H:i:s'))
                 ->save();
         }
     }
 }
-

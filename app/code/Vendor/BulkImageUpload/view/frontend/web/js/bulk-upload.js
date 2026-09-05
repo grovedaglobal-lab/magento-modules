@@ -1,4 +1,4 @@
-﻿define([
+define([
     'jquery',
     'mage/translate',
     'mage/url'
@@ -27,7 +27,7 @@
             var formData = new FormData($form[0]);
             var fileInput = $('#bulk_image_zip')[0];
             if (!fileInput.files.length) {
-                showMessage($t('Please select a ZIP file.'), 'error');
+                showMessage($t('Please select one or more files to upload.'), 'error');
                 return;
             }
 
@@ -35,7 +35,7 @@
             $messages.hide();
             $results.hide();
             $progressContainer.show();
-            updateProgress(0, $t('Uploading & Extracting ZIP...'));
+            updateProgress(0, $t('Uploading files... Please do not refresh the page!'));
 
             $.ajax({
                 url: $form.attr('action'),
@@ -46,7 +46,7 @@
                 showLoader: false,
                 success: function (response) {
                     if (response.success && response.job_id) {
-                        updateProgress(10, $t('Validating SKU matching...'));
+                        updateProgress(10, $t('Upload received, validating and processing...'));
                         startPolling(response.job_id);
                     } else {
                         handleError(response.error || $t('Upload failed.'));
@@ -82,16 +82,26 @@
                         
                         if (res.status === 'processing') {
                             updateProgress(actualPct, $t('Processing images...') + ' (' + processed + '/' + total + ')');
-                        } else if (res.status === 'completed' || res.status === 'failed') {
+                        } else if (res.status === 'completed' || res.status === 'partial' || res.status === 'failed') {
                             clearInterval(pollInterval);
-                            updateProgress(100, res.status === 'completed' ? $t('Completed!') : $t('Failed.'));
+                            var statusText = $t('Completed!');
+                            if (res.status === 'partial') statusText = $t('Completed with some issues.');
+                            if (res.status === 'failed') statusText = $t('Processing failed.');
+
+                            updateProgress(100, statusText);
                             setTimeout(function() {
                                 $progressContainer.hide();
                                 renderResults(res.result_json, res.status);
                                 $submitBtn.prop('disabled', false);
                                 $form[0].reset();
-                                // Reload page to update job history table
-                                setTimeout(function() { window.location.reload(); }, 3000);
+                                
+                                var hasErrors = res.result_json && (
+                                    res.result_json.hasErrors || 
+                                    (res.result_json.errors && Object.keys(res.result_json.errors).length > 0) ||
+                                    (res.result_json.globalErrors && res.result_json.globalErrors.length > 0)
+                                );
+
+                                setTimeout(function() { window.location.reload(); }, hasErrors ? 8000 : 3000);
                             }, 1000);
                         }
                     },
@@ -143,11 +153,50 @@
                 return;
             }
             
+            var allErrors = {};
+            if (resultJson.errors && typeof resultJson.errors === 'object') {
+                allErrors = resultJson.errors;
+            } else {
+                if (resultJson.notFoundSkus && resultJson.notFoundSkus.length) {
+                    resultJson.notFoundSkus.forEach(function(s) {
+                        allErrors[s] = ['SKU not found in catalog.'];
+                    });
+                }
+                if (resultJson.unauthorizedSkus && resultJson.unauthorizedSkus.length) {
+                    resultJson.unauthorizedSkus.forEach(function(s) {
+                        allErrors[s] = ['SKU does not belong to your vendor account.'];
+                    });
+                }
+                if (resultJson.skippedFiles) {
+                    $.each(resultJson.skippedFiles, function(f, r) {
+                        allErrors[f] = [r];
+                    });
+                }
+                if (resultJson.skippedSkus) {
+                    $.each(resultJson.skippedSkus, function(s, r) {
+                        allErrors[s] = [r];
+                    });
+                }
+                if (resultJson.failedSkus) {
+                    $.each(resultJson.failedSkus, function(s, r) {
+                        allErrors[s] = [r];
+                    });
+                }
+            }
+
+            var hasErrors = Object.keys(allErrors).length > 0 || (resultJson.globalErrors && resultJson.globalErrors.length > 0);
+            var successCount = resultJson.successCount || 0;
+
             var html = '<div class="dashboard-card shadow-sm">';
             html += '<div class="card-header"><h3><i class="fas fa-clipboard-list"></i> ' + $t('Upload Results') + '</h3></div>';
             html += '<div class="card-content">';
             
-            html += '<div style="margin-bottom: 20px;"><strong>' + $t('Processed SKUs') + ':</strong> ' + escapeHtml(resultJson.successCount || 0) + '</div>';
+            html += '<div style="margin-bottom: 15px; display: flex; gap: 20px; font-size: 0.95rem;">';
+            html += '<span style="color: #0b9b3e; font-weight: bold;"><i class="fas fa-check"></i> ' + $t('Successfully Assigned SKUs') + ': ' + escapeHtml(successCount) + '</span>';
+            if (hasErrors) {
+                html += '<span style="color: #dc2626; font-weight: bold;"><i class="fas fa-exclamation-circle"></i> ' + $t('Errors / Skipped') + ': ' + Object.keys(allErrors).length + '</span>';
+            }
+            html += '</div>';
             
             if (resultJson.globalErrors && resultJson.globalErrors.length > 0) {
                 html += '<div style="color: #e02b27; margin-bottom: 15px;"><strong>Global Errors:</strong><ul>';
@@ -157,13 +206,13 @@
                 html += '</ul></div>';
             }
             
-            if (resultJson.errors && Object.keys(resultJson.errors).length > 0) {
-                html += '<div class="table-wrapper shadow-xs rounded-lg overflow-hidden border border-gray-100">';
+            if (hasErrors) {
+                html += '<div class="table-wrapper shadow-xs rounded-lg overflow-hidden border border-gray-100 mb-4">';
                 html += '<table class="shipping-rates-table"><thead><tr>';
-                html += '<th class="col label">SKU / File</th><th class="col type">Error</th>';
+                html += '<th class="col label" style="width: 35%;">' + $t('SKU / File') + '</th><th class="col type">' + $t('Error') + '</th>';
                 html += '</tr></thead><tbody>';
                 
-                $.each(resultJson.errors, function(identifier, errors) {
+                $.each(allErrors, function(identifier, errors) {
                     html += '<tr>';
                     html += '<td class="col label font-bold text-gray-700">' + escapeHtml(identifier) + '</td>';
                     html += '<td class="col type text-sm text-red-600"><ul>';
@@ -179,6 +228,7 @@
                 });
                 
                 html += '</tbody></table></div>';
+                html += '<div style="text-align: right;"><button type="button" class="action-btn secondary small" onclick="window.location.reload();">' + $t('Refresh Page') + '</button></div>';
             } else {
                 html += '<div style="color: #0b9b3e; font-weight: bold;"><i class="fas fa-check-circle"></i> ' + $t('All images processed successfully with no errors!') + '</div>';
             }

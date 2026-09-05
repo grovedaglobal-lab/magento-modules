@@ -7,11 +7,11 @@
         </div>
         <div class="card-content" style="padding-top: 15px; padding-bottom: 15px;">
             <ul style="list-style-type: disc; margin-left: 20px; color: #444; line-height: 1.6;">
-                <li><?= __('Upload multiple individual images (.jpg, .png) OR multiple <strong>.zip</strong> archives. (Max 1GB and 1000 images per ZIP).') ?></li>
-                <li><?= __('Name each image file exactly matching the product <strong>SKU</strong>.') ?></li>
-                <li><?= __('For the main image, use: <code>SKU.jpg</code> or <code>SKU.png</code>') ?></li>
-                <li><?= __('For additional gallery images, append an underscore and a number: <code>SKU_1.jpg</code>, <code>SKU_2.jpg</code>, etc.') ?></li>
-                <li><?= __('All images uploaded will <strong>replace</strong> the existing product gallery.') ?></li>
+                <li><?= __('Upload multiple individual images (.jpg, .jpeg, .png, .webp) OR multiple <strong>.zip</strong> archives. (Max 256MB and 1000 images per batch).') ?></li>
+                <li><?= __('Name each image file exactly matching your product <strong>SKU</strong> in the catalog.') ?></li>
+                <li><?= __('For the main base image, use: <code>SKU.jpg</code>, <code>SKU.png</code>, or <code>SKU.webp</code>') ?></li>
+                <li><?= __('For additional gallery images, append an underscore and number: <code>SKU_1.jpg</code>, <code>SKU_2.jpg</code>, etc.') ?></li>
+                <li><?= __('All images uploaded will <strong>replace</strong> the existing product gallery for that SKU.') ?></li>
             </ul>
         </div>
     </div>
@@ -30,7 +30,7 @@
                     <div class="form-field-group required">
                         <label for="bulk_image_zip"><?= __('Upload Images or ZIP Archives') ?></label>
                         <div class="upload-control">
-                            <input type="file" name="bulk_images[]" id="bulk_image_zip" class="input-file required-entry" accept=".zip,.jpg,.jpeg,.png" multiple />
+                            <input type="file" name="bulk_images[]" id="bulk_image_zip" class="input-file required-entry" accept=".zip,.jpg,.jpeg,.png,.webp" multiple />
                         </div>
                     </div>
                 </div>
@@ -60,9 +60,6 @@
     <?= $block->getChildHtml('job_history') ?>
 </div>
 
-
-
-
 <script type="text/javascript">
 require([
     'jquery',
@@ -71,6 +68,16 @@ require([
 ], function ($, $t, urlBuilder) {
     'use strict';
     
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     $(document).ready(function() {
         var $form = $('#bulk-image-upload-form');
         var $messages = $('#bulk-upload-messages');
@@ -88,7 +95,7 @@ require([
 
             var fileInput = $('#bulk_image_zip')[0];
             if (!fileInput.files.length) {
-                showMessage($t('Please select a ZIP file.'), 'error');
+                showMessage($t('Please select one or more files to upload.'), 'error');
                 return;
             }
 
@@ -98,7 +105,7 @@ require([
             $messages.hide();
             $results.hide();
             $progressContainer.show();
-            updateProgress(0, $t('Uploading ZIP... Please do not refresh the page!'));
+            updateProgress(0, $t('Uploading files... Please do not refresh the page!'));
 
             $.ajax({
                 url: $form.attr('action'),
@@ -109,14 +116,14 @@ require([
                 showLoader: false,
                 success: function (response) {
                     if (response.success && response.job_id) {
-                        updateProgress(10, $t('Upload successful, your files are valid, we will take it from here.'));
+                        updateProgress(10, $t('Upload received, queued for background processing...'));
                         startPolling(response.job_id);
                     } else {
                         handleError(response.error || $t('Upload failed.'));
                     }
                 },
                 error: function (xhr, status, error) {
-                    handleError(error || $t('A network error occurred.'));
+                    handleError(error || $t('A network error occurred during upload.'));
                 }
             });
         });
@@ -141,38 +148,50 @@ require([
                         var processed = res.processed || 0;
                         var pct = total > 0 ? Math.round((processed / total) * 100) : 0;
                         
-                        // Scale percentage from 10% to 100% since 0-10% was upload phase
                         var actualPct = 10 + (pct * 0.9);
                         
                         if (res.status === 'processing') {
                             updateProgress(actualPct, $t('Processing images...') + ' (' + processed + '/' + total + ')');
-                        } else if (res.status === 'completed' || res.status === 'failed') {
+                        } else if (res.status === 'completed' || res.status === 'partial' || res.status === 'failed') {
                             clearInterval(pollInterval);
-                            updateProgress(100, res.status === 'completed' ? $t('Completed!') : $t('Failed.'));
+                            var statusText = $t('Completed!');
+                            if (res.status === 'partial') statusText = $t('Completed with some issues.');
+                            if (res.status === 'failed') statusText = $t('Processing failed.');
+                            
+                            updateProgress(100, statusText);
                             setTimeout(function() {
                                 $progressContainer.hide();
                                 renderResults(res.result_json, res.status);
                                 $submitBtn.prop('disabled', false);
                                 $form[0].reset();
-                                setTimeout(function() { window.location.reload(); }, 3000);
+                                
+                                var hasErrors = res.status === 'failed' || (res.result_json && (
+                                    res.result_json.hasErrors || 
+                                    (res.result_json.errors && Object.keys(res.result_json.errors).length > 0) ||
+                                    (res.result_json.globalErrors && res.result_json.globalErrors.length > 0) ||
+                                    (res.result_json.skippedFiles && Object.keys(res.result_json.skippedFiles).length > 0) ||
+                                    (res.result_json.notFoundSkus && res.result_json.notFoundSkus.length > 0)
+                                ));
+
+                                setTimeout(function() { window.location.reload(); }, hasErrors ? 12000 : 3000);
                             }, 1000);
                         }
                     },
                     error: function () {
                         clearInterval(pollInterval);
-                        handleError($t('Lost connection to server.'));
+                        handleError($t('Lost connection to server while polling job status.'));
                     }
                 });
-            }, 2000); // poll every 2 seconds
+            }, 2000);
         }
 
         function updateProgress(pct, text) {
             $progressBar.css('width', pct + '%');
             $progressPercentage.text(Math.round(pct) + '%');
             if (text) {
-                $progressText.html('<i class="fas fa-spinner fa-spin"></i> ' + text);
+                $progressText.html('<i class="fas fa-spinner fa-spin"></i> ' + escapeHtml(text));
                 if (pct === 100) {
-                    $progressText.html('<i class="fas fa-check-circle"></i> ' + text);
+                    $progressText.html('<i class="fas fa-check-circle"></i> ' + escapeHtml(text));
                 }
             }
         }
@@ -186,7 +205,7 @@ require([
         function showMessage(msg, type) {
             var color = type === 'error' ? '#e02b27' : '#006400';
             var bgColor = type === 'error' ? '#fae5e5' : '#e5efe5';
-            $messages.html('<div style="padding: 10px 20px; color: '+color+'; background-color: '+bgColor+'; border-radius: 4px;">' + msg + '</div>').show();
+            $messages.html('<div style="padding: 10px 20px; color: '+color+'; background-color: '+bgColor+'; border-radius: 4px;">' + escapeHtml(msg) + '</div>').show();
         }
 
         function renderResults(resultJson, status) {
@@ -195,40 +214,93 @@ require([
                 return;
             }
             
+            var allErrors = {};
+            if (resultJson.errors && typeof resultJson.errors === 'object' && !Array.isArray(resultJson.errors)) {
+                allErrors = resultJson.errors;
+            } else {
+                if (resultJson.notFoundSkus && resultJson.notFoundSkus.length) {
+                    resultJson.notFoundSkus.forEach(function(s) {
+                        allErrors[s] = [$t('SKU not found in catalog.')];
+                    });
+                }
+                if (resultJson.unauthorizedSkus && resultJson.unauthorizedSkus.length) {
+                    resultJson.unauthorizedSkus.forEach(function(s) {
+                        allErrors[s] = [$t('SKU does not belong to your vendor account.')];
+                    });
+                }
+                if (resultJson.skippedFiles) {
+                    $.each(resultJson.skippedFiles, function(f, r) {
+                        allErrors[f] = [r];
+                    });
+                }
+                if (resultJson.skippedSkus) {
+                    $.each(resultJson.skippedSkus, function(s, r) {
+                        allErrors[s] = [r];
+                    });
+                }
+                if (resultJson.failedSkus) {
+                    $.each(resultJson.failedSkus, function(s, r) {
+                        allErrors[s] = [r];
+                    });
+                }
+            }
+
+            var hasErrors = Object.keys(allErrors).length > 0 || (resultJson.globalErrors && resultJson.globalErrors.length > 0) || resultJson.hasErrors || (status === 'failed');
+            var successCount = resultJson.successCount || 0;
+            var isAllSuccess = (status === 'completed') && (successCount > 0) && !hasErrors;
+
             var html = '<div class="dashboard-card shadow-sm">';
             html += '<div class="card-header"><h3><i class="fas fa-clipboard-list"></i> ' + $t('Upload Results') + '</h3></div>';
             html += '<div class="card-content">';
             
-            html += '<div style="margin-bottom: 20px;"><strong>' + $t('Processed SKUs') + ':</strong> ' + resultJson.successCount + '</div>';
+            html += '<div style="margin-bottom: 15px; display: flex; gap: 20px; font-size: 0.95rem; flex-wrap: wrap;">';
+            html += '<span style="color: ' + (successCount > 0 ? '#0b9b3e' : '#6b7280') + '; font-weight: bold;"><i class="fas fa-check-circle"></i> ' + $t('Successfully Assigned SKUs') + ': ' + escapeHtml(successCount) + '</span>';
+            if (hasErrors) {
+                var errTotal = Math.max(Object.keys(allErrors).length + (resultJson.globalErrors ? resultJson.globalErrors.length : 0), 1);
+                if (resultJson.errorCount) errTotal = resultJson.errorCount;
+                html += '<span style="color: #dc2626; font-weight: bold;"><i class="fas fa-exclamation-circle"></i> ' + $t('Errors / Skipped') + ': ' + errTotal + '</span>';
+            }
+            html += '</div>';
             
             if (resultJson.globalErrors && resultJson.globalErrors.length > 0) {
-                html += '<div style="color: #e02b27; margin-bottom: 15px;"><strong>Global Errors:</strong><ul>';
+                html += '<div style="color: #dc2626; margin-bottom: 15px; background: #fee2e2; padding: 12px; border-radius: 6px; font-size: 0.88rem;"><strong>' + $t('System / Processing Errors:') + '</strong><ul style="margin: 6px 0 0 18px; list-style-type: disc;">';
                 resultJson.globalErrors.forEach(function(err) {
-                    html += '<li>' + err + '</li>';
+                    html += '<li>' + escapeHtml(err) + '</li>';
                 });
                 html += '</ul></div>';
             }
             
-            if (resultJson.errors && Object.keys(resultJson.errors).length > 0) {
-                html += '<div class="table-wrapper shadow-xs rounded-lg overflow-hidden border border-gray-100">';
+            if (Object.keys(allErrors).length > 0) {
+                html += '<div style="margin-bottom: 10px; color: #b91c1c; font-weight: 600;">' + $t('The following images/SKUs could not be processed:') + '</div>';
+                html += '<div class="table-wrapper shadow-xs rounded-lg overflow-hidden border border-gray-100 mb-4">';
                 html += '<table class="shipping-rates-table"><thead><tr>';
-                html += '<th class="col label">SKU / File</th><th class="col type">Error</th>';
+                html += '<th class="col label" style="width: 35%;">' + $t('SKU / File') + '</th><th class="col type">' + $t('Reason / Error') + '</th>';
                 html += '</tr></thead><tbody>';
                 
-                $.each(resultJson.errors, function(identifier, errors) {
+                $.each(allErrors, function(identifier, errors) {
                     html += '<tr>';
-                    html += '<td class="col label font-bold text-gray-700">' + identifier + '</td>';
-                    html += '<td class="col type text-sm text-red-600"><ul>';
-                    errors.forEach(function(err) {
-                        html += '<li>' + err + '</li>';
-                    });
-                    html += '</ul></td>';
+                    html += '<td class="col label font-bold text-gray-700" style="font-family: monospace;">' + escapeHtml(identifier) + '</td>';
+                    html += '<td class="col type text-sm text-red-600">';
+                    if (Array.isArray(errors)) {
+                        html += '<ul style="margin: 0; padding-left: 15px;">';
+                        errors.forEach(function(err) {
+                            html += '<li>' + escapeHtml(err) + '</li>';
+                        });
+                        html += '</ul>';
+                    } else {
+                        html += escapeHtml(errors);
+                    }
+                    html += '</td>';
                     html += '</tr>';
                 });
                 
                 html += '</tbody></table></div>';
-            } else if (!resultJson.globalErrors || resultJson.globalErrors.length === 0) {
+                html += '<div style="text-align: right;"><button type="button" class="action-btn secondary small" onclick="window.location.reload();">' + $t('Refresh Page') + '</button></div>';
+            } else if (isAllSuccess) {
                 html += '<div style="color: #0b9b3e; font-weight: bold;"><i class="fas fa-check-circle"></i> ' + $t('All images processed successfully with no errors!') + '</div>';
+            } else if (status === 'failed') {
+                html += '<div style="color: #dc2626; font-weight: bold; background: #fee2e2; padding: 12px; border-radius: 6px;"><i class="fas fa-exclamation-circle"></i> ' + $t('Upload failed: No matching SKUs found in catalog for the uploaded file(s).') + '</div>';
+                html += '<div style="text-align: right; margin-top: 10px;"><button type="button" class="action-btn secondary small" onclick="window.location.reload();">' + $t('Refresh Page') + '</button></div>';
             }
             
             html += '</div></div>';
@@ -237,7 +309,3 @@ require([
     });
 });
 </script>
-
-
-
-

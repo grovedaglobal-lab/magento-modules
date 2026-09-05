@@ -30,8 +30,8 @@ class AddMessage implements ResolverInterface
         Field $field,
         $context,
         ResolveInfo $info,
-        array $value = null,
-        array $args = null
+        ?array $value = null,
+        ?array $args = null
     ) {
         if (!$context->getUserId()) {
             throw new GraphQlAuthorizationException(__('Customer must be logged in to reply to a ticket.'));

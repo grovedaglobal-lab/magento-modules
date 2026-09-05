@@ -101,6 +101,12 @@ class Save extends Action
             return $this->resultRedirectFactory->create()->setPath('*/*/index');
         }
 
+        $formKeyValidator = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Framework\Data\Form\FormKey\Validator::class);
+        if (!$formKeyValidator->validate($this->getRequest())) {
+            $this->messageManager->addErrorMessage(__('Invalid form key. Please refresh the page and try again.'));
+            return $this->resultRedirectFactory->create()->setPath('*/*/index');
+        }
+
         try {
             $customerId = $this->customerSession->getCustomerId();
             $vendor = $this->vendorFactory->create()->load($customerId, 'customer_id');

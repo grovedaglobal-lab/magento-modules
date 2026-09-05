@@ -38,6 +38,15 @@ class ToggleStatus extends Action
             return $result->setData(['success' => false, 'message' => __('Not logged in.')]);
         }
 
+        if (!$this->getRequest()->isPost()) {
+            return $result->setData(['success' => false, 'message' => __('Invalid request method. POST required.')]);
+        }
+
+        $formKeyValidator = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Framework\Data\Form\FormKey\Validator::class);
+        if (!$formKeyValidator->validate($this->getRequest())) {
+            return $result->setData(['success' => false, 'message' => __('Invalid form key.')]);
+        }
+
         $vendorId = $this->vendorResolver->getVendorIdByCustomer(
             (int)$this->customerSession->getCustomerId()
         );

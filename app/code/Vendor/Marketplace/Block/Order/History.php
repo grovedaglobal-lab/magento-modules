@@ -69,7 +69,7 @@ class History extends Template
                 $collection->getSelect()->join(
                     ['so' => $collection->getTable('sales_order')],
                     'main_table.order_id = so.entity_id',
-                    ['increment_id', 'order_created_at' => 'created_at', 'customer_firstname', 'customer_lastname', 'base_grand_total', 'order_status' => 'status']
+                    ['increment_id', 'order_created_at' => 'created_at', 'customer_firstname', 'customer_lastname', 'base_grand_total', 'order_status' => 'main_table.status']
                 )->where('so.is_wallet_recharge = 0 OR so.is_wallet_recharge IS NULL');
 
                 // Apply Filters
@@ -124,11 +124,11 @@ class History extends Template
             ->join(
                 ['so' => $salesOrderTable],
                 'main_table.order_id = so.entity_id',
-                ['status' => 'status', 'count' => new \Zend_Db_Expr('COUNT(*)')]
+                ['status' => 'main_table.status', 'count' => new \Zend_Db_Expr('COUNT(*)')]
             )
             ->where('main_table.vendor_id = ?', $vendorId)
             ->where('so.is_wallet_recharge = 0 OR so.is_wallet_recharge IS NULL')
-            ->group('so.status');
+            ->group('main_table.status');
 
         $results = $connection->fetchPairs($select);
 
@@ -210,3 +210,5 @@ class History extends Template
         return $this->getUrl('marketplace/order/view', ['id' => $order->getId()]);
     }
 }
+
+

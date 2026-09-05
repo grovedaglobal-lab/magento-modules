@@ -167,6 +167,19 @@ class View extends Template
             $order = $this->orderFactory->create()->load($vendorOrder->getOrderId());
             return $order;
         }
+
+        // Fallback: check direct order ID parameter (e.g. for Wallet Recharge orders)
+        $requestId = $this->getRequest()->getParam('id') ?: $this->getRequest()->getParam('order_id');
+        if ($requestId) {
+            $directOrder = $this->orderFactory->create()->load($requestId);
+            if ($directOrder->getId()) {
+                $customerId = $this->customerSession->getCustomerId();
+                if ($customerId && (int)$directOrder->getCustomerId() === (int)$customerId) {
+                    return $directOrder;
+                }
+            }
+        }
+
         return null;
     }
 
@@ -491,20 +504,65 @@ class View extends Template
      * Check if vendor can ship items
      * @return bool
      */
+    public function getVendorOrderStatus()
+    {
+        $vendorOrder = $this->getVendorOrder();
+        return $vendorOrder ? $vendorOrder->getStatus() : "";
+    }
+
+    public function getVendorOrderStatusLabel()
+    {
+        $status = $this->getVendorOrderStatus();
+        if ($status == "complete") return __("Complete");
+        if ($status == "processing") {
+            // Check if partially shipped
+            $items = $this->getVendorOrderItems();
+            $hasShipped = false;
+            foreach ($items as $item) {
+                if ($item->getQtyShipped() > 0) { $hasShipped = true; break; }
+            }
+            return $hasShipped ? __("Partially Shipped") : __("Processing");
+        }
+        if ($status == "canceled") return __("Canceled");
+        return ucfirst($status ?: "Pending");
+    }
+
+    public function canVendorCancel()
+    {
+        $vendorOrder = $this->getVendorOrder();
+        if (!$vendorOrder || in_array($vendorOrder->getStatus(), ["complete", "canceled"])) {
+            return false;
+        }
+        $items = $this->getVendorOrderItems();
+        foreach ($items as $item) {
+            $rem = (float)$item->getQtyOrdered() - (float)$item->getQtyShipped() - (float)$item->getQtyCanceled();
+            if ($rem > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function canVendorShip()
     {
         $vendorOrder = $this->getVendorOrder();
-        if (!$vendorOrder || $vendorOrder->getStatus() == 'complete') {
+        if (!$vendorOrder || in_array($vendorOrder->getStatus(), ["complete", "canceled"])) {
+            return false;
+        }
+
+        $order = $this->getOrder();
+        if ($order && in_array($order->getStatus(), ["complete", "closed", "canceled"])) {
             return false;
         }
 
         $items = $this->getVendorOrderItems();
         foreach ($items as $item) {
-            $qtyToShip = $item->getQtyOrdered() - $item->getQtyShipped();
-            if ($qtyToShip > 0) {
+            $rem = (float)$item->getQtyOrdered() - (float)$item->getQtyShipped() - (float)$item->getQtyCanceled();
+            if ($rem > 0) {
                 return true;
             }
         }
+        return false;
         return false;
     }
 
@@ -564,3 +622,4 @@ class View extends Template
         return $vendorShipments;
     }
 }
+

@@ -22,7 +22,7 @@ class RecordAdClick implements ResolverInterface
     /**
      * {@inheritdoc}
      */
-    public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
+    public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null)
     {
         $bidId = (int)($args['bid_id'] ?? 0);
         $productId = (int)($args['product_id'] ?? 0);

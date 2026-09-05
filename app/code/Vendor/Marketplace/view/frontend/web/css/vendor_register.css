@@ -208,3 +208,14 @@ body.vendor_marketplace-account-create .page-title {
         align-items: flex-start;
     }
 }
+
+/* Fix double asterisk bug on required fields */
+.vendor-login-container .field.required > .label:after,
+.vendor-register-container .field.required > .label:after {
+    display: none !important;
+}
+.vendor-login-container .field.required > .label span:after,
+.vendor-register-container .field.required > .label span:after {
+    content: ' *';
+    color: #e02b27;
+}

@@ -2,6 +2,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <event name="sales_order_save_after">
         <observer name="vendor_marketplace_split_order" instance="Vendor\Marketplace\Observer\OrderPlaceAfter"/>
+        <observer name="vendor_marketplace_send_vendor_on_paid" instance="Vendor\Marketplace\Observer\SendVendorOrderOnInvoice"/>
     </event>
     <event name="catalog_product_save_before">
         <observer name="vendor_marketplace_product_save_before" instance="Vendor\Marketplace\Observer\ProductSaveBefore" />
@@ -19,5 +20,8 @@
     </event>
     <event name="review_save_after">
         <observer name="vendor_marketplace_notify_review" instance="Vendor\Marketplace\Observer\NotifyNewReview"/>
+    </event>
+    <event name="sales_order_invoice_save_after">
+        <observer name="vendor_marketplace_send_vendor_on_invoice" instance="Vendor\Marketplace\Observer\SendVendorOrderOnInvoice"/>
     </event>
 </config>

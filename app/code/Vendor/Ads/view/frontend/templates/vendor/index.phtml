@@ -55,6 +55,7 @@ $kwUrl            = $block->escapeUrl($block->getCampaignKeywordsUrl());
                     <label><input type="checkbox" class="col-toggle" data-col="col-date-end" checked> <?= $block->escapeHtml(__('End date')) ?></label>
                     <label><input type="checkbox" class="col-toggle" data-col="col-budget" checked> <?= $block->escapeHtml(__('Budget')) ?></label>
                     <label><input type="checkbox" class="col-toggle" data-col="col-cost" checked> <?= $block->escapeHtml(__('Cost type')) ?></label>
+                    <label><input type="checkbox" class="col-toggle" data-col="col-id"> <?= $block->escapeHtml(__('Campaign ID')) ?></label>
                 </div>
             </div>
         </div>
@@ -66,6 +67,7 @@ $kwUrl            = $block->escapeUrl($block->getCampaignKeywordsUrl());
             <thead>
                 <tr>
                     <th class="col-check"><input type="checkbox" id="ads-select-all"></th>
+                    <th class="col-id" style="display:none;"><?= $block->escapeHtml(__('ID')) ?></th>
                     <th class="col-active"><?= $block->escapeHtml(__('Active')) ?></th>
                     <th class="col-campaign"><?= $block->escapeHtml(__('Campaigns')) ?> <span class="info-circle">i</span></th>
                     <th class="col-status"><?= $block->escapeHtml(__('Status')) ?></th>
@@ -92,6 +94,7 @@ $kwUrl            = $block->escapeUrl($block->getCampaignKeywordsUrl());
                             data-name="<?= $block->escapeHtmlAttr(strtolower($camp['name'])) ?>"
                         >
                             <td class="col-check"><input type="checkbox" class="ads-row-check" value="<?= $cid ?>"></td>
+                            <td class="col-id" style="display:none;"><span style="font-size:11px;color:#888;font-family:monospace;"><?= $cid ?></span></td>
                             <td class="col-active">
                                 <label class="ads-switch" title="<?= $block->escapeHtmlAttr(__('Toggle active/paused')) ?>">
                                     <input
@@ -123,10 +126,15 @@ $kwUrl            = $block->escapeUrl($block->getCampaignKeywordsUrl());
                                 <div class="type-sub"><?= $block->escapeHtml(__('%1 Ads inside', $camp['ad_count'])) ?></div>
                             </td>
                             <td class="col-date-start">
-                                <span class="date-pill"><?= $block->escapeHtml(date('M d, Y', strtotime($camp['created_at']))) ?></span>
+                                <?php $startTs = !empty($camp['start_date']) ? strtotime($camp['start_date']) : strtotime($camp['created_at']); ?>
+                                <span class="date-pill"><?= $block->escapeHtml(date('M d, Y', $startTs)) ?></span>
                             </td>
                             <td class="col-date-end">
-                                <span class="date-pill no-date"><?= $block->escapeHtml(__('No end date')) ?></span>
+                                <?php if (!empty($camp['end_date'])): ?>
+                                    <span class="date-pill"><?= $block->escapeHtml(date('M d, Y', strtotime($camp['end_date']))) ?></span>
+                                <?php else: ?>
+                                    <span class="date-pill no-date"><?= $block->escapeHtml(__('No end date')) ?></span>
+                                <?php endif; ?>
                             </td>
                             <td class="col-budget">
                                 <div class="budget-val">₹<?= number_format((float)($camp['daily_budget'] ?: 0), 2) ?></div>

@@ -53,8 +53,16 @@ class OrderPlaceAfter implements ObserverInterface
             $order = $observer->getEvent()->getOrder();
             $orderId = $order->getEntityId();
 
-            if (!$orderId || $order->getData('is_wallet_recharge')) {
+            // Guard against wallet recharge orders
+            if (!$orderId || (int)$order->getData("is_wallet_recharge") === 1) {
                 return;
+            }
+
+            // Check if any item in the order is a wallet recharge product
+            foreach ($order->getAllItems() as $checkItem) {
+                if ($checkItem->getSku() === "wallet-recharge" || strpos($checkItem->getSku(), "wallet") !== false) {
+                    return;
+                }
             }
 
             $connection = $this->resourceVendorOrder->getConnection();

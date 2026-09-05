@@ -40,8 +40,8 @@ class MyVendorProfile implements ResolverInterface
         Field $field,
         $context,
         ResolveInfo $info,
-        array $value = null,
-        array $args = null
+        ?array $value = null,
+        ?array $args = null
     ) {
         // Must be an authenticated customer
         if (!$context->getUserId()) {
@@ -56,7 +56,7 @@ class MyVendorProfile implements ResolverInterface
         $vendor = $collection->getFirstItem();
 
         if (!$vendor || !$vendor->getId()) {
-            // Customer is not a vendor – return null gracefully
+            // Customer is not a vendor â€“ return null gracefully
             return null;
         }
 

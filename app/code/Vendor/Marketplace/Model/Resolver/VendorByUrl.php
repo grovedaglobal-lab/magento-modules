@@ -101,8 +101,8 @@ class VendorByUrl implements ResolverInterface
             'country' => $vendor->getData('country'),
             'company_name' => $vendor->getData('company_name'),
             'gst_number' => $vendor->getData('tax_id'),
-            'pan_number' => $vendor->getData('business_license'),
-            'signature' => $vendor->getData('signature'),
+            'pan_number' => null, // Redacted on public storefront
+            'signature' => null,
             'authorized_name' => $vendor->getData('authorized_name'),
             'brand_header_image' => $vendor->getData('brand_header_image'),
             'brand_slider_image_1' => $vendor->getData('brand_slider_image_1'),
@@ -125,9 +125,7 @@ class VendorByUrl implements ResolverInterface
             ? $mediaUrl . 'vendor/banner/' . $vendorData['banner']
             : null;
 
-        $vendorData['signature_url'] = $vendorData['signature']
-            ? $mediaUrl . 'vendor/signature/' . $vendorData['signature']
-            : null;
+        $vendorData['signature_url'] = null; // Redacted on public storefront
 
         $vendorData['brand_header_image_url'] = $vendorData['brand_header_image']
             ? $mediaUrl . 'vendor/brand/' . $vendorData['brand_header_image']

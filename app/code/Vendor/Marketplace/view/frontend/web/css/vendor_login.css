@@ -161,3 +161,14 @@ body.vendor-marketplace-account-forgotpassword .page-title {
     font-weight: 600;
     color: #007bdb;
 }
+
+/* Fix double asterisk bug on required fields */
+.vendor-login-container .field.required > .label:after,
+.vendor-register-container .field.required > .label:after {
+    display: none !important;
+}
+.vendor-login-container .field.required > .label span:after,
+.vendor-register-container .field.required > .label span:after {
+    content: ' *';
+    color: #e02b27;
+}
